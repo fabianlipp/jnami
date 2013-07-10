@@ -1,0 +1,43 @@
+Various tools to work with NaMi (membership management of DPSG) from Java. Further documentation is German-only, because the software is utilizable for members of DPSG (http://www.dpsg.de) only.
+
+
+
+Das Ganze hat bisher eher dazu gedient mich mit der API vertraut zu machen. Die Tools sind also noch nicht für den produktiven Einsatz gedacht.
+
+Der Code ist noch nicht gut dokumentiert, das werde ich demnächst noch nachholen und dabei möglicherweise auch noch einiges umstrukturieren.
+
+
+
+Begonnene Tools:
+----------------
+- Nami2Mailman: Sucht Personen nach Gruppenzugehörigkeit und generiert daruas Mailverteiler (als Tetdateien) die dann beispielsweise mit GNU Mailman synchronisiert werden können
+- NamiStatistics: Zählt die Mitglieder (aufgeteilt nach Gruppierung und Stufenzugehörigkeit) in NaMi und speichert die Ergebnisse in eine SQL-Datenbank. Soll dann noch um Funktionen erweitert werden, um die Daten aus dieser Datenbank auszuwerten (um beispielsweise eine Statistik für den Stamm, den ganzen Bezirk usw. zu generieren). Insgesamt soll das Tool mindestens die Statistik-Funktion aus NaMi 1 ersetzen, die es in NaMi 2 nicht mehr gibt (ein Bug-Report diesbezüglich blieb unbeantwortet).
+
+
+
+Bemerkungen zum aktuellen Stand:
+--------------------------------
+- Bisher wurde das Ganze nur auf dem NaMi-Test-Server erprobt. Mittlerweile ist der Live-Server anscheinend auf einem neueren Stand als der Test-Server, sodass möglicherweise einige Anpassungen nötig sind.
+- Der Code stammt großteils aus Februar/März 2013. Möglicherweise funktioniert durch die Änderungen in NaMi in den letzten Monaten nicht mehr alles (insbesondere die Suchfunktion wurde verbessert).
+- Mit der verbesserten Suchfunktion kann man möglicherweise an einigen Stellen API-Requests einsparen und so die Belastung für den Server reduzieren.
+Zu der Zeit, als ich den Code geschrieben habe, musste man noch sehr viele Anfragen an den Server schicken, um die Daten zu erhalten. Das ist zumindest mit der erweiterten Suchfunktion etwas besser geworden, in meinen Augen aber noch nicht optimal (habe dazu auch schon einen Bugreport geschrieben, auf den aber niemand reagiert hat).
+
+
+
+Benutzte Java-Libraries:
+------------------------
+- Apache HttpComponents
+http://hc.apache.org/
+
+- google-gson
+http://code.google.com/p/google-gson/
+
+- JDOM 2
+http://www.jdom.org/
+
+- MySQL Connector/J
+http://dev.mysql.com/downloads/connector/j/
+
+
+
+

@@ -1,0 +1,26 @@
+<namimailman>
+	<namiSearch>
+		<taetigkeit id="6" /> <!-- LeiterIn -->
+	</namiSearch>
+	<mailinglist name="alle-leiter">
+		<includeNamiResult>
+			<taetigkeit id="6" />
+			<gruppierung id="220309" ebene="stamm" />
+		</includeNamiResult>
+		<includePerson name="uebergeordnet" email="b@b.com" />
+	</mailinglist>
+	<mailinglist name="woeleiter">
+		<includeNamiResult>
+			<taetigkeit id="6" />
+			<untergliederung id="1" /> <!-- Stufe/Abteilung (beliebig wenn nicht angegeben) -->
+			<gruppierung id="220309" />
+		</includeNamiResult>
+	</mailinglist>
+	<mailinglist name="woeundjupfileiter">
+		<includeNamiResult>
+			<taetigkeit id="6" />
+			<untergliederung id="1" /> <!-- Wölflinge -->
+			<untergliederung id="2" /> <!-- Leiter -->
+		</includeNamiResult>
+	</mailinglist>
+</namimailman>
