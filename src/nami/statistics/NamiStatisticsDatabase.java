@@ -10,8 +10,8 @@ import java.sql.Statement;
 import java.sql.Types;
 
 import nami.connector.Geschlecht;
-import nami.connector.NamiApiException;
 import nami.connector.NamiConnector;
+import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiGruppierung;
 
 import com.google.gson.JsonIOException;
@@ -40,7 +40,7 @@ public class NamiStatisticsDatabase {
         stmtInsertAnzahl = dbcon.prepareStatement(sql);
     }
     
-    public void createDatabase(NamiGruppierung rootGruppierung) throws JsonIOException, JsonSyntaxException, IllegalStateException, NamiApiException, IOException, URISyntaxException, SQLException {
+    public void createDatabase(NamiGruppierung rootGruppierung) throws JsonIOException, JsonSyntaxException, IllegalStateException, NamiApiException, IOException, SQLException {
         String sql;
         Statement stmt;
         

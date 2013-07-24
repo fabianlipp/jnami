@@ -1,8 +1,35 @@
 package nami.connector;
 
+/**
+ * Mitgliedstypen, die es in NaMi gibt.
+ * 
+ * @author Fabian Lipp
+ * 
+ */
 public enum Mitgliedstyp {
-    MITGLIED, NICHT_MITGLIED, SCHNUPPERMITGLIED;
-    
+    /**
+     * Normale Mitgliedschaft.
+     */
+    MITGLIED,
+
+    /**
+     * Keine Mitgliedschaft.
+     */
+    NICHT_MITGLIED,
+
+    /**
+     * Schnuppermitgliedschaft.
+     */
+    SCHNUPPERMITGLIED;
+
+    /**
+     * Setzt einen String in den entsprechenden Mitgliedstyp um.
+     * 
+     * @param str
+     *            String-Repräsentation des Mitgliedstyps
+     * @return entsprechender Mitgliedstyp; <code>null</code>, wenn der String
+     *         nicht umgesetzt werden kann
+     */
     public static Mitgliedstyp fromString(String str) {
         switch (str) {
         case "Mitglied":
@@ -16,7 +43,8 @@ public enum Mitgliedstyp {
         case "":
             return null;
         default:
-            throw new IllegalArgumentException("Unexpected String for Mitgliedstyp");
+            throw new IllegalArgumentException(
+                    "Unexpected String for Mitgliedstyp");
         }
     }
 }

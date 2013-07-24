@@ -2,20 +2,19 @@ package nami.connector.namitypes;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.URISyntaxException;
 import java.util.Collection;
 
-import nami.connector.NamiApiException;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
 import nami.connector.NamiURIBuilder;
+import nami.connector.exception.NamiApiException;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
 
 import com.google.gson.reflect.TypeToken;
 
+// TODO: Implementiere hascode (?)
 public class NamiTaetigkeitAssignmentListElement implements Comparable<NamiTaetigkeitAssignmentListElement> {
     private static final int MAX_TAETIGKEITEN = 1000;
     
@@ -65,7 +64,7 @@ public class NamiTaetigkeitAssignmentListElement implements Comparable<NamiTaeti
         return Integer.valueOf(this.id).compareTo(Integer.valueOf(o.id));
     }
     
-    public static Collection<NamiTaetigkeitAssignmentListElement> getTaetigkeiten(NamiConnector con, int id) throws URISyntaxException, ClientProtocolException, IOException, NamiApiException {
+    public static Collection<NamiTaetigkeitAssignmentListElement> getTaetigkeiten(NamiConnector con, int id) throws ClientProtocolException, IOException, NamiApiException {
         final String URL_NAMI_TAETIGKEITEN = "/rest/api/1/2/service/nami/zugeordnete-taetigkeiten/filtered-for-navigation/gruppierung-mitglied/mitglied";
         NamiURIBuilder builder = con.getURIBuilder(URL_NAMI_TAETIGKEITEN);
         builder.appendPath(Integer.toString(id));

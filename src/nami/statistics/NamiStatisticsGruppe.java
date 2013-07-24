@@ -11,8 +11,8 @@ import org.apache.http.client.ClientProtocolException;
 
 import nami.connector.Geschlecht;
 import nami.connector.Mitgliedstyp;
-import nami.connector.NamiApiException;
 import nami.connector.NamiConnector;
+import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiMitgliedListElement;
 import nami.connector.namitypes.NamiSearchedValues;
 
@@ -128,7 +128,7 @@ public class NamiStatisticsGruppe {
 
     public int[] getAnzahl(NamiConnector con, int gruppierungId)
             throws ClientProtocolException, NamiApiException,
-            URISyntaxException, IOException {
+            IOException {
         // Das HashSet vergleicht die Mitglieder anhand der Mitgliedsnummer,
         // d.h. jedes Mitglied wird auch bei mehreren Tätigkeiten nur einmal
         // gezählt

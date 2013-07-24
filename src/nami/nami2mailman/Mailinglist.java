@@ -207,7 +207,7 @@ public class Mailinglist {
         for (NamiTaetigkeitAssignment t : taetigkeiten) {
             // Teste, ob einer der Filter erfüllt ist
             for (MailinglistFilter f : filters) {
-                if (t.istAktiv() && f.isFilterSatisfied(t)) {
+                if (t.isAktiv() && f.isFilterSatisfied(t)) {
                     return true;
                 }
             }

@@ -8,12 +8,12 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.TreeSet;
 
-import nami.connector.NamiApiException;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiConsoleCredentials;
 import nami.connector.credentials.NamiCredentials;
+import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiMitgliedListElement;
 import nami.connector.namitypes.NamiSearchedValues;
 import nami.connector.namitypes.NamiTaetigkeitAssignment;
@@ -36,12 +36,11 @@ public class Nami2Mailman {
      * @throws IOException
      * @throws JDOMException
      * @throws ConfigFormatException
-     * @throws URISyntaxException
      * @throws NamiApiException
      * @throws SAXException
      */
     public static void main(String[] args) throws IOException, JDOMException,
-            ConfigFormatException, NamiApiException, URISyntaxException {
+            ConfigFormatException, NamiApiException {
 
         String configFile = args[0];
         String outputPath = "./";

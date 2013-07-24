@@ -9,10 +9,10 @@ import java.sql.SQLException;
 import org.apache.http.client.ClientProtocolException;
 
 import nami.connector.Geschlecht;
-import nami.connector.NamiApiException;
 import nami.connector.NamiConnector;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
+import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiGruppierung;
 
 public class NamiStatisticsTest {
@@ -48,7 +48,7 @@ public class NamiStatisticsTest {
         dbcon.close();
     }
     
-    private static void writeAnzahlForGruppierungAndChildren(NamiStatisticsDatabase db, NamiConnector namicon, int runId, NamiGruppierung gruppierung) throws ClientProtocolException, NamiApiException, URISyntaxException, IOException, SQLException {
+    private static void writeAnzahlForGruppierungAndChildren(NamiStatisticsDatabase db, NamiConnector namicon, int runId, NamiGruppierung gruppierung) throws ClientProtocolException, NamiApiException, IOException, SQLException {
         for (NamiStatisticsGruppe gruppe : NamiStatisticsGruppe.GRUPPEN) {
             int[] anzahl = gruppe.getAnzahl(namicon, gruppierung.getId());
             db.writeAnzahl(gruppierung.getId(), gruppe.getId(), runId, Geschlecht.MAENNLICH, anzahl[0]);

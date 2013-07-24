@@ -2,20 +2,24 @@ package nami.connector.namitypes;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.URISyntaxException;
 import java.util.Collection;
 
-import nami.connector.NamiApiException;
 import nami.connector.NamiConnector;
-import nami.connector.NamiException;
 import nami.connector.NamiResponse;
 import nami.connector.NamiURIBuilder;
+import nami.connector.exception.NamiApiException;
+import nami.connector.exception.NamiException;
 
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 
 import com.google.gson.reflect.TypeToken;
 
+/**
+ * Stellt ein Mitglied der DPSG dar.
+ * 
+ * @author Fabian Lipp
+ * 
+ */
 public class NamiMitglied {
     public static class KontoverbindungType {
         private String institut;
@@ -88,33 +92,32 @@ public class NamiMitglied {
 
     private KontoverbindungType kontoverbindung;
 
-    private static NamiMitglied getMitgliedByIdFromGruppierung(NamiConnector con, String gruppierung,
-            String id) throws ClientProtocolException, IOException,
-            URISyntaxException, NamiApiException {
-        final String URL_NAMI_MITGLIED = "/rest/api/1/2/service/nami/mitglied/filtered-for-navigation/gruppierung/gruppierung";
-        NamiURIBuilder builder = con.getURIBuilder(URL_NAMI_MITGLIED);
-        builder.appendPath(gruppierung);
-        builder.appendPath(id);
+    // TODO: Getter
+    // TODO: toString() überladen
 
-        HttpGet httpGet = new HttpGet(builder.build());
-
-        Type type = new TypeToken<NamiResponse<NamiMitglied>>() {}.getType();
-        NamiResponse<NamiMitglied> resp = con.executeApiRequest(httpGet, type);
-
-
-        return resp.getData();
-    }
-    
-    public static NamiMitglied getMitgliedById(NamiConnector con, int id) throws ClientProtocolException, IOException,
-            URISyntaxException, NamiApiException {
-        // Scheinbar kann man als Gruppierung immer "0" angeben und bekommt trotzdem das Mitglied geliefert
-        final String URL_NAMI_MITGLIED = "/rest/api/1/2/service/nami/mitglied/filtered-for-navigation/gruppierung/gruppierung/0";
-        NamiURIBuilder builder = con.getURIBuilder(URL_NAMI_MITGLIED);
+    /**
+     * Holt den Datensatz eines Mitglieds aus NaMi.
+     * 
+     * @param con
+     *            Verbindung zum NaMi-Server
+     * @param id
+     *            ID des Mitglieds
+     * @return Mitgliedsdatensatz
+     * @throws IOException
+     *             IOException
+     * @throws NamiApiException
+     *             API-Fehler beim Zugriff auf NaMi
+     */
+    public static NamiMitglied getMitgliedById(NamiConnector con, int id)
+            throws IOException, NamiApiException {
+        NamiURIBuilder builder = con
+                .getURIBuilder(NamiURIBuilder.URL_NAMI_MITGLIED);
         builder.appendPath(Integer.toString(id));
 
         HttpGet httpGet = new HttpGet(builder.build());
 
-        Type type = new TypeToken<NamiResponse<NamiMitglied>>() {}.getType();
+        Type type = new TypeToken<NamiResponse<NamiMitglied>>() {
+        } .getType();
         NamiResponse<NamiMitglied> resp = con.executeApiRequest(httpGet, type);
 
         if (resp.isSuccess()) {
@@ -123,21 +126,38 @@ public class NamiMitglied {
             return null;
         }
     }
-    
-    public static int getIdByMitgliedsnummer(NamiConnector con, String mitgliedsnummer)
-            throws URISyntaxException, ClientProtocolException, IOException,
-            NamiException {
+
+    /**
+     * Fragt die ID eines Mitglieds anhand der Mitgliedsnummer ab.
+     * 
+     * @param con
+     *            Verbindung zum NaMi-Server
+     * @param mitgliedsnummer
+     *            Mitgliedsnummer des Mitglieds
+     * @return Mitglieds-ID
+     * @throws IOException
+     *             IOException
+     * @throws NamiApiException
+     *             API-Fehler beim Zugriff auf NaMi
+     * @throws NamiException
+     *             Fehler der bei der Anfrage an NaMi auftritt
+     * 
+     */
+    public static int getIdByMitgliedsnummer(NamiConnector con,
+            String mitgliedsnummer) throws IOException, NamiException {
 
         NamiSearchedValues search = new NamiSearchedValues();
-        search.setMitgliedsNummer(mitgliedsnummer);
+        search.setMitgliedsnummer(mitgliedsnummer);
 
-        NamiResponse<Collection<NamiMitgliedListElement>> resp = search.getSearchResult(
-                con, 1, 1, 0);
+        NamiResponse<Collection<NamiMitgliedListElement>> resp = search
+                .getSearchResult(con, 1, 1, 0);
 
         if (resp.getTotalEntries() == 0) {
             return -1;
         } else if (resp.getTotalEntries() > 1) {
-            throw new NamiException("More than one result in search for mitgliedsnummber " + mitgliedsnummer);
+            throw new NamiException(
+                    "Mehr als ein Mitglied mit Mitgliedsnummer "
+                            + mitgliedsnummer);
         } else {
             // genau ein Ergebnis -> Hol das erste Element aus Liste
             NamiMitgliedListElement result = resp.getData().iterator().next();

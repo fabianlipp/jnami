@@ -1,8 +1,30 @@
 package nami.connector;
+
+/**
+ * Beschreibt eine Ebene der DPSG.
+ * 
+ * @author Fabian Lipp
+ * 
+ */
 public enum Ebene {
+    /**
+     * Bundesebene.
+     */
     BUND(0),
+
+    /**
+     * Diözesanebene.
+     */
     DIOEZESE(2),
+
+    /**
+     * Bezirksebene.
+     */
     BEZIRK(4),
+
+    /**
+     * Stammesebene.
+     */
     STAMM(6);
 
     private int significantChars;
@@ -11,15 +33,34 @@ public enum Ebene {
         this.significantChars = significantChars;
     }
 
+    /**
+     * Beschreibt die Anzahl der Ziffern in der Gruppierungsnummer (von links),
+     * die für diese Ebene relevant sind.
+     * 
+     * @return Anzahl der signifikanten Ziffern
+     */
     public int getSignificantChars() {
         return significantChars;
     }
 
+    /**
+     * Liefert die Ebene zu einer Gruppierung.
+     * 
+     * @param gruppierungId
+     *            Gruppierungsnummer
+     * @return Ebene, zu der die Gruppierungsnummer gehört
+     */
     public static Ebene getFromGruppierungId(int gruppierungId) {
-        return getFromGruppierungId(Integer.toString(gruppierungId));
+        // Fülle die GruppierungsID links mit Nullen auf 6 Stellen auf
+        String gruppierungsString = Integer.toString(gruppierungId);
+        while (gruppierungsString.length() < 6) {
+            gruppierungsString = "0" + gruppierungsString;
+        }
+
+        return getFromGruppierungId(gruppierungsString);
     }
 
-    public static Ebene getFromGruppierungId(String gruppierungId) {
+    private static Ebene getFromGruppierungId(String gruppierungId) {
         if (gruppierungId.equals("000000")) {
             return BUND;
         } else if (gruppierungId.substring(2).equals("0000")) {
@@ -31,20 +72,29 @@ public enum Ebene {
         }
     }
 
-    public static Ebene getFromString(String ebene) {
-        if (ebene == null) {
+    /**
+     * Setzt einen String in die entsprechende Ebene um.
+     * 
+     * @param str
+     *            String-Repräsentation der Ebene
+     * @return entsprechende Ebene; <code>null</code>, wenn der String nicht
+     *         umgesetzt werden kann
+     */
+    public static Ebene getFromString(String str) {
+        if (str == null) {
             return null;
         }
-        
-        if (ebene.equals("stamm")) {
+
+        switch (str) {
+        case "stamm":
             return STAMM;
-        } else if (ebene.equals("bezirk")) {
+        case "bezirk":
             return BEZIRK;
-        } else if (ebene.equals("dioezese")) {
+        case "dioezese":
             return DIOEZESE;
-        } else if (ebene.equals("bund")) {
+        case "bund":
             return BUND;
-        } else {
+        default:
             return null;
         }
     }
