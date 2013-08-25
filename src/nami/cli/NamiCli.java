@@ -11,10 +11,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +18,7 @@ import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
 import jline.console.completer.StringsCompleter;
 import jline.console.history.FileHistory;
+import nami.cli.commands.EnumListings;
 import nami.cli.commands.Gruppierungen;
 import nami.cli.commands.Mitglieder;
 import nami.connector.NamiConnector;
@@ -51,7 +48,7 @@ public final class NamiCli {
      * gekennzeichnet.
      */
     private static final Class<?>[] COMMAND_CLASSES = { Gruppierungen.class,
-            Mitglieder.class, NamiCli.class };
+            Mitglieder.class, EnumListings.class, NamiCli.class };
 
     private static Map<String, Method> commands = new HashMap<>();
     private static List<String> commandNames = new LinkedList<>();
@@ -90,11 +87,6 @@ public final class NamiCli {
      *             Ein-/Ausgabefehler
      */
     public static void main(String[] args) throws IOException {
-        Logger.getLogger("org.evolvis").setLevel(Level.ALL);
-        Handler handler = new ConsoleHandler();
-        handler.setLevel(Level.ALL);
-        Logger.getLogger("org.evolvis").addHandler(handler);
-
         // !!! TODO !!! NaMi-Username in Code -> in Konfigurationsdatei
         // auslagern
         // NamiCredentials credentials = new NamiWalletCredentials("214023");

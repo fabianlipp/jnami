@@ -45,6 +45,16 @@ public class NamiURIBuilder extends URIBuilder {
     public static final String URL_NAMI_SEARCH = "/nami/search/result-list";
 
     /**
+     * URL, mit der alle verfügbaren Tätigkeiten abgefragt werden können.
+     */
+    public static final String URL_TAETIGKEITEN = "/system/taetigkeit";
+
+    /**
+     * URL, mit der alle verfügbaren Untergliederungen abgefragt werden können.
+     */
+    public static final String URL_UNTERGLIEDERUNGEN = "/orgadmin/untergliederung";
+
+    /**
      * Erzeugt einen URIBuilder für den gegebenen Server und hängt sofort einen
      * Pfad an die URI an.
      * 
