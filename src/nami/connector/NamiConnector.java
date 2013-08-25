@@ -9,6 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
 import nami.connector.credentials.NamiCredentials;
 import nami.connector.exception.NamiApiException;
 import nami.connector.exception.NamiLoginException;
@@ -20,6 +25,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.ClientPNames;
@@ -27,6 +33,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
+import org.htmlcleaner.CleanerProperties;
+import org.htmlcleaner.DomSerializer;
+import org.htmlcleaner.HtmlCleaner;
+import org.htmlcleaner.TagNode;
+import org.w3c.dom.Document;
 
 import com.google.gson.Gson;
 
@@ -77,36 +89,89 @@ public class NamiConnector {
     /**
      * Führt den Login am NaMi-Server durch.
      * 
-     * @throws IOException IOException
+     * @throws IOException
+     *             IOException
      * @throws NamiLoginException
      *             Probleme beim NaMi-Login, z. B. falsche Zugangsdaten
      */
     public void namiLogin() throws IOException, NamiLoginException {
-        HttpPost httpPost = new HttpPost(getURIBuilder(NamiURIBuilder.URL_NAMI_STARTUP)
-                .build());
+        HttpPost httpPost = new HttpPost(NamiURIBuilder.getLoginURIBuilder(
+                server).build());
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-        nvps.add(new BasicNameValuePair("Login", "API"));
+
         nvps.add(new BasicNameValuePair("username", credentials.getApiUser()));
         nvps.add(new BasicNameValuePair("password", credentials.getApiPass()));
-        nvps.add(new BasicNameValuePair("redirectTo", "./pages/loggedin.jsp"));
-        httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-        HttpResponse response = execute(httpPost, true);
 
-        HttpEntity responseEntity = response.getEntity();
+        if (server.useApiAccess()) {
+            nvps.add(new BasicNameValuePair("Login", "API"));
+            nvps.add(new BasicNameValuePair("redirectTo",
+                    "./pages/loggedin.jsp"));
+            httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+            HttpResponse response = execute(httpPost, true);
+            HttpEntity responseEntity = response.getEntity();
 
-        Type type = NamiApiResponse.getType(Object.class);
-        NamiApiResponse<Object> resp = gson.fromJson(new InputStreamReader(
-                responseEntity.getContent()), type);
+            Type type = NamiApiResponse.getType(Object.class);
+            NamiApiResponse<Object> resp = gson.fromJson(new InputStreamReader(
+                    responseEntity.getContent()), type);
 
-        if (resp.getStatusCode() == 0) {
-            isAuthenticated = true;
-            log.info("Authenticated to NaMi-Server.");
-            // SessionToken wird automatisch als Cookie im HttpClient
-            // gespeichert
+            if (resp.getStatusCode() == 0) {
+                isAuthenticated = true;
+                log.info("Authenticated to NaMi-Server using API.");
+                // SessionToken wird automatisch als Cookie im HttpClient
+                // gespeichert
+            } else {
+                // Fehler beim Verbinden (3000 z.B. bei falschem Passwort)
+                isAuthenticated = false;
+                throw new NamiLoginException(resp);
+            }
         } else {
-            // Fehler beim Verbinden (3000 z.B. bei falschem Passwort)
-            isAuthenticated = false;
-            throw new NamiLoginException(resp);
+            nvps.add(new BasicNameValuePair("redirectTo", "app.jsp"));
+            nvps.add(new BasicNameValuePair("Login", "Anmelden"));
+            httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+            HttpResponse response = execute(httpPost, false);
+
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_MOVED_TEMPORARILY) {
+                // need to follow one redirect
+                Header locationHeader = response.getFirstHeader("Location");
+                EntityUtils.consume(response.getEntity());
+                if (locationHeader != null) {
+                    String redirectUrl = locationHeader.getValue();
+                    HttpGet httpGet = new HttpGet(redirectUrl);
+                    response = execute(httpGet, false);
+                    log.info("Got redirect to: " + redirectUrl);
+
+                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_MOVED_TEMPORARILY) {
+                        // login successful
+                        EntityUtils.consume(response.getEntity());
+                        isAuthenticated = true;
+                        log.info("Authenticated to NaMi-Server without API.");
+                    }
+                }
+            } else {
+                // login not successful
+                isAuthenticated = false;
+                String error = "";
+                try {
+                    TagNode tagNode = new HtmlCleaner().clean(response
+                            .getEntity().getContent());
+
+                    /*
+                     * DocumentBuilderFactory dbf = DocumentBuilderFactory
+                     * .newInstance(); DocumentBuilder builder =
+                     * dbf.newDocumentBuilder(); Document doc =
+                     * builder.parse(response.getEntity().getContent());
+                     */
+                    Document doc = new DomSerializer(new CleanerProperties())
+                            .createDOM(tagNode);
+                    XPathFactory xpathFac = XPathFactory.newInstance();
+                    XPath xpath = xpathFac.newXPath();
+                    XPathExpression expr = xpath.compile("/html/body//p[1]");
+                    error = (String) expr.evaluate(doc, XPathConstants.STRING);
+                } catch (Exception e) {
+                    throw new NamiLoginException(e);
+                }
+                throw new NamiLoginException(error);
+            }
         }
     }
 
@@ -133,7 +198,8 @@ public class NamiConnector {
      * @param <T>
      *            Typ des zurückgegebenen Objekts
      * @return das gelieferte Objekt
-     * @throws IOException IOException
+     * @throws IOException
+     *             IOException
      * @throws NamiApiException
      *             wenn die Anfrage fehlschlägt. Das kann unter anderem folgende
      *             Gründe haben:
@@ -151,23 +217,49 @@ public class NamiConnector {
         }
 
         // Sende Request an Server
-        Type type = NamiApiResponse.getType(typeOfT);
         HttpResponse response = execute(request, false);
         HttpEntity responseEntity = response.getEntity();
 
         // Teste, ob der Statuscode der Antwort 200 (OK) ist
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            // check if response is redirect to an error page
-            Header locationHeader = response.getFirstHeader("Location");
-            if (locationHeader != null) {
-                URL redirectUrl = new URL(locationHeader.getValue());
-                log.warning("Got redirect to: " + redirectUrl.toString());
-                if (redirectUrl.getPath().contains("error.jsp")) {
-                    String message = URLDecoder.decode(redirectUrl.getQuery(),
-                            "UTF-8");
-                    message = message.split("=", 2)[1];
-                    throw new NamiApiException(message);
+            if (server.useApiAccess()) {
+                // check if response is redirect to an error page
+                Header locationHeader = response.getFirstHeader("Location");
+                if (locationHeader != null) {
+                    // Extract error message from URL in location
+                    URL redirectUrl = new URL(locationHeader.getValue());
+                    log.warning("Got redirect to: " + redirectUrl.toString());
+                    if (redirectUrl.getPath().contains("error.jsp")) {
+                        String message = URLDecoder.decode(
+                                redirectUrl.getQuery(), "UTF-8");
+                        message = message.split("=", 2)[1];
+                        throw new NamiApiException(message);
+                    }
                 }
+            } else {
+                // extract description from JBoss error page
+                String error = "";
+                try {
+                    TagNode tagNode = new HtmlCleaner().clean(response
+                            .getEntity().getContent());
+
+                    /*
+                     * DocumentBuilderFactory dbf = DocumentBuilderFactory
+                     * .newInstance(); DocumentBuilder builder =
+                     * dbf.newDocumentBuilder(); Document doc =
+                     * builder.parse(response.getEntity().getContent());
+                     */
+                    Document doc = new DomSerializer(new CleanerProperties())
+                            .createDOM(tagNode);
+                    XPathFactory xpathFac = XPathFactory.newInstance();
+                    XPath xpath = xpathFac.newXPath();
+                    // XPath describes content of description field
+                    XPathExpression expr = xpath.compile("/html/body/p[3]/u");
+                    error = (String) expr.evaluate(doc, XPathConstants.STRING);
+                } catch (Exception e) {
+                    throw new NamiApiException(e);
+                }
+                throw new NamiApiException(error);
             }
             throw new NamiApiException("Statuscode of response is not 200 OK.");
         }
@@ -186,18 +278,27 @@ public class NamiConnector {
         }
 
         // Decodiere geliefertes JSON
-        NamiApiResponse<T> resp = gson.fromJson(new InputStreamReader(
-                responseEntity.getContent()), type);
+        if (server.useApiAccess()) {
+            Type type = NamiApiResponse.getType(typeOfT);
+            NamiApiResponse<T> resp = gson.fromJson(new InputStreamReader(
+                    responseEntity.getContent()), type);
 
-        if (resp.getStatusCode() != 0) {
-            throw new NamiApiException(resp);
+            if (resp.getStatusCode() != 0) {
+                throw new NamiApiException(resp);
+            }
+            return resp.getResponse();
+        } else {
+            T resp = gson.fromJson(new InputStreamReader(responseEntity.getContent()),
+                            typeOfT);
+            return resp;
         }
-        return resp.getResponse();
     }
 
     /**
      * Liefert einen URIBuilder für den NaMi-Server dieser Connection.
-     * @param path Pfad, der aufgerufen wird
+     * 
+     * @param path
+     *            Pfad, der aufgerufen wird
      * @return erzeugter URIBuilder
      */
     public NamiURIBuilder getURIBuilder(String path) {
@@ -205,8 +306,11 @@ public class NamiConnector {
     }
 
     /**
-     * Verwendet die GSON-Instanz der Connection, um ein Objekt in JSON zu konvertieren.
-     * @param o zu kodierendes Objekt
+     * Verwendet die GSON-Instanz der Connection, um ein Objekt in JSON zu
+     * konvertieren.
+     * 
+     * @param o
+     *            zu kodierendes Objekt
      * @return erzeugter JSON-String
      */
     public String toJson(Object o) {

@@ -3,7 +3,11 @@ package nami.connector.namitypes;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
+import nami.connector.Geschlecht;
+import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
 import nami.connector.NamiURIBuilder;
@@ -20,16 +24,21 @@ import com.google.gson.reflect.TypeToken;
  * @author Fabian Lipp
  * 
  */
-public class NamiMitglied {
+public class NamiMitglied extends NamiAbstractMitglied {
+    /**
+     * Beschreibt die Bankverbindung eines Mitglieds.
+     */
     public static class KontoverbindungType {
-        private String institut;
+        private String id;
+        private String mitgliedsNummer;
+
+        private String kontoinhaber;
         private String kontonummer;
         private String bankleitzahl;
+        private String institut;
+
         private String iban;
-        private String id;
         private String bic;
-        private String mitgliedsNummer;
-        private String kontoinhaber;
     }
 
     private int id;
@@ -92,8 +101,110 @@ public class NamiMitglied {
 
     private KontoverbindungType kontoverbindung;
 
-    // TODO: Getter
-    // TODO: toString() überladen
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public String getVorname() {
+        return vorname;
+    }
+
+    @Override
+    public String getNachname() {
+        return nachname;
+    }
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public int getMitgliedsnummer() {
+        return mitgliedsNummer;
+    }
+
+    @Override
+    public Mitgliedstyp getMitgliedstyp() {
+        return Mitgliedstyp.fromString(mglType);
+    }
+
+    @Override
+    public Geschlecht getGeschlecht() {
+        return Geschlecht.fromString(geschlecht);
+    }
+
+    @Override
+    public int getGruppierungId() {
+        return gruppierungId;
+    }
+
+    @Override
+    public String getGruppierung() {
+        return gruppierung;
+    }
+
+    @Override
+    public NamiMitglied getFullData(NamiConnector con) throws NamiApiException,
+            IOException {
+        // do nothing (this object already contains the full data)
+        return this;
+    }
+
+    /**
+     * Gibt die Stammdaten dieses Mitglieds als ausführlichen Text zurück. Der
+     * Rückgabewert enthält also mehr Angaben als die Ausgabe der
+     * <tt>toString</tt>-Method.
+     * 
+     * @return für die Ausgabe formatierte Mitgliedsdaten
+     */
+    public String toLongString() {
+        StringBuilder str = new StringBuilder();
+
+        /**
+         * Speichert eine Zeile, die ausgegeben werden soll.
+         */
+        final class Row {
+            private String key;
+            private String value;
+
+            private Row(String key, String value) {
+                this.key = key;
+                this.value = value;
+            }
+        }
+        List<Row> rows = new LinkedList<>();
+        rows.add(new Row("Nachname", nachname));
+        rows.add(new Row("Vorname", vorname));
+        rows.add(new Row("Straße", strasse));
+        rows.add(new Row("PLZ, Ort", plz + " " + ort));
+        rows.add(new Row("E-Mail", email));
+        rows.add(new Row("E-Mail Vertr.", emailVertretungsberechtigter));
+        rows.add(new Row("Telefon 1", telefon1));
+        rows.add(new Row("Telefon 2", telefon2));
+        rows.add(new Row("Telefon 3", telefon3));
+        rows.add(new Row("Telefax", telefax));
+        rows.add(new Row("Geburtsdatum", geburtsDatumFormatted));
+        rows.add(new Row("Stammgruppierung", gruppierung));
+        rows.add(new Row("Stufe", stufe));
+        // TODO: Formatierung Eintrittsdatum
+        rows.add(new Row("Eintrittsdatum", eintrittsdatum));
+
+        int longestKey = 0;
+        for (Row row : rows) {
+            if (row.key.length() > longestKey) {
+                longestKey = row.key.length();
+            }
+        }
+        String formatString = "  %-" + (longestKey + 1) + "s %s\n";
+        for (Row row : rows) {
+            str.append(String.format(formatString, row.key + ":", row.value));
+        }
+
+        return str.toString();
+    }
 
     /**
      * Holt den Datensatz eines Mitglieds aus NaMi.
@@ -116,8 +227,7 @@ public class NamiMitglied {
 
         HttpGet httpGet = new HttpGet(builder.build());
 
-        Type type = new TypeToken<NamiResponse<NamiMitglied>>() {
-        } .getType();
+        Type type = new TypeToken<NamiResponse<NamiMitglied>>() { }.getType();
         NamiResponse<NamiMitglied> resp = con.executeApiRequest(httpGet, type);
 
         if (resp.isSuccess()) {
@@ -137,8 +247,6 @@ public class NamiMitglied {
      * @return Mitglieds-ID
      * @throws IOException
      *             IOException
-     * @throws NamiApiException
-     *             API-Fehler beim Zugriff auf NaMi
      * @throws NamiException
      *             Fehler der bei der Anfrage an NaMi auftritt
      * 

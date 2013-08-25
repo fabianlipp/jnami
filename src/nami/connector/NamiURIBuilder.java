@@ -17,13 +17,13 @@ public class NamiURIBuilder extends URIBuilder {
     /**
      * URL, die zum Login in NaMi verwendet wird.
      */
-    public static final String URL_NAMI_STARTUP = "/rest/nami/auth/manual/sessionStartup";
+    private static final String URL_NAMI_STARTUP = "/nami/auth/manual/sessionStartup";
 
     /**
      * URL, mit der die Root-Gruppierung und die Kinder für jede Gruppierung
      * abgefragt werden.
      */
-    public static final String URL_NAMI_GRP = "/rest/api/1/2/service/nami/gruppierungen/filtered-for-navigation/gruppierung";
+    public static final String URL_NAMI_GRP = "/nami/gruppierungen/filtered-for-navigation/gruppierung";
 
     /**
      * URL, mit der der Datensatz eines Mitglieds (identifiziert durch seine ID)
@@ -32,17 +32,17 @@ public class NamiURIBuilder extends URIBuilder {
     // Am Ende der URL müsste eigentlich die GruppierungsID angegeben sein.
     // Scheinbar kann man aber auch immer "0" angeben und bekommt
     // trotzdem jedes Mitglied geliefert
-    public static final String URL_NAMI_MITGLIED = "/rest/api/1/2/service/nami/mitglied/filtered-for-navigation/gruppierung/gruppierung/0";
+    public static final String URL_NAMI_MITGLIED = "/nami/mitglied/filtered-for-navigation/gruppierung/gruppierung/0";
 
     /**
-     * URL, mit der ein Tätigkeitszuordnung eines Mitglieds abgefragt wird.
+     * URL, mit der eine Tätigkeitszuordnung eines Mitglieds abgefragt wird.
      */
-    public static final String URL_NAMI_TAETIGKEIT = "/rest/api/1/2/service/nami/zugeordnete-taetigkeiten/filtered-for-navigation/gruppierung-mitglied/mitglied";
+    public static final String URL_NAMI_TAETIGKEIT = "/nami/zugeordnete-taetigkeiten/filtered-for-navigation/gruppierung-mitglied/mitglied";
 
     /**
      * URL, um eine Suchanfrage an NaMi zu senden.
      */
-    public static final String URL_NAMI_SEARCH = "/rest/api/1/2/service/nami/search/result-list";
+    public static final String URL_NAMI_SEARCH = "/nami/search/result-list";
 
     /**
      * Erzeugt einen URIBuilder für den gegebenen Server und hängt sofort einen
@@ -57,13 +57,19 @@ public class NamiURIBuilder extends URIBuilder {
      */
     public NamiURIBuilder(NamiServer server, String path) {
         super();
+
         if (server.getUseSsl()) {
             setScheme("https");
         } else {
             setScheme("http");
         }
         setHost(server.getNamiServer());
+
         setPath("/" + server.getNamiDeploy());
+        appendPath("rest");
+        if (server.useApiAccess()) {
+            appendPath("api/1/2/service");
+        }
         appendPath(path);
     }
 
@@ -76,6 +82,10 @@ public class NamiURIBuilder extends URIBuilder {
      */
     public void appendPath(String pathAppendix) {
         String path = getPath();
+        if (path.isEmpty()) {
+            path = "/";
+        }
+
         if ((path.charAt(path.length() - 1) != '/')
                 && (pathAppendix.charAt(0) != '/')) {
             setPath(path + "/" + pathAppendix);
@@ -93,4 +103,17 @@ public class NamiURIBuilder extends URIBuilder {
         }
     }
 
+    /**
+     * Liefert einen NamiURIBuilder, der den Pfad für den Login in NaMi enthält.
+     * 
+     * Diese Methode ist notwendig, da dieser Pfad immer gleich bleibt
+     * (unabhängig davon, ob der Zugang über die API genutzt wird oder nicht).
+     * 
+     * @param server
+     *            Server, mit dem die Verbindung aufgebaut werden soll
+     * @return NamiURIBuilder für den NaMi-Login
+     */
+    public static NamiURIBuilder getLoginURIBuilder(NamiServer server) {
+        return new NamiURIBuilder(server, URL_NAMI_STARTUP);
+    }
 }

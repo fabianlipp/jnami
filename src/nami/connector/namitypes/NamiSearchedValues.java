@@ -26,17 +26,26 @@ public class NamiSearchedValues {
     private String nachname = "";
     private String alterVon = "";
     private String alterBis = "";
+    private String mglWohnort = "";
     private String mitgliedsNummber = ""; // Rechtschreibfehler in NaMi
+    private Integer mglStatusId = null;
+    private Integer mglTypeId = null;
+    private Integer tagId = null;
+    private Integer bausteinIncludedId = null;
+    private boolean zeitschriftenversand = false;
+    
     private Integer untergliederungId = null;
     private Integer taetigkeitId = null;
+    private boolean mitAllenTaetigkeiten = false;
     private boolean withEndedTaetigkeiten = false;
-
     private Integer ebeneId = null;
+    private String grpNummer = "";
+    private String grpName = "";
     private Integer gruppierungDioezeseId = null;
     private Integer gruppierungBezirkId = null;
     private Integer gruppierungStammId = null;
-    private Integer tagId = null;
-    private Integer bausteinIncludedId = null;
+    private boolean inGrp = false;
+    private boolean unterhalbGrp = false;
 
     private String id = "";
     private String searchName = "";
@@ -106,6 +115,40 @@ public class NamiSearchedValues {
         this.taetigkeitId = taetigkeitId;
     }
 
+    /**
+     * Liefert den Nachnamen in der Suchanfrage
+     * @return Nachname
+     */
+    public String getNachname() {
+        return nachname;
+    }
+    
+    /**
+     * Setzt den Nachnamen, nach dem gesucht werden soll.
+     * @param nachname .
+     */
+    public void setNachname(String nachname) {
+        this.nachname = nachname;
+    }
+    
+    /**
+     * Liefert den Vornamen in der Suchanfrage
+     * @return Vorname
+     */
+    public String getVorname() {
+        return vorname;
+    }
+    
+    /**
+     * Setzt den Vornamen, nach dem gesucht werden soll.
+     * @param vorname .
+     */
+    public void setVorname(String vorname) {
+        this.vorname = vorname;
+    }
+    
+    
+    // TODO: so wohl nicht mehr nötig
     /**
      * Setzt die Gruppierung, in der gesucht werden soll.
      * 
@@ -201,5 +244,5 @@ public class NamiSearchedValues {
         return resp.getData();
     }
 
-    // TODO: Anzahl der Ergebnisse abfragen
+    // TODO: neue Methode: Anzahl der Ergebnisse abfragen -> für Statistik
 }

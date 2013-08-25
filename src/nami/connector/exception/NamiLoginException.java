@@ -22,4 +22,26 @@ public class NamiLoginException extends NamiApiException {
         super(resp);
     }
 
+    /**
+     * Erzeugt die Exception mit einer beliebigen Fehlermeldung.
+     * 
+     * @param message
+     *            .
+     */
+    public NamiLoginException(String message) {
+        super(message);
+    }
+
+    /**
+     * Erzeugt die Exception, wenn vor der Angabe des Grundes eine weitere
+     * Exception auftritt. Das heißt beim Ermitteln des Grundes für den
+     * gescheiterten Login tritt eine andere Exception auf (z. B. Fehler beim
+     * XML parsen).
+     * 
+     * @param cause .
+     */
+    public NamiLoginException(Throwable cause) {
+        super(cause);
+    }
+
 }

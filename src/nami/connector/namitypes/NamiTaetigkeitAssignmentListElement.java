@@ -65,8 +65,7 @@ public class NamiTaetigkeitAssignmentListElement implements Comparable<NamiTaeti
     }
     
     public static Collection<NamiTaetigkeitAssignmentListElement> getTaetigkeiten(NamiConnector con, int id) throws ClientProtocolException, IOException, NamiApiException {
-        final String URL_NAMI_TAETIGKEITEN = "/rest/api/1/2/service/nami/zugeordnete-taetigkeiten/filtered-for-navigation/gruppierung-mitglied/mitglied";
-        NamiURIBuilder builder = con.getURIBuilder(URL_NAMI_TAETIGKEITEN);
+        NamiURIBuilder builder = con.getURIBuilder(NamiURIBuilder.URL_NAMI_TAETIGKEIT);
         builder.appendPath(Integer.toString(id));
         builder.appendPath("flist");
         builder.setParameter("limit", Integer.toString(MAX_TAETIGKEITEN));

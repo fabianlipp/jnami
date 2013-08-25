@@ -11,20 +11,33 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import jline.console.ConsoleReader;
+import jline.console.UserInterruptException;
 import jline.console.completer.StringsCompleter;
 import jline.console.history.FileHistory;
 import nami.cli.commands.Gruppierungen;
+import nami.cli.commands.Mitglieder;
 import nami.connector.NamiConnector;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
 import nami.connector.credentials.NamiWalletCredentials;
 import nami.connector.exception.NamiLoginException;
 
-// TODO: "help" (list commands)
 // TODO: Use commandline arguments instead of shell as alternative
 
+/**
+ * Stellt ein Kommandozeileninterface zu NaMi bereit.
+ * 
+ * @author Fabian Lipp
+ * 
+ */
 public final class NamiCli {
     private NamiCli() {
     }
@@ -38,14 +51,13 @@ public final class NamiCli {
      * gekennzeichnet.
      */
     private static final Class<?>[] COMMAND_CLASSES = { Gruppierungen.class,
-            NamiCli.class };
+            Mitglieder.class, NamiCli.class };
 
     private static Map<String, Method> commands = new HashMap<>();
     private static List<String> commandNames = new LinkedList<>();
     private static List<String> allCommandNames = new LinkedList<>();
 
-    public static void main(String[] args) throws IOException {
-
+    static {
         // Read available commands from annotations in COMMAND_CLASSES
         for (Class<?> cls : COMMAND_CLASSES) {
             for (Method mtd : cls.getMethods()) {
@@ -67,33 +79,59 @@ public final class NamiCli {
             }
         }
         Collections.sort(commandNames);
+    }
 
-        // Initialis JLine2
+    /**
+     * Hauptfunktion des Programms.
+     * 
+     * @param args
+     *            Übergebene Parameter
+     * @throws IOException
+     *             Ein-/Ausgabefehler
+     */
+    public static void main(String[] args) throws IOException {
+        Logger.getLogger("org.evolvis").setLevel(Level.ALL);
+        Handler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        Logger.getLogger("org.evolvis").addHandler(handler);
+
+        // !!! TODO !!! NaMi-Username in Code -> in Konfigurationsdatei
+        // auslagern
+        // NamiCredentials credentials = new NamiWalletCredentials("214023");
+        NamiCredentials credentials = new NamiWalletCredentials("");
+        // NamiCredentials credentials = new NamiConsoleCredentials();
+        // NamiConnector con = new NamiConnector(NamiServer.TESTSERVER,
+        // credentials);
+        NamiConnector con = new NamiConnector(NamiServer.LIVESERVER,
+                credentials);
+        try {
+            con.namiLogin();
+        } catch (NamiLoginException e) {
+            System.err.println("Could not login into NaMi:");
+            e.printStackTrace();
+            System.err.flush();
+            System.exit(1);
+        }
+
+        // Initialise JLine2
         ConsoleReader reader = new ConsoleReader();
         reader.setPrompt("NamiCli> ");
         reader.addCompleter(new StringsCompleter(allCommandNames));
         FileHistory history = new FileHistory(new File(HISTORY_FILE));
         reader.setHistory(history);
         PrintWriter out = new PrintWriter(reader.getOutput());
+        reader.setHandleUserInterrupt(true);
 
-        // !!! TODO !!! NaMi-Username in Code
-        NamiCredentials credentials = new NamiWalletCredentials("214023");
-        // NamiCredentials credentials = new NamiConsoleCredentials();
-        NamiConnector con = new NamiConnector(NamiServer.TESTSERVER,
-                credentials);
-        try {
-            con.namiLogin();
-        } catch (NamiLoginException e) {
-            out.println("Could not login into NaMi:");
-            e.printStackTrace(out);
-            System.exit(1);
-        }
-
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] lineSplitted = line.trim().split("\\p{Space}+");
-            String[] arguments = Arrays.copyOfRange(lineSplitted, 1,
-                    lineSplitted.length);
+        String line = null;
+        while (true) {
+            try {
+                line = reader.readLine();
+            } catch (UserInterruptException e) {
+                line = "";
+            }
+            if (line == null) {
+                break;
+            }
 
             // Handle empty und exit commands
             String lineTrimmed = line.trim();
@@ -104,6 +142,11 @@ public final class NamiCli {
                 break;
             }
 
+            // split line at spaces
+            String[] lineSplitted = splitCommandline(line);
+            String[] arguments = Arrays.copyOfRange(lineSplitted, 1,
+                    lineSplitted.length);
+
             // Call method for command
             Method mtd = commands.get(lineSplitted[0].toLowerCase());
             if (mtd == null) {
@@ -112,6 +155,7 @@ public final class NamiCli {
                 try {
                     mtd.invoke(null, new Object[] { arguments, con, out });
                 } catch (InvocationTargetException e) {
+                    // called method throws an exception
                     e.getTargetException().printStackTrace(out);
                 } catch (Exception e) {
                     e.printStackTrace(out);
@@ -125,13 +169,20 @@ public final class NamiCli {
 
         // Speichere History in Datei
         history.flush();
-        /*
-         * } catch (Throwable t) { t.printStackTrace(); System.exit(1); }
-         */
 
         System.exit(0);
     }
 
+    /**
+     * Gibt die verfügbaren Befehle und eine kurze Zusammenfassung dieser aus.
+     * 
+     * @param args
+     *            nicht verwendet
+     * @param con
+     *            Verbindung zum NaMi-Server
+     * @param out
+     *            Writer, auf dem die Ausgabe erfolgt
+     */
     @CliCommand("help")
     @CommandDoc("Erklärt die verfügbaren Befehle")
     public static void getHelp(String[] args, NamiConnector con, PrintWriter out) {
@@ -165,5 +216,37 @@ public final class NamiCli {
                 return "";
             }
         }
+    }
+
+    /**
+     * Teilt den übergebenen String an den Leerzeichen auf. Leerzeichen die
+     * innerhalb von Anführungszeichen stehen, werden ignoriert. Das Ergebnis
+     * entspricht quasi dem <tt>args</tt>-Array, das der main-Funktion übergeben
+     * wird.
+     * 
+     * @param line
+     *            aufzuteilende Zeile
+     * @return an den Leerzeichen aufgeteilte Zeile
+     */
+    private static String[] splitCommandline(String line) {
+        // Quelle:
+        // http://stackoverflow.com/questions/366202/regex-for-splitting-
+        // a-string-using-space-when-not-surrounded-by-single-or-double
+        List<String> matchList = new LinkedList<>();
+        Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+        Matcher regexMatcher = regex.matcher(line);
+        while (regexMatcher.find()) {
+            if (regexMatcher.group(1) != null) {
+                // Add double-quoted string without the quotes
+                matchList.add(regexMatcher.group(1));
+            } else if (regexMatcher.group(2) != null) {
+                // Add single-quoted string without the quotes
+                matchList.add(regexMatcher.group(2));
+            } else {
+                // Add unquoted word
+                matchList.add(regexMatcher.group());
+            }
+        }
+        return matchList.toArray(new String[0]);
     }
 }

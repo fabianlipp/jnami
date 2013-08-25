@@ -33,4 +33,15 @@ public class NamiApiException extends NamiException {
     public NamiApiException(NamiApiResponse<? extends Object> resp) {
         super(resp.getStatusCode() + ": " + resp.getStatusMessage());
     }
+
+    /**
+     * Erzeugt die Exception, wobei eine weitere Exception als Grund angegeben
+     * wird.
+     * 
+     * @param cause
+     *            .
+     */
+    public NamiApiException(Throwable cause) {
+        super(cause);
+    }
 }

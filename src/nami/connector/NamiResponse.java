@@ -13,6 +13,7 @@ public class NamiResponse<DataT> {
     private boolean success;
     private DataT data;
     private int totalEntries;
+    private String message;
     // private String responseType;
 
     /**
@@ -42,4 +43,12 @@ public class NamiResponse<DataT> {
         return totalEntries;
     }
 
+    /**
+     * Liefert eine evtl. vorhandene Fehlermeldung.
+     * 
+     * @return Fehlermeldung
+     */
+    public String getMessage() {
+        return message;
+    }
 }

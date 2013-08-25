@@ -1,36 +1,41 @@
 package nami.connector.namitypes;
 
+import java.io.IOException;
+
 import nami.connector.Geschlecht;
 import nami.connector.Mitgliedstyp;
+import nami.connector.NamiConnector;
+import nami.connector.exception.NamiApiException;
 
-public class NamiMitgliedListElement implements Comparable<NamiMitgliedListElement> {
+public class NamiMitgliedListElement extends NamiAbstractMitglied implements
+        Comparable<NamiMitgliedListElement> {
     public static class EntriesType {
         private String id;
-        
+
         private String vorname;
         private String nachname;
-        
+
         private String email;
+        private String emailVertretungsberechtigter;
         private String telefon1;
         private String telefon2;
         private String telefon3;
         private String telefax;
- 
+
         // nur in Suche, nicht in Mitgliederverwaltung
         private String gruppierungId;
         private String gruppierung;
-        
+
         private String stufe;
         private String geburtsDatum;
-        
+
         private String mglType;
         private String status;
-        
+
         private String staatsangehoerigkeit;
         private String staatangehoerigkeitText;
         private String geschlecht;
         private String konfession;
-        private String emailVertretungsberechtigter;
         private String rowCssClass;
         private String lastUpdated;
         private String version;
@@ -42,43 +47,55 @@ public class NamiMitgliedListElement implements Comparable<NamiMitgliedListEleme
     private EntriesType entries;
     private int id;
 
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public int getGruppierungId() {
         return Integer.parseInt(entries.gruppierungId);
     }
 
+    @Override
+    public String getGruppierung() {
+        return entries.gruppierung;
+    }
+
+    @Override
     public String getVorname() {
         return entries.vorname;
     }
 
+    @Override
+    public String getNachname() {
+        return entries.nachname;
+    }
+
+    @Override
     public String getEmail() {
         return entries.email;
     }
 
-    public String getNachname() {
-        return entries.nachname;
-    }
-    
+    @Override
     public Mitgliedstyp getMitgliedstyp() {
         return Mitgliedstyp.fromString(entries.mglType);
     }
-    
+
+    @Override
     public Geschlecht getGeschlecht() {
         return Geschlecht.fromString(entries.geschlecht);
     }
 
     @Override
-    public String toString() {
-        StringBuilder res = new StringBuilder();
-        res.append(entries.vorname).append(" ").append(entries.nachname);
-        res.append(" (").append(entries.mitgliedsNummer).append(")");
-        res.append(System.lineSeparator());
+    public int getMitgliedsnummer() {
+        return Integer.parseInt(entries.mitgliedsNummer);
+    }
 
-        res.append(entries.email).append(System.lineSeparator());
-        return res.toString();
+    @Override
+    public NamiMitglied getFullData(NamiConnector con) throws NamiApiException,
+            IOException {
+        return NamiMitglied.getMitgliedById(con, id);
     }
 
     @Override
@@ -111,4 +128,5 @@ public class NamiMitgliedListElement implements Comparable<NamiMitgliedListEleme
         }
         return true;
     }
+
 }
