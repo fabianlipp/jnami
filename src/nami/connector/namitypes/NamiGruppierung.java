@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import nami.connector.Ebene;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
 import nami.connector.NamiURIBuilder;
@@ -43,8 +44,13 @@ public class NamiGruppierung {
      * 
      * @return Gruppierungsnummer
      */
-    public int getId() {
-        return id;
+    public String getId() {
+        // Fülle die GruppierungsID links mit Nullen auf 6 Stellen auf
+        String gruppierungsString = Integer.toString(id);
+        while (gruppierungsString.length() < 6) {
+            gruppierungsString = "0" + gruppierungsString;
+        }
+        return gruppierungsString;
     }
 
     /**
@@ -59,6 +65,35 @@ public class NamiGruppierung {
     @Override
     public String toString() {
         return descriptor;
+    }
+
+    /**
+     * Liefert die Gruppierungsnummer einer übergeordneten Gruppierung auf einer
+     * vorgegebenen Ebene.
+     * 
+     * @param targetE
+     *            gewünschte Ebene
+     * @return Gruppierungsnummer der übergeordneten Ebene; <tt>null</tt>, falls
+     *         eine niedrigere Ebene verlangt wird
+     */
+    public String getParentId(Ebene targetE) {
+        Ebene thisE = Ebene.getFromGruppierungId(id);
+        if (thisE.compareTo(targetE) < 0) {
+            // Es wird eine niedrigere Ebene verlangt
+            return null;
+        } else if (thisE.compareTo(targetE) == 0) {
+            // Es wird die gleiche Ebene verlangt
+            return getId();
+        } else {
+            // Es wird eine höhere Ebene verlangt
+            String result = getId().substring(0, targetE.getSignificantChars());
+
+            // Fülle die GruppierungsID rechts mit Nullen auf 6 Stellen auf
+            while (result.length() < 6) {
+                result = result + "0";
+            }
+            return result;
+        }
     }
 
     /**
@@ -109,7 +144,7 @@ public class NamiGruppierung {
         HttpGet httpGet = new HttpGet(builder.build());
 
         Type type = new TypeToken<NamiResponse<Collection<NamiGruppierung>>>() {
-        } .getType();
+        }.getType();
         NamiResponse<Collection<NamiGruppierung>> resp = con.executeApiRequest(
                 httpGet, type);
 
@@ -128,7 +163,7 @@ public class NamiGruppierung {
         HttpGet httpGet = new HttpGet(builder.build());
 
         Type type = new TypeToken<NamiResponse<Collection<NamiGruppierung>>>() {
-        } .getType();
+        }.getType();
         NamiResponse<Collection<NamiGruppierung>> resp = con.executeApiRequest(
                 httpGet, type);
 

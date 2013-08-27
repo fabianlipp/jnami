@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
-import nami.connector.Ebene;
+import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
 import nami.connector.NamiURIBuilder;
 import nami.connector.exception.NamiApiException;
 
 import org.apache.http.client.methods.HttpGet;
+import org.jdom2.Element;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -20,7 +21,7 @@ import com.google.gson.reflect.TypeToken;
  * @author Fabian Lipp
  * 
  */
-// TODO: an neue NaMi-Suchfunktion anpassen
+@SuppressWarnings("unused")
 public class NamiSearchedValues {
     private String vorname = "";
     private String nachname = "";
@@ -29,11 +30,11 @@ public class NamiSearchedValues {
     private String mglWohnort = "";
     private String mitgliedsNummber = ""; // Rechtschreibfehler in NaMi
     private Integer mglStatusId = null;
-    private Integer mglTypeId = null;
+    private String mglTypeId = null;
     private Integer tagId = null;
     private Integer bausteinIncludedId = null;
     private boolean zeitschriftenversand = false;
-    
+
     private Integer untergliederungId = null;
     private Integer taetigkeitId = null;
     private boolean mitAllenTaetigkeiten = false;
@@ -56,16 +57,7 @@ public class NamiSearchedValues {
      */
     // transient bewirkt, dass die Variable nicht in die JSON-Darstellung
     // aufgenommen wird
-    private static final transient int INITIAL_LIMIT = 5000;
-
-    /**
-     * Liefert die Mitgliedsnummer in der Suchanfrage.
-     * 
-     * @return Mitgliedsnummer
-     */
-    public String getMitgliedsnummer() {
-        return mitgliedsNummber;
-    }
+    private static final transient int INITIAL_LIMIT = 1000;
 
     /**
      * Setzt die Mitgliedsnummer, nach der gesucht werden soll.
@@ -78,31 +70,14 @@ public class NamiSearchedValues {
     }
 
     /**
-     * Liefert die Untergliederung (Stufe/Abteilung) in der Suchanfrage.
-     * 
-     * @return Untergliederungs-ID
-     */
-    public Integer getUntergliederungId() {
-        return untergliederungId;
-    }
-
-    /**
-     * Setzt die Untergliederungs-ID, nach der gesucht werden soll.
+     * Setzt die Untergliederungs-ID (Stufe/Abteilung), nach der gesucht werden
+     * soll.
      * 
      * @param untergliederungId
      *            .
      */
     public void setUntergliederungId(Integer untergliederungId) {
         this.untergliederungId = untergliederungId;
-    }
-
-    /**
-     * Liefert die Tätigkeit in der Suchanfrage.
-     * 
-     * @return Tätigkeits-ID
-     */
-    public Integer getTaetigkeitId() {
-        return taetigkeitId;
     }
 
     /**
@@ -116,64 +91,90 @@ public class NamiSearchedValues {
     }
 
     /**
-     * Liefert den Nachnamen in der Suchanfrage
-     * @return Nachname
-     */
-    public String getNachname() {
-        return nachname;
-    }
-    
-    /**
      * Setzt den Nachnamen, nach dem gesucht werden soll.
-     * @param nachname .
+     * 
+     * @param nachname
+     *            .
      */
     public void setNachname(String nachname) {
         this.nachname = nachname;
     }
-    
-    /**
-     * Liefert den Vornamen in der Suchanfrage
-     * @return Vorname
-     */
-    public String getVorname() {
-        return vorname;
-    }
-    
+
     /**
      * Setzt den Vornamen, nach dem gesucht werden soll.
-     * @param vorname .
+     * 
+     * @param vorname
+     *            .
      */
     public void setVorname(String vorname) {
         this.vorname = vorname;
     }
-    
-    
-    // TODO: so wohl nicht mehr nötig
+
     /**
-     * Setzt die Gruppierung, in der gesucht werden soll.
+     * Setzt den Mitgliedstyp, nach dem gesucht werden soll.
      * 
-     * @param gruppierungsnummer
+     * @param mgltype
      *            .
      */
-    public void setGruppierungId(Integer gruppierungsnummer) {
-        Ebene ebene = Ebene.getFromGruppierungId(gruppierungsnummer);
-        gruppierungDioezeseId = null;
-        gruppierungBezirkId = null;
-        gruppierungStammId = null;
-        switch (ebene) {
-        case BUND:
-            break;
-        case DIOEZESE:
-            gruppierungDioezeseId = gruppierungsnummer;
-            break;
-        case BEZIRK:
-            gruppierungBezirkId = gruppierungsnummer;
-            break;
-        case STAMM:
-            gruppierungStammId = gruppierungsnummer;
-            break;
-        default:
+    public void setMitgliedstyp(Mitgliedstyp mgltype) {
+        this.mglTypeId = mgltype.toString();
+    }
+
+    /**
+     * Legt die Gruppierungsnummer fest, nach der gesucht werden soll.
+     * 
+     * @param gruppierungsnummer
+     *            Gruppierungsnummer
+     */
+    public void setGruppierungsnummer(String gruppierungsnummer) {
+        this.grpNummer = gruppierungsnummer;
+    }
+
+    /**
+     * Erzeugt ein <tt>NamiSearchedValues</tt>-Objekt aus der Beschreibung in
+     * einem XML-Dokument.
+     * 
+     * Typische Fehler in der XML-Beschreibung (z. B. fehlende Attribute,
+     * doppelte Elemente, falsche Datentypen) werden nicht abgefangen. Deswegen
+     * sollte das Dokument vorher validiert sein.
+     * 
+     * @param namiSearchEl
+     *            XML-Element, das die Suche beschreibt. Das Element muss ein
+     *            <tt><namiSearch></tt>-Element sein
+     * @return <tt>NamiSearchedValues</tt> mit den entsprechend der
+     *         XML-Beschreibung gesetzten Parametern.
+     */
+    public static NamiSearchedValues fromXml(Element namiSearchEl) {
+        if (!namiSearchEl.getName().equals("namiSearch")) {
+            throw new IllegalArgumentException("Wrong root element given.");
         }
+
+        NamiSearchedValues res = new NamiSearchedValues();
+        Element el;
+
+        // Tätigkeit
+        el = namiSearchEl.getChild("taetigkeit");
+        if (el != null) {
+            res.setTaetigkeitId(Integer.parseInt(el.getAttributeValue("id")));
+            res.mitAllenTaetigkeiten = true;
+        }
+
+        // Untergliederung
+        el = namiSearchEl.getChild("untergliederung");
+        if (el != null) {
+            res.setUntergliederungId(Integer.parseInt(el
+                    .getAttributeValue("id")));
+            res.mitAllenTaetigkeiten = true;
+        }
+
+        // Mitgliedstyp
+        el = namiSearchEl.getChild("mitgliedstyp");
+        if (el != null) {
+            res.setMitgliedstyp(Mitgliedstyp.fromString(el
+                    .getAttributeValue("id")));
+        }
+
+        return res;
     }
 
     /**
@@ -244,5 +245,20 @@ public class NamiSearchedValues {
         return resp.getData();
     }
 
-    // TODO: neue Methode: Anzahl der Ergebnisse abfragen -> für Statistik
+    /**
+     * Liefert die Anzahl der Mitglieder, die der Suchanfrage entsprechen.
+     * 
+     * @param con
+     *            Verbindung zum NaMi-Server
+     * @return Anzahl gefundener Mitglieder
+     * @throws IOException
+     *             IOException
+     * @throws NamiApiException
+     *             API-Fehler beim Zugriff auf NaMi
+     */
+    public int getCount(NamiConnector con) throws IOException, NamiApiException {
+        NamiResponse<Collection<NamiMitgliedListElement>> resp = getSearchResult(
+                con, 0, 1, 0);
+        return resp.getTotalEntries();
+    }
 }

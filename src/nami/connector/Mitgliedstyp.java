@@ -7,6 +7,9 @@ package nami.connector;
  * 
  */
 public enum Mitgliedstyp {
+    // Die Werte des Enums entsprechen genau den Mitgliedstyp-Konstanten aus
+    // NaMi (müssen so von der toString-Methode geliefert werden, da sie
+    // beispielsweise direkt in Suchanfragen eingefügt werden)
     /**
      * Normale Mitgliedschaft.
      */
@@ -33,12 +36,14 @@ public enum Mitgliedstyp {
     public static Mitgliedstyp fromString(String str) {
         switch (str) {
         case "Mitglied":
+        case "MITGLIED":
             return MITGLIED;
         case "Nicht-Mitglied":
-            return NICHT_MITGLIED;
         case "Nicht Mitglied":
+        case "NICHT_MITGLIED":
             return NICHT_MITGLIED;
         case "Schnuppermitglied":
+        case "SCHNUPPERMITGLIED":
             return SCHNUPPERMITGLIED;
         case "":
             return null;

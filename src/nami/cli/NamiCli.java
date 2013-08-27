@@ -26,6 +26,7 @@ import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
 import nami.connector.credentials.NamiWalletCredentials;
 import nami.connector.exception.NamiLoginException;
+import nami.statistics.NamiStatisticsTest;
 
 // TODO: Use commandline arguments instead of shell as alternative
 
@@ -48,7 +49,8 @@ public final class NamiCli {
      * gekennzeichnet.
      */
     private static final Class<?>[] COMMAND_CLASSES = { Gruppierungen.class,
-            Mitglieder.class, EnumListings.class, NamiCli.class };
+            Mitglieder.class, EnumListings.class, NamiCli.class,
+            NamiStatisticsTest.class };
 
     private static Map<String, Method> commands = new HashMap<>();
     private static List<String> commandNames = new LinkedList<>();

@@ -15,10 +15,16 @@ public class NamiServer {
             "namitest.dpsg.de", false, "ica", true);
 
     /**
-     * Daten des Produktiv-Servers.
+     * Daten des Produktiv-Servers. Der offizielle API-Zugang nicht genutzt.
      */
     public static final NamiServer LIVESERVER = new NamiServer("nami.dpsg.de",
             true, "ica", false);
+
+    /**
+     * Daten des Produktiv-Servers mit Benutzung der API.
+     */
+    public static final NamiServer LIVESERVER_WITH_API = new NamiServer(
+            "nami.dpsg.de", true, "ica", true);
 
     private String namiServer = "namitest.dpsg.de";
     private boolean useSsl = false;

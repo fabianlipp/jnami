@@ -8,20 +8,21 @@
 	<!--<property name="main-class"  value="oata.HelloWorld"/>-->
 
 	<path id="ivy.lib.path">
-	    <fileset dir="/usr/share/ant/lib" includes="*.jar"/>
+		<fileset dir="/usr/share/ant/lib" includes="*.jar"/>
 	</path>
 	<taskdef resource="org/apache/ivy/ant/antlib.xml"
 	         uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
-	
-    <path id="lib.path.id">
-        <fileset dir="${lib.dir}" />
-    	<files includes="/home/fabian/.java/libwallet/libwallet-0.9.1-fabian.jar" />
+
+	<path id="lib.path.id">
+		<fileset dir="${lib.dir}" />
+		<files includes="/home/fabian/.java/libwallet/libwallet-0.9.1-fabian.jar" />
 	</path>
-    <path id="run.path.id">
-        <path refid="lib.path.id" />
-        <path location="${classes.dir}" />
-    	<files includes="/home/fabian/.java/libwallet/dbus-java/dbus-java-2.7/libdbus-java-2.7.jar" />
-    </path>
+	<path id="run.path.id">
+		<path refid="lib.path.id" />
+		<path location="${classes.dir}" />
+		<files includes="/home/fabian/.java/libwallet/dbus-java/dbus-java-2.7/libdbus-java-2.7.jar" />
+		<files includes="/usr/share/java/mysql-connector-java.jar" />
+	</path>
 	
 	<target name="clean">
 		<delete dir="${build.dir}"/>
@@ -41,6 +42,10 @@
     <target name="compile" depends="resolve">
         <mkdir dir="${classes.dir}"/>
         <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.path.id" includeAntRuntime="false" debug="true" />
+    	<copy todir="${classes.dir}">
+    	    <fileset dir="${src.dir}" excludes="**/*.java" />
+    	</copy>
+    	
     	<!-- write classpath to file -->
     	<property refid="run.path.id" name="classpath.property" /> 
     	<echo file="namicli.classpath" message="${classpath.property}" />
