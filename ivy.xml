@@ -11,8 +11,11 @@
 		<dependency org="commons-io" name="commons-io" rev="2.4"/>
 		<dependency org="jline" name="jline" rev="2.11"/>
 		<dependency org="net.sourceforge.htmlcleaner" name="htmlcleaner" rev="2.4"/>
+		<!--<dependency org="net.sf.jasperreports" name="jasperreports" rev="5.2.0" />-->
+		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.0"/>
 
 		<exclude org="maven-plugins" module="maven-cobertura-plugin"/>
 		<exclude org="maven-plugins" module="maven-findbugs-plugin"/>
+
 	</dependencies>
 </ivy-module>
