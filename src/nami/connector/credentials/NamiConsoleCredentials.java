@@ -10,8 +10,8 @@ package nami.connector.credentials;
 public class NamiConsoleCredentials extends NamiCredentials {
 
     private boolean readCredentials = false;
-    private String apiUser;
-    private String apiPass;
+    private String apiUser = null;
+    private String apiPass = null;
 
     /**
      * Erzeugt ein neues Credentials-Objekt. Die Zugangsdaten werden erst vom
@@ -33,7 +33,9 @@ public class NamiConsoleCredentials extends NamiCredentials {
      */
     public NamiConsoleCredentials(String username) {
         super(null, null);
-        this.apiUser = username;
+        if (username != null && !username.isEmpty()) {
+            this.apiUser = username;
+        }
     }
 
     private void readFromConsole() {

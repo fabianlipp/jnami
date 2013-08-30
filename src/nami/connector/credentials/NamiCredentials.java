@@ -2,6 +2,7 @@ package nami.connector.credentials;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Properties;
 
 import nami.connector.exception.CredentialsInitiationException;
 
@@ -63,8 +64,8 @@ public class NamiCredentials {
      *            Benutzername, der an den Konstruktor übergeben werden soll.
      *            Falls dieser Parameter <tt>null</tt> ist, wird der Konstruktor
      *            ohne Parameter aufgerufen.
-     * @exception CredentialsInitiationException
-     *                Fehler beim Erzeugen des Credentials-Objekts
+     * @throws CredentialsInitiationException
+     *             Fehler beim Erzeugen des Credentials-Objekts
      * @return Erzeugtes <tt>NamiCredentials</tt>-Objekt
      */
     public static NamiCredentials getCredentialsFromClassname(String className,
@@ -104,5 +105,29 @@ public class NamiCredentials {
             throw new CredentialsInitiationException(e);
         }
 
+    }
+
+    /**
+     * Liest die Credential-Konfiguration aus einer Properties-Datei. Dabei
+     * werden die folgenden Schlüssel genutzt:
+     * <ul>
+     * <li><tt>nami.credentialsType</tt>: Klasse, die geladen werden soll (ohne
+     * Angabe des Packages, dafür wird nami.connector.credentials verwendet)</li>
+     * <li><tt>nami.username</tt>: Username, der ggf. an die Klasse übergeben
+     * werden soll
+     * </ul>
+     * 
+     * @param p
+     *            Properties-Objekt, aus dem die Konfiguration gelesen werden
+     *            soll
+     * @throws CredentialsInitiationException
+     *             Fehler beim Erzeugen des Credentials-Objekts
+     * @return Erzeugtes <tt>NamiCredentials</tt>-Objekt
+     */
+    public static NamiCredentials getCredentialsFromProperties(Properties p)
+            throws CredentialsInitiationException {
+        String className = p.getProperty("nami.credentialsType");
+        String username = p.getProperty("nami.username");
+        return getCredentialsFromClassname(className, username);
     }
 }

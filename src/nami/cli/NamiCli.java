@@ -11,6 +11,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,10 +25,12 @@ import jline.console.history.FileHistory;
 import nami.cli.commands.EnumListings;
 import nami.cli.commands.Gruppierungen;
 import nami.cli.commands.Mitglieder;
+import nami.configuration.ApplicationDirectoryException;
+import nami.configuration.Configuration;
 import nami.connector.NamiConnector;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
-import nami.connector.credentials.NamiWalletCredentials;
+import nami.connector.exception.CredentialsInitiationException;
 import nami.connector.exception.NamiLoginException;
 import nami.statistics.NamiStatisticsTest;
 
@@ -89,82 +95,102 @@ public final class NamiCli {
      *             Ein-/Ausgabefehler
      */
     public static void main(String[] args) throws IOException {
-        // !!! TODO !!! NaMi-Username in Code -> in Konfigurationsdatei
-        // auslagern
-        // NamiCredentials credentials = new NamiWalletCredentials("214023");
-        NamiCredentials credentials = new NamiWalletCredentials("");
-        // NamiCredentials credentials = new NamiConsoleCredentials();
-        // NamiConnector con = new NamiConnector(NamiServer.TESTSERVER,
-        // credentials);
-        NamiConnector con = new NamiConnector(NamiServer.LIVESERVER,
-                credentials);
         try {
-            con.namiLogin();
-        } catch (NamiLoginException e) {
-            System.err.println("Could not login into NaMi:");
+            File logFile = Configuration.getLogfile();
+            FileHandler fh = new FileHandler(logFile.getAbsolutePath(), true);
+            fh.setLevel(Level.ALL);
+            Logger.getLogger("").addHandler(fh);
+            Logger.getLogger("").info("Running NamiCli");
+
+            Properties p = Configuration.getGeneralProperties();
+
+            NamiCredentials credentials = NamiCredentials
+                    .getCredentialsFromProperties(p);
+
+            NamiConnector con;
+            if (Boolean.parseBoolean(p.getProperty("nami.useApi"))) {
+                con = new NamiConnector(NamiServer.LIVESERVER_WITH_API,
+                        credentials);
+            } else {
+                con = new NamiConnector(NamiServer.LIVESERVER, credentials);
+            }
+
+            try {
+                con.namiLogin();
+            } catch (NamiLoginException e) {
+                System.err.println("Could not login into NaMi:");
+                e.printStackTrace();
+                System.err.flush();
+                System.exit(1);
+            }
+
+            // Initialise JLine2
+            ConsoleReader reader = new ConsoleReader();
+            reader.setPrompt("NamiCli> ");
+            reader.addCompleter(new StringsCompleter(allCommandNames));
+            FileHistory history = new FileHistory(new File(HISTORY_FILE));
+            reader.setHistory(history);
+            PrintWriter out = new PrintWriter(reader.getOutput());
+            reader.setHandleUserInterrupt(true);
+
+            String line = null;
+            while (true) {
+                try {
+                    line = reader.readLine();
+                } catch (UserInterruptException e) {
+                    line = "";
+                }
+                if (line == null) {
+                    break;
+                }
+
+                // Handle empty und exit commands
+                String lineTrimmed = line.trim();
+                if (lineTrimmed.isEmpty()) {
+                    continue;
+                } else if (lineTrimmed.equalsIgnoreCase("quit")
+                        || lineTrimmed.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
+                // split line at spaces
+                String[] lineSplitted = splitCommandline(line);
+                String[] arguments = Arrays.copyOfRange(lineSplitted, 1,
+                        lineSplitted.length);
+
+                // Call method for command
+                Method mtd = commands.get(lineSplitted[0].toLowerCase());
+                if (mtd == null) {
+                    out.println("Unknown Command");
+                } else {
+                    try {
+                        mtd.invoke(null, new Object[] { arguments, con, out });
+                    } catch (InvocationTargetException e) {
+                        // called method throws an exception
+                        e.getTargetException().printStackTrace(out);
+                    } catch (Exception e) {
+                        e.printStackTrace(out);
+                    }
+                }
+
+            }
+
+            out.println();
+            out.flush();
+
+            // Speichere History in Datei
+            history.flush();
+
+            System.exit(0);
+        } catch (ApplicationDirectoryException e) {
+            System.err.println("Cannot write to logfile");
             e.printStackTrace();
-            System.err.flush();
+            System.exit(1);
+        } catch (CredentialsInitiationException e) {
+            System.err.println("Could not use credentials from config file: ");
+            e.printStackTrace();
             System.exit(1);
         }
-
-        // Initialise JLine2
-        ConsoleReader reader = new ConsoleReader();
-        reader.setPrompt("NamiCli> ");
-        reader.addCompleter(new StringsCompleter(allCommandNames));
-        FileHistory history = new FileHistory(new File(HISTORY_FILE));
-        reader.setHistory(history);
-        PrintWriter out = new PrintWriter(reader.getOutput());
-        reader.setHandleUserInterrupt(true);
-
-        String line = null;
-        while (true) {
-            try {
-                line = reader.readLine();
-            } catch (UserInterruptException e) {
-                line = "";
-            }
-            if (line == null) {
-                break;
-            }
-
-            // Handle empty und exit commands
-            String lineTrimmed = line.trim();
-            if (lineTrimmed.isEmpty()) {
-                continue;
-            } else if (lineTrimmed.equalsIgnoreCase("quit")
-                    || lineTrimmed.equalsIgnoreCase("exit")) {
-                break;
-            }
-
-            // split line at spaces
-            String[] lineSplitted = splitCommandline(line);
-            String[] arguments = Arrays.copyOfRange(lineSplitted, 1,
-                    lineSplitted.length);
-
-            // Call method for command
-            Method mtd = commands.get(lineSplitted[0].toLowerCase());
-            if (mtd == null) {
-                out.println("Unknown Command");
-            } else {
-                try {
-                    mtd.invoke(null, new Object[] { arguments, con, out });
-                } catch (InvocationTargetException e) {
-                    // called method throws an exception
-                    e.getTargetException().printStackTrace(out);
-                } catch (Exception e) {
-                    e.printStackTrace(out);
-                }
-            }
-
-        }
-
-        out.println();
-        out.flush();
-
-        // Speichere History in Datei
-        history.flush();
-
-        System.exit(0);
     }
 
     /**
