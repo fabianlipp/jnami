@@ -17,7 +17,7 @@ import nami.connector.namitypes.NamiSearchedValues;
  * @author Fabian Lipp
  * 
  */
-public class NamiStatisticsGruppe {
+public class Gruppe {
     private int id;
     private String bezeichnung;
     private Collection<NamiSearchedValues> searches;
@@ -34,7 +34,7 @@ public class NamiStatisticsGruppe {
      *            dieser Gruppe zu finden (Es wird die Vereinigung der
      *            Ergebnisse dieser Suchanfragen gebildet)
      */
-    public NamiStatisticsGruppe(int id, String bezeichnung,
+    public Gruppe(int id, String bezeichnung,
             Collection<NamiSearchedValues> searches) {
         this.id = id;
         this.bezeichnung = bezeichnung;

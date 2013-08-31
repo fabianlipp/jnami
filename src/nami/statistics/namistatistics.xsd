@@ -9,8 +9,6 @@
 		<sequence>
 			<element name="database" type="tns:databaseT" maxOccurs="1"
 				minOccurs="1"></element>
-			<element name="namiconnection" type="tns:namiconnectionT"
-				maxOccurs="1" minOccurs="1"></element>
 			<element name="gruppe" type="tns:gruppeT" maxOccurs="unbounded"
 				minOccurs="1"></element>
 		</sequence>
@@ -26,13 +24,6 @@
 		</all>
 	</complexType>
 
-	<complexType name="namiconnectionT">
-		<sequence>
-			<element name="credentials" type="tns:credentialsT"
-				maxOccurs="1" minOccurs="1"></element>
-		</sequence>
-		<attribute name="useApi" type="boolean"></attribute>
-	</complexType>
 
 	<complexType name="gruppeT">
 		<sequence>
@@ -43,13 +34,6 @@
 		<attribute name="bezeichnung" type="string" use="required"></attribute>
 	</complexType>
 
-	<complexType name="credentialsT">
-		<sequence>
-			<element name="username" type="string" maxOccurs="1"
-				minOccurs="0"></element>
-		</sequence>
-		<attribute name="type" type="string" use="required"></attribute>
-	</complexType>
 
 	<complexType name="namiSearchT">
 		<all>

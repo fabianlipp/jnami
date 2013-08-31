@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.TreeSet;
 
+import nami.configuration.ConfigFormatException;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
 import nami.connector.NamiServer;

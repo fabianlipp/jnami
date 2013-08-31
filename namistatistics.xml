@@ -3,15 +3,10 @@
       xsi:schemaLocation="http://www.example.org/namistatistics/ /home/fabian/eclipse/nami/src/nami/statistics/namistatistics.xsd">
 	<database>
 		<url>jdbc:mysql://localhost:3306/jnami?useServerPrepStmts=true</url>
+		<!-- <url>jdbc:hsqldb:file:./hsql</url> -->
 		<username>jnami</username> <!-- optional (z. B. bei HSQLDB nicht nötig) -->
 		<password>jnami</password>
 	</database>
-	<namiconnection useApi="false">
-		<credentials type="NamiWalletCredentials">
-			<!-- alternativ: NamiConsoleCredentials -->
-			<username>12345</username> <!-- bei ConsoleCredentials optional -->
-		</credentials>
-	</namiconnection>
 	<gruppe id="1" bezeichnung="Wölflinge">
 		<namiSearch>
 			<taetigkeit id="1" />

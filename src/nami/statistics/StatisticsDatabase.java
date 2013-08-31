@@ -18,7 +18,7 @@ import nami.connector.namitypes.NamiGruppierung;
  * @author Fabian Lipp
  * 
  */
-public class NamiStatisticsDatabase {
+public class StatisticsDatabase {
     /**
      * Enthält die Datenbank-Systeme, die von dieser Klasse unterstützt werden.
      * 
@@ -42,7 +42,7 @@ public class NamiStatisticsDatabase {
 
     private Dbms dbms;
     private Connection dbcon;
-    private Collection<NamiStatisticsGruppe> gruppen;
+    private Collection<Gruppe> gruppen;
     private Logger log;
 
     // Prepared Statements, die in den einzelnen Methoden verwendet werden
@@ -62,13 +62,13 @@ public class NamiStatisticsDatabase {
      * @throws SQLException
      *             Probleme beim Ausführen der SQL-Kommandos
      */
-    public NamiStatisticsDatabase(Connection dbcon,
-            Collection<NamiStatisticsGruppe> gruppen) throws SQLException {
+    public StatisticsDatabase(Connection dbcon, Collection<Gruppe> gruppen)
+            throws SQLException {
         this.dbcon = dbcon;
         this.dbms = Dbms.fromPackageName(dbcon.getClass().getPackage()
                 .getName());
         this.gruppen = gruppen;
-        log = Logger.getLogger(NamiStatisticsDatabase.class.getCanonicalName());
+        log = Logger.getLogger(StatisticsDatabase.class.getCanonicalName());
 
     }
 
@@ -151,7 +151,7 @@ public class NamiStatisticsDatabase {
         writeGruppierungToDb(rootGruppierung);
 
         // Füge erfasste Gruppen in Datenbank ein, falls noch nicht vorhanden
-        for (NamiStatisticsGruppe gruppe : gruppen) {
+        for (Gruppe gruppe : gruppen) {
             writeGruppeToDb(gruppe.getId(), gruppe.getBezeichnung());
         }
     }
@@ -355,7 +355,7 @@ public class NamiStatisticsDatabase {
         StringBuilder sql = new StringBuilder(
                 "SELECT g.gruppierungId AS Gruppierungsnummer, "
                         + "g.descriptor AS Gruppierungsname");
-        for (NamiStatisticsGruppe gruppe : gruppen) {
+        for (Gruppe gruppe : gruppen) {
             sql.append(", SUM(CASE WHEN gruppeId = ");
             sql.append(gruppe.getId());
             sql.append(" THEN anzahl END) AS ");
@@ -398,7 +398,7 @@ public class NamiStatisticsDatabase {
             throws SQLException {
         StringBuilder sql = new StringBuilder("SELECT runId AS RunID, "
                 + "datum AS Datum");
-        for (NamiStatisticsGruppe gruppe : gruppen) {
+        for (Gruppe gruppe : gruppen) {
             sql.append(", SUM(CASE WHEN gruppeId = ");
             sql.append(gruppe.getId());
             sql.append(" THEN anzahl END) AS ");

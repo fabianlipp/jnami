@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -21,6 +22,9 @@ import java.util.logging.Logger;
 import nami.cli.AlternateCommands;
 import nami.cli.CliCommand;
 import nami.cli.CommandDoc;
+import nami.configuration.ApplicationDirectoryException;
+import nami.configuration.ConfigFormatException;
+import nami.configuration.Configuration;
 import nami.connector.NamiConnector;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
@@ -28,7 +32,6 @@ import nami.connector.exception.CredentialsInitiationException;
 import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiGruppierung;
 import nami.connector.namitypes.NamiSearchedValues;
-import nami.nami2mailman.ConfigFormatException;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -43,13 +46,17 @@ import org.jdom2.input.sax.XMLReaderXSDFactory;
  * @author Fabian Lipp
  * 
  */
-public final class NamiStatisticsTest {
+public final class NamiStatistics {
     private NamiConnector namicon;
-    private NamiStatisticsDatabase db;
-    private Collection<NamiStatisticsGruppe> gruppen;
+    private StatisticsDatabase db;
+    private Collection<Gruppe> gruppen;
+    private static Logger log = Logger.getLogger(NamiStatistics.class
+            .getCanonicalName());
 
-    private NamiStatisticsTest(NamiConnector namicon,
-            NamiStatisticsDatabase db, Collection<NamiStatisticsGruppe> gruppen) {
+    private static final String CONFIG_FILENAME = "namistatistics.xml";
+
+    private NamiStatistics(NamiConnector namicon, StatisticsDatabase db,
+            Collection<Gruppe> gruppen) {
         this.namicon = namicon;
         this.db = db;
         this.gruppen = gruppen;
@@ -65,7 +72,20 @@ public final class NamiStatisticsTest {
      */
     public static void main(String[] args) throws Exception {
         try {
-            main(args, null, new PrintWriter(System.out));
+            Properties p = Configuration.getGeneralProperties();
+
+            NamiCredentials credentials = NamiCredentials
+                    .getCredentialsFromProperties(p);
+
+            NamiConnector con;
+            if (Boolean.parseBoolean(p.getProperty("nami.useApi"))) {
+                con = new NamiConnector(NamiServer.LIVESERVER_WITH_API,
+                        credentials);
+            } else {
+                con = new NamiConnector(NamiServer.LIVESERVER, credentials);
+            }
+
+            main(args, con, new PrintWriter(System.out));
             System.exit(0);
         } catch (IllegalArgumentException e) {
             System.err.println(e.getMessage());
@@ -93,17 +113,20 @@ public final class NamiStatisticsTest {
      *             Fehler bei einer SQL-Anfrage
      * @throws NamiApiException
      *             API-Fehler beim Zugriff auf NaMi
+     * @throws ApplicationDirectoryException
+     *             Probleme beim Zugriff auf das Konfigurationsverzeichnis
      */
     @CliCommand("statistics")
     @AlternateCommands("stats")
     @CommandDoc("Erstellt Statistiken und gibt diese im CSV-Format aus")
     public static void main(String[] args, NamiConnector namicon,
             PrintWriter out) throws IOException, ConfigFormatException,
-            CredentialsInitiationException, SQLException, NamiApiException {
-        String configFile = "namistatistics.xml";
+            CredentialsInitiationException, SQLException, NamiApiException,
+            ApplicationDirectoryException {
+
         String xsdFile = "namistatistics.xsd";
 
-        Logger dbLogger = Logger.getLogger(NamiStatisticsDatabase.class
+        Logger dbLogger = Logger.getLogger(StatisticsDatabase.class
                 .getCanonicalName());
         dbLogger.setLevel(Level.FINEST);
         Handler handler = new ConsoleHandler();
@@ -114,11 +137,18 @@ public final class NamiStatisticsTest {
         // TODO: Fange Exception ab, wenn Dokument nicht valide
         Document doc;
         try {
-            URL xsdfile = NamiStatisticsTest.class.getResource(xsdFile);
+            URL xsdfile = NamiStatistics.class.getResource(xsdFile);
             XMLReaderJDOMFactory schemafac = new XMLReaderXSDFactory(xsdfile);
-            File f = new File(configFile);
             SAXBuilder builder = new SAXBuilder(schemafac);
-            doc = builder.build(f);
+
+            File configFile = new File(Configuration.getApplicationDirectory(),
+                    CONFIG_FILENAME);
+            log.info("Using statistics config file: "
+                    + configFile.getAbsolutePath());
+            if (!configFile.exists() || !configFile.canRead()) {
+                throw new ConfigFormatException("Cannot read config file");
+            }
+            doc = builder.build(configFile);
         } catch (JDOMException e) {
             throw new ConfigFormatException("Could not parse config file", e);
         }
@@ -135,28 +165,8 @@ public final class NamiStatisticsTest {
         String dbUsername = databaseEl.getChildText("username");
         String dbPassword = databaseEl.getChildText("password");
 
-        // Nami-Verbindung aus XML lesen (falls nicht als Parameter übergeben)
-        if (namicon == null) {
-            Element namiconnectionEl = namistatisticsEl
-                    .getChild("namiconnection");
-            boolean useApi = Boolean.parseBoolean(databaseEl
-                    .getAttributeValue("useApi"));
-            Element credentialsEl = namiconnectionEl.getChild("credentials");
-            String credentialsType = credentialsEl.getAttributeValue("type");
-            String credentialsUsername = credentialsEl.getChildText("username");
-            NamiCredentials cred = NamiCredentials.getCredentialsFromClassname(
-                    credentialsType, credentialsUsername);
-            NamiServer namiServer;
-            if (useApi) {
-                namiServer = NamiServer.LIVESERVER_WITH_API;
-            } else {
-                namiServer = NamiServer.LIVESERVER;
-            }
-            namicon = new NamiConnector(namiServer, cred);
-        }
-
         // Gruppen aus XML einlesen
-        List<NamiStatisticsGruppe> gruppen = new LinkedList<>();
+        List<Gruppe> gruppen = new LinkedList<>();
         for (Element gruppeEl : namistatisticsEl.getChildren("gruppe")) {
             int gruppeId = Integer.parseInt(gruppeEl.getAttributeValue("id"));
             String bezeichnung = gruppeEl.getAttributeValue("bezeichnung");
@@ -164,8 +174,7 @@ public final class NamiStatisticsTest {
             for (Element namiSearchEl : gruppeEl.getChildren("namiSearch")) {
                 searches.add(NamiSearchedValues.fromXml(namiSearchEl));
             }
-            gruppen.add(new NamiStatisticsGruppe(gruppeId, bezeichnung,
-                    searches));
+            gruppen.add(new Gruppe(gruppeId, bezeichnung, searches));
         }
 
         // Verbindung zu Datenbank aufbauen
@@ -180,9 +189,9 @@ public final class NamiStatisticsTest {
                         dbPassword);
             }
         }
-        NamiStatisticsDatabase db = new NamiStatisticsDatabase(dbcon, gruppen);
+        StatisticsDatabase db = new StatisticsDatabase(dbcon, gruppen);
 
-        NamiStatisticsTest stats = new NamiStatisticsTest(namicon, db, gruppen);
+        NamiStatistics stats = new NamiStatistics(namicon, db, gruppen);
         // Kommando auslesen
         if (args.length < 1) {
             dbcon.close();
@@ -223,6 +232,11 @@ public final class NamiStatisticsTest {
             throw new IllegalArgumentException("Invalid command: " + args[0]);
         }
 
+        // Der CSV-Ausgabe-Stream wird nur dann geschlossen, wenn es nicht der
+        // übergebene Ausgabestrom ist (denn dann wird dieser noch gebraucht)
+        if (csvOut != out) {
+            csvOut.close();
+        }
         dbcon.close();
     }
 
@@ -241,7 +255,7 @@ public final class NamiStatisticsTest {
     private void writeAnzahlForGruppierungAndChildren(int runId,
             NamiGruppierung gruppierung) throws NamiApiException, IOException,
             SQLException {
-        for (NamiStatisticsGruppe gruppe : gruppen) {
+        for (Gruppe gruppe : gruppen) {
             int anzahl = gruppe.getAnzahl(namicon, gruppierung.getId());
             db.writeAnzahl(gruppierung.getId(), gruppe.getId(), runId, anzahl);
         }
@@ -283,7 +297,6 @@ public final class NamiStatisticsTest {
         }
 
         csvWriter.writeResultSet(rs);
-        csvWriter.close();
     }
 
     private void historyAsCsv(String[] args, Writer csvOut, boolean cumulate)
@@ -300,6 +313,5 @@ public final class NamiStatisticsTest {
         CsvWriter csvWriter = new CsvWriter(csvOut);
         ResultSet rs = db.getHistory(gruppierungsnummer, cumulate);
         csvWriter.writeResultSet(rs);
-        csvWriter.close();
     }
 }

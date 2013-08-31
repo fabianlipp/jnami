@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import nami.configuration.ConfigFormatException;
 import nami.connector.Ebene;
 import nami.connector.namitypes.NamiMitgliedListElement;
 import nami.connector.namitypes.NamiTaetigkeitAssignment;

@@ -65,14 +65,9 @@ public class CsvWriter {
             }
             out.write(System.lineSeparator());
         }
-    }
 
-    /**
-     * Schließt den Ausgabestrom.
-     * 
-     * @throws IOException .
-     */
-    public void close() throws IOException {
-        out.close();
+        // Hier flushen, da der BufferedWriter nirgends ordentlich geschlossen
+        // wird
+        out.flush();
     }
 }
