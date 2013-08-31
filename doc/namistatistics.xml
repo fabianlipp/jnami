@@ -1,0 +1,77 @@
+<tns:namistatistics xmlns:tns="http://www.example.org/namistatistics/"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.example.org/namistatistics/ /home/fabian/eclipse/nami/src/nami/statistics/namistatistics.xsd">
+
+	<!-- Konfiguration der verwendeten SQL-Datenbank -->
+	<database>
+		<!-- momentan unterstützte Datenbanken: MySQL, HSQLDB -->
+		<url>jdbc:mysql://localhost:3306/jnami?useServerPrepStmts=true</url>
+		<!-- <url>jdbc:hsqldb:file:./hsql</url> -->
+		<username>jnami</username> <!-- optional (je nach Datenbank-Treiber) -->
+		<password>jnami</password> <!-- optional (je nach Datenbank-Treiber) -->
+	</database>
+
+	<!-- Konfiguration der Mitgliedergruppen, die in der Statistik erfasst werden -->
+	<!-- id: ID mit der die Gruppe in der Datenbank erfasst wird. Diese sollte 
+		nicht verändert werden und eindeutig sein. Wenn eine Gruppe entfernt wird, 
+		sollte die entsprechende ID nicht neu vergeben werden. Die IDs müssen nicht 
+		fortlaufend sein -->
+	<!-- Bezeichnung: Hiermit wird die Gruppe beispielsweise in den erzeugten 
+		CSV-Dateien beschriftet -->
+	<gruppe id="1" bezeichnung="Wölflinge">
+		<!-- Beschreibt einen Aufruf der Suchfunktion in NaMi. Innerhalb dieses 
+			Tags wird die Belegung der Felder in der Suche beschrieben. Zusätzlich wird 
+			in der Suche immer noch die jeweilige Gruppierungs-ID eingesetzt -->
+		<namiSearch>
+			<!-- Tätigkeit-ID, die ins Feld "Tätigkeit" der Suche eingesetzt wird. 
+				Wenn ein taetigkeit-Element vorhanden ist, dann wird automatisch auch der 
+				Haken bei "Suche in allen aktiven Tätigkeiten" gesetzt -->
+			<taetigkeit id="1" />
+			<!-- Analog zu taetigkeit; ID die als Untergliederung (Stufe/Abteilung) 
+				eingesetzt wird -->
+			<untergliederung id="1" />
+		</namiSearch>
+	</gruppe>
+	<gruppe id="2" bezeichnung="Jungpfadfinder">
+		<namiSearch>
+			<taetigkeit id="1" />
+			<untergliederung id="2" />
+		</namiSearch>
+	</gruppe>
+	<gruppe id="3" bezeichnung="Pfadfinder">
+		<namiSearch>
+			<taetigkeit id="1" />
+			<untergliederung id="3" />
+		</namiSearch>
+	</gruppe>
+	<gruppe id="4" bezeichnung="Rover">
+		<namiSearch>
+			<taetigkeit id="1" />
+			<untergliederung id="4" />
+		</namiSearch>
+	</gruppe>
+	<gruppe id="5" bezeichnung="Leiter">
+		<!-- Wenn mehrere namiSearch-Elemente vorhanden sind, werden diese Suchanfragen 
+			nacheinander ausgeführt und die Ergebnismengen vereinigt. Das heißt Mitglieder, 
+			die bei mehreren Suchen als Ergebnis geliefert werden, werden trotzdem nur 
+			einmal gezählt. -->
+		<namiSearch>
+			<taetigkeit id="6" /> <!-- LeiterIn -->
+		</namiSearch>
+		<namiSearch>
+			<taetigkeit id="13" /> <!-- Vorsitzender -->
+			<untergliederung id="5" /> <!-- Vorstand -->
+		</namiSearch>
+		<namiSearch>
+			<taetigkeit id="11" /> <!-- Kurat -->
+			<untergliederung id="5" /> <!-- Vorstand -->
+		</namiSearch>
+	</gruppe>
+	<gruppe id="6" bezeichnung="Mitglieder">
+		<namiSearch>
+			<!-- Suche nach Personen mit einem bestimmten Mitgliedstyp. Mögliche Werte: 
+				MITGLIED, NICHT_MITGLIED, SCHNUPPER_MITGLIED -->
+			<mitgliedstyp id="MITGLIED" />
+		</namiSearch>
+	</gruppe>
+</tns:namistatistics>
