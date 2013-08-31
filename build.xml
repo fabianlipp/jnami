@@ -5,58 +5,62 @@
 	<property name="lib.dir" value="lib" />
 	<property name="classes.dir" value="${build.dir}/classes" />
 	<property name="jar.dir" value="${build.dir}/jar" />
-	<!--<property name="main-class"  value="oata.HelloWorld"/>-->
 
+	<!-- Grund-Konfiguration für Ivy -->
 	<path id="ivy.lib.path">
-		<fileset dir="/usr/share/ant/lib" includes="*.jar"/>
+		<fileset dir="/usr/share/ant/lib" includes="*.jar" />
 	</path>
-	<taskdef resource="org/apache/ivy/ant/antlib.xml"
-	         uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+	<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path" />
+	<!--<ivy:settings file="ivysettings.xml" />-->
 
 	<path id="lib.path.id">
+		<!-- Classpath für Kompilierung -->
 		<fileset dir="${lib.dir}" />
 		<files includes="/home/fabian/.java/libwallet/libwallet-0.9.1-fabian.jar" />
 	</path>
 	<path id="run.path.id">
+		<!-- Classpath für Ausführung -->
 		<path refid="lib.path.id" />
 		<path location="${classes.dir}" />
 		<files includes="/home/fabian/.java/libwallet/dbus-java/dbus-java-2.7/libdbus-java-2.7.jar" />
 		<files includes="/usr/share/java/mysql-connector-java.jar" />
 	</path>
-	
+
 	<target name="clean">
-		<delete dir="${build.dir}"/>
+		<delete dir="${classes.dir}" />
+	</target>
+
+	<!-- Ivy-Targets -->
+	<!-- Ivy-Ausführung nicht notwendig, wenn ivy.xml seit letzter Ausführung nicht verändert -->
+	<uptodate property="ivyRetrieve.notRequired" srcfile="ivy.xml" targetfile="${lib.dir}\ivy.run">
+	</uptodate>
+	<target name="resolve" description="retrieve dependencies with ivy" unless="ivyRetrieve.notRequired">
+		<ivy:retrieve sync="true" />
+		<touch file="${lib.dir}/ivy.run" />
+	</target>
+	<target name="report" depends="resolve" description="--> generates a report of dependencies">
+		<ivy:report todir="${build.dir}" />
+	</target>
+
+	<target name="compile" depends="resolve">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.path.id" includeAntRuntime="false" debug="true" />
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}" excludes="**/*.java" />
+		</copy>
+
+		<!-- Ausführungs-Classpath in Datei schreiben (wird bei Ausführung von Shell-Skript eingelesen -->
+		<property refid="run.path.id" name="classpath.property" />
+		<echo file="namicli.classpath" message="${classpath.property}" />
 	</target>
 	
-	<uptodate property="ivyRetrieve.notRequired" srcfile="ivy.xml" targetfile="${lib.dir}\ivy.run" >
-	</uptodate>
-    <target name="resolve" description="retrieve dependencies with ivy" unless="ivyRetrieve.notRequired">
-        <ivy:retrieve />
-    	<touch file="${lib.dir}/ivy.run" />
-    </target>
-	
-    <target name="report" depends="resolve" description="--> generates a report of dependencies">
-        <ivy:report todir="${build.dir}"/>
-    </target>
-	
-    <target name="compile" depends="resolve">
-        <mkdir dir="${classes.dir}"/>
-        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.path.id" includeAntRuntime="false" debug="true" />
-    	<copy todir="${classes.dir}">
-    	    <fileset dir="${src.dir}" excludes="**/*.java" />
-    	</copy>
-    	
-    	<!-- write classpath to file -->
-    	<property refid="run.path.id" name="classpath.property" /> 
-    	<echo file="namicli.classpath" message="${classpath.property}" />
-    </target>
-	
-    <target name="run" depends="compile" description="--> compile and run the project">
-    	<property name="msg" value="hello ivy !"/>
-        <java classpathref="run.path.id" classname="nami.cli.NamiCli" fork="true" spawn="true">
-        	<sysproperty key="java.library.path" value="/usr/local/lib/jni"/>
-        	<arg value="-message"/>
-        	<arg value="${msg}"/>
-    	</java>
-    </target>
+	<target name="build" depends="compile">
+		<buildnumber file="${build.dir}/build.number" />
+	</target>
+
+	<!--<target name="run" depends="compile" description="compile and run the project">
+		<java classpathref="run.path.id" classname="nami.cli.NamiCli" fork="true" spawn="true">
+			<sysproperty key="java.library.path" value="/usr/local/lib/jni" />
+		</java>
+	</target>-->
 </project>
