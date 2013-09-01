@@ -19,9 +19,13 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import nami.cli.AlternateCommands;
-import nami.cli.CliCommand;
-import nami.cli.CommandDoc;
+import jline.console.completer.Completer;
+import jline.console.completer.StringsCompleter;
+import nami.cli.CompleterFactory;
+import nami.cli.annotation.AlternateCommands;
+import nami.cli.annotation.CliCommand;
+import nami.cli.annotation.CommandDoc;
+import nami.cli.annotation.ParamCompleter;
 import nami.configuration.ApplicationDirectoryException;
 import nami.configuration.ConfigFormatException;
 import nami.configuration.Configuration;
@@ -94,6 +98,20 @@ public final class NamiStatistics {
     }
 
     /**
+     * Liefert den Completer, der die Kommandos vervollständigt, die
+     * NamiStatistics versteht.
+     * 
+     */
+    public static class StatisticsCompleter implements CompleterFactory {
+        @Override
+        public Completer getCompleter() {
+            return new StringsCompleter("collectData", "listRuns",
+                    "statsAsCsv", "statsAsCsvCum", "historyAsCsv",
+                    "historyAsCsvCum");
+        }
+    }
+
+    /**
      * Haupt-Funktion, wenn das Statistik-Tool durch NamiCli aufgerufen wird.
      * 
      * @param args
@@ -119,6 +137,7 @@ public final class NamiStatistics {
     @CliCommand("statistics")
     @AlternateCommands("stats")
     @CommandDoc("Erstellt Statistiken und gibt diese im CSV-Format aus")
+    @ParamCompleter(StatisticsCompleter.class)
     public static void main(String[] args, NamiConnector namicon,
             PrintWriter out) throws IOException, ConfigFormatException,
             CredentialsInitiationException, SQLException, NamiApiException,

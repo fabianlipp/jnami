@@ -1,4 +1,4 @@
-package nami.cli;
+package nami.cli.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

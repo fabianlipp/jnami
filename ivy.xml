@@ -9,6 +9,7 @@
 
 		<dependency org="commons-cli" name="commons-cli" rev="1.2"/>
 		<dependency org="commons-io" name="commons-io" rev="2.4"/>
+		<dependency org="org.apache.commons" name="commons-lang3" rev="3.1"/>
 		<dependency org="jline" name="jline" rev="2.11"/>
 		<dependency org="net.sourceforge.htmlcleaner" name="htmlcleaner" rev="2.4"/>
 		<!--<dependency org="net.sf.jasperreports" name="jasperreports" rev="5.2.0" />-->

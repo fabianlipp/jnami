@@ -20,8 +20,14 @@ import java.util.regex.Pattern;
 
 import jline.console.ConsoleReader;
 import jline.console.UserInterruptException;
+import jline.console.completer.Completer;
+import jline.console.completer.NullCompleter;
 import jline.console.completer.StringsCompleter;
 import jline.console.history.FileHistory;
+import nami.cli.annotation.AlternateCommands;
+import nami.cli.annotation.CliCommand;
+import nami.cli.annotation.CommandDoc;
+import nami.cli.annotation.ParamCompleter;
 import nami.cli.commands.EnumListings;
 import nami.cli.commands.Gruppierungen;
 import nami.cli.commands.Mitglieder;
@@ -48,6 +54,8 @@ public final class NamiCli {
 
     private static final String HISTORY_FILE = System.getProperty("user.home")
             + "/.namicli_history";
+    private static Logger log = Logger.getLogger(NamiCli.class
+            .getCanonicalName());
 
     /**
      * Klassen, in denen die verfügbaren Funktionen deklariert sind. Die
@@ -58,32 +66,100 @@ public final class NamiCli {
             Mitglieder.class, EnumListings.class, NamiCli.class,
             NamiStatistics.class };
 
+    /**
+     * Enthält die Kommandos, die NamiCli versteht, und die zugeordneten
+     * Methoden, die dann aufgerufen werden.
+     */
     private static Map<String, Method> commands = new HashMap<>();
+    /**
+     * Enthält die primären Namen der Kommandos. Hier werden also nur die
+     * Kommandos eingefügt, die als Attribut einer {@link CliCommand}-Annotation
+     * angegeben sind, nicht die die nur als Attribut einer
+     * {@link AlternateCommands}-Annotation angegeben sind.
+     * 
+     * Diese Liste wird beispielsweise verwendet, um die Hilfe mit der
+     * Kurzbeschreibung der Kommandos anzuzeigen.
+     */
     private static List<String> commandNames = new LinkedList<>();
+    /**
+     * Enthält alle Kommandos, also auch die aus {@link AlternateCommands}.
+     */
     private static List<String> allCommandNames = new LinkedList<>();
+    /**
+     * Enthält die Second-Level-Completer für jedes der unterstützten Kommandos.
+     */
+    private static Map<String, Completer> completersMap = new HashMap<>();
 
     static {
         // Read available commands from annotations in COMMAND_CLASSES
         for (Class<?> cls : COMMAND_CLASSES) {
             for (Method mtd : cls.getMethods()) {
-                if (mtd.isAnnotationPresent(CliCommand.class)) {
-                    CliCommand anno = mtd.getAnnotation(CliCommand.class);
-                    commands.put(anno.value().toLowerCase(), mtd);
-                    commandNames.add(anno.value());
-                    allCommandNames.add(anno.value());
+                CliCommand anno = mtd.getAnnotation(CliCommand.class);
+                if (anno != null) {
+                    Completer completer = getCompleterForMethod(mtd);
+                    addToCommands(anno.value(), mtd, completer, true);
 
                     AlternateCommands alt = mtd
                             .getAnnotation(AlternateCommands.class);
                     if (alt != null) {
                         for (String str : alt.value()) {
-                            commands.put(str.toLowerCase(), mtd);
-                            allCommandNames.add(str);
+                            addToCommands(str, mtd, completer, false);
                         }
                     }
                 }
             }
         }
         Collections.sort(commandNames);
+    }
+
+    /**
+     * Erzeugt einen Completer für eine CliCommand-Methode. Dazu wird die
+     * entsprechende Annotation ausgelesen und mit der dort angegeben
+     * Factory-Klasse der Completer erzeugt.
+     * 
+     * @param mtd
+     *            Methode
+     * @return Der Completer, falls die Annotation vorhanden war und dieser
+     *         erzeugt werden konnte; andernfalls wird ein
+     *         <tt>NullCompleter</tt> zurückgegeben.
+     */
+    private static Completer getCompleterForMethod(Method mtd) {
+        Completer completer = NullCompleter.INSTANCE;
+        if (mtd.isAnnotationPresent(ParamCompleter.class)) {
+            try {
+                ParamCompleter anno = mtd.getAnnotation(ParamCompleter.class);
+                Class<? extends CompleterFactory> complFacCls = anno.value();
+                CompleterFactory complFac = complFacCls.newInstance();
+                completer = complFac.getCompleter();
+            } catch (InstantiationException | IllegalAccessException e) {
+                log.log(Level.WARNING,
+                        "Could not initialise completer for command", e);
+            }
+        }
+        return completer;
+    }
+
+    /**
+     * Fügt ein Kommado in die entsprechenden Listen dieser Klasse ein.
+     * 
+     * @param commandName
+     *            Kommando
+     * @param mtd
+     *            aufzurufende Methode
+     * @param completer
+     *            Completer für die Parameter des Kommandos
+     * @param primary
+     *            <tt>true</tt>, falls dies ein primäres Kommando ist, also als
+     *            Attribut von {@link CliCommand} angegeben ist
+     */
+    private static void addToCommands(String commandName, Method mtd,
+            Completer completer, boolean primary) {
+        commands.put(commandName.toLowerCase(), mtd);
+        allCommandNames.add(commandName);
+        if (primary) {
+            commandNames.add(commandName);
+        }
+        completersMap.put(commandName.toLowerCase(), completer);
     }
 
     /**
@@ -127,10 +203,15 @@ public final class NamiCli {
             // Initialise JLine2
             ConsoleReader reader = new ConsoleReader();
             reader.setPrompt("NamiCli> ");
-            reader.addCompleter(new StringsCompleter(allCommandNames));
+            // Completer Configuration
+            Completer completer = new TwoLevelCompleter(new StringsCompleter(
+                    allCommandNames), completersMap);
+            reader.addCompleter(completer);
+            // Commandline History
             FileHistory history = new FileHistory(new File(HISTORY_FILE));
             reader.setHistory(history);
             PrintWriter out = new PrintWriter(reader.getOutput());
+            // needed to enable Ctrl+C
             reader.setHandleUserInterrupt(true);
 
             String line = null;
@@ -224,18 +305,24 @@ public final class NamiCli {
         }
     }
 
+    /**
+     * Liefert die Beschreibung eines Kommandos aus der {@link CommandDoc}
+     * -Annotation.
+     * 
+     * @param command
+     *            Kommando
+     * @return der Beschreibungstexts
+     */
     private static String getShortDescription(String command) {
         Method mtd = commands.get(command.toLowerCase());
-        if (mtd == null) {
-            return "";
-        } else {
+        if (mtd != null) {
             CommandDoc anno = mtd.getAnnotation(CommandDoc.class);
             if (anno != null) {
                 return anno.value();
-            } else {
-                return "";
             }
         }
+
+        return "";
     }
 
     /**

@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 
-import nami.cli.AlternateCommands;
-import nami.cli.CliCommand;
-import nami.cli.CommandDoc;
+import nami.cli.annotation.AlternateCommands;
+import nami.cli.annotation.CliCommand;
+import nami.cli.annotation.CommandDoc;
 import nami.connector.NamiConnector;
 import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiAbstractMitglied;
