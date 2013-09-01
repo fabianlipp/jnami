@@ -219,6 +219,7 @@ public final class NamiCli {
                 try {
                     line = reader.readLine();
                 } catch (UserInterruptException e) {
+                    out.println("^C");
                     line = "";
                 }
                 if (line == null) {
