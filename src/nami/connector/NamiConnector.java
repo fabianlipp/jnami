@@ -95,6 +95,11 @@ public class NamiConnector {
      *             Probleme beim NaMi-Login, z. B. falsche Zugangsdaten
      */
     public void namiLogin() throws IOException, NamiLoginException {
+        // skip if already logged in
+        if (isAuthenticated) {
+            return;
+        }
+
         HttpPost httpPost = new HttpPost(NamiURIBuilder.getLoginURIBuilder(
                 server).build());
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();

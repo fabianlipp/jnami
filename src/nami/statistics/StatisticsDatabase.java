@@ -43,7 +43,8 @@ public class StatisticsDatabase {
     private Dbms dbms;
     private Connection dbcon;
     private Collection<Gruppe> gruppen;
-    private Logger log;
+    private static Logger log = Logger.getLogger(StatisticsDatabase.class
+            .getName());
 
     // Prepared Statements, die in den einzelnen Methoden verwendet werden
     private PreparedStatement stmtTestGruppierung = null;
@@ -68,8 +69,6 @@ public class StatisticsDatabase {
         this.dbms = Dbms.fromPackageName(dbcon.getClass().getPackage()
                 .getName());
         this.gruppen = gruppen;
-        log = Logger.getLogger(StatisticsDatabase.class.getCanonicalName());
-
     }
 
     private void logQuery(String sql, boolean prepared) {
