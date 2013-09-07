@@ -16,6 +16,7 @@
 
 	<complexType name="databaseT">
 		<all>
+			<element name="driver" type="string" maxOccurs="1" minOccurs="1"></element>
 			<element name="url" type="string" maxOccurs="1" minOccurs="1"></element>
 			<element name="username" type="string" maxOccurs="1"
 				minOccurs="0"></element>

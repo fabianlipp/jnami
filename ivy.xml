@@ -14,9 +14,15 @@
 		<dependency org="net.sourceforge.htmlcleaner" name="htmlcleaner" rev="2.4"/>
 		<!--<dependency org="net.sf.jasperreports" name="jasperreports" rev="5.2.0" />-->
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.0"/>
+		<dependency org="org.mybatis" name="mybatis" rev="3.2.2" />
 
 		<exclude org="maven-plugins" module="maven-cobertura-plugin"/>
 		<exclude org="maven-plugins" module="maven-findbugs-plugin"/>
+
+		<!-- Excludes für mybatis -->
+		<exclude org="org.slf4j" module="slf4j-log4j12" />
+		<exclude org="org.slf4j" module="slf4j-api" />
+		<exclude org="log4j" module="log4j" />
 
 	</dependencies>
 </ivy-module>

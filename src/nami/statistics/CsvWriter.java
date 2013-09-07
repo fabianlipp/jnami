@@ -6,6 +6,15 @@ import java.io.Writer;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.ResultContext;
+import org.apache.ibatis.session.ResultHandler;
 
 /**
  * Schreibt CSV-Daten.
@@ -13,10 +22,13 @@ import java.sql.SQLException;
  * @author Fabian Lipp
  * 
  */
-public class CsvWriter {
+public class CsvWriter implements ResultHandler {
     private static final String FIELD_SEPARATOR = ",";
 
     private Writer out;
+    private boolean headerWritten = false;
+
+    private static Logger log = Logger.getLogger(CsvWriter.class.getName());
 
     /**
      * Erzeugt einen neuen <tt>CsvWriter</tt>, der in den übergebenen
@@ -69,5 +81,40 @@ public class CsvWriter {
         // Hier flushen, da der BufferedWriter nirgends ordentlich geschlossen
         // wird
         out.flush();
+    }
+
+    @Override
+    public void handleResult(ResultContext context) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = ((Map<String, Object>) context
+                    .getResultObject());
+
+            if (!headerWritten) {
+                out.write(StringUtils.join(map.keySet(), FIELD_SEPARATOR));
+                out.write(System.lineSeparator());
+                headerWritten = true;
+            }
+            LinkedList<String> values = new LinkedList<>();
+            for (Entry<String, Object> entry : map.entrySet()) {
+                String str = entry.getValue().toString();
+                if (str.contains(FIELD_SEPARATOR)) {
+                    str = "\"" + str + "\"";
+                }
+                values.add(str);
+            }
+            out.write(StringUtils.join(values, FIELD_SEPARATOR));
+            out.write(System.lineSeparator());
+
+            // Hier flushen, da der BufferedWriter nirgends ordentlich
+            // geschlossen wird
+            out.flush();
+        } catch (ClassCastException e) {
+            log.warning("ResultContext does not contain a map or contents "
+                    + "of map have wrong type. Classname is: "
+                    + context.getResultObject().getClass().getName());
+        } catch (IOException e) {
+            log.log(Level.WARNING, "Could not write to CSV file", e);
+        }
     }
 }

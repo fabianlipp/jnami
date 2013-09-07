@@ -3,12 +3,10 @@ package nami.statistics;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -36,7 +34,10 @@ import nami.connector.credentials.NamiCredentials;
 import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiGruppierung;
 import nami.connector.namitypes.NamiSearchedValues;
+import nami.statistics.StatisticsDatabase.Run;
 
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -54,7 +55,8 @@ public final class NamiStatistics {
     private NamiStatistics() {
     }
 
-    // private NamiConnector namicon;
+    private static SqlSessionFactory sqlSessionFactory;
+
     private static StatisticsDatabase db = null;
     private static Collection<Gruppe> gruppen = null;
 
@@ -66,6 +68,7 @@ public final class NamiStatistics {
     private static final String CONFIG_FILENAME = "namistatistics.xml";
     private static final URL XSDFILE = NamiStatistics.class
             .getResource("namistatistics.xsd");
+    private static final String MYBATIS_CONFIGFILE = "mybatis-config.xml";
 
     private static void readConfig() throws ApplicationDirectoryException,
             ConfigFormatException, IOException, SQLException {
@@ -101,6 +104,7 @@ public final class NamiStatistics {
 
         // Datenbankverbindung aus XML lesen
         Element databaseEl = namistatisticsEl.getChild("database");
+        String dbDriver = databaseEl.getChildText("driver");
         String dbUrl = databaseEl.getChildText("url");
         String dbUsername = databaseEl.getChildText("username");
         String dbPassword = databaseEl.getChildText("password");
@@ -117,19 +121,17 @@ public final class NamiStatistics {
             gruppen.add(new Gruppe(gruppeId, bezeichnung, searches));
         }
 
-        // Verbindung zu Datenbank aufbauen
-        Connection dbcon;
-        if (dbUsername == null) {
-            dbcon = DriverManager.getConnection(dbUrl);
-        } else {
-            if (dbPassword == null) {
-                dbcon = DriverManager.getConnection(dbUrl, dbUsername, "");
-            } else {
-                dbcon = DriverManager.getConnection(dbUrl, dbUsername,
-                        dbPassword);
-            }
-        }
-        db = new StatisticsDatabase(dbcon, gruppen);
+        // Initialise MyBatis
+        Properties prop = new Properties();
+        prop.setProperty("driver", dbDriver);
+        prop.setProperty("url", dbUrl);
+        prop.setProperty("username", dbUsername);
+        prop.setProperty("password", dbPassword);
+        InputStream is = NamiStatistics.class
+                .getResourceAsStream(MYBATIS_CONFIGFILE);
+        sqlSessionFactory = new SqlSessionFactoryBuilder().build(is, prop);
+
+        db = new StatisticsDatabase(gruppen, sqlSessionFactory);
     }
 
     /**
@@ -155,7 +157,9 @@ public final class NamiStatistics {
                 con = new NamiConnector(NamiServer.LIVESERVER, credentials);
             }
 
-            statistics(args, con, new PrintWriter(System.out));
+            PrintWriter out = new PrintWriter(System.out);
+            statistics(args, con, out);
+            out.close();
             System.exit(0);
         } catch (IllegalArgumentException e) {
             System.err.println(e.getMessage());
@@ -209,10 +213,9 @@ public final class NamiStatistics {
         Handler handler = new ConsoleHandler();
         handler.setLevel(Level.ALL);
         Logger.getLogger("").addHandler(handler);
+        Logger.getLogger("").setLevel(Level.ALL);
 
         parser.callMethod(args, namicon, out);
-
-        // dbcon.close();
     }
 
     /**
@@ -243,15 +246,21 @@ public final class NamiStatistics {
                 .getGruppierungen(namicon);
         db.createDatabase(rootGruppierung);
 
-        int runId = db.writeNewStatisticRun();
-        writeAnzahlForGruppierungAndChildren(runId, rootGruppierung, namicon);
+        long runId = db.writeNewStatisticRun();
+        if (runId != -1) {
+            writeAnzahlForGruppierungAndChildren(runId, rootGruppierung,
+                    namicon);
+        } // else {
+          // TODO Fehlerbehandlung
+          // oder werfe Exception
+        // }
 
         // TODO: Erfolgsmeldung loggen
         // out.println("Daten aus NaMi wurden abgefragt");
     }
 
     // verwendet von collectData()
-    private static void writeAnzahlForGruppierungAndChildren(int runId,
+    private static void writeAnzahlForGruppierungAndChildren(long runId,
             NamiGruppierung gruppierung, NamiConnector namicon)
             throws NamiApiException, IOException, SQLException {
         for (Gruppe gruppe : gruppen) {
@@ -281,10 +290,10 @@ public final class NamiStatistics {
     @CommandDoc("Listet die durchgeführten Statistik-Läufe auf")
     public static void listRuns(String[] args, NamiConnector namicon,
             PrintWriter out) throws SQLException {
-        ResultSet rs = db.getRuns();
-        while (rs.next()) {
-            String str = String.format("%3d  %s", rs.getInt("runId"),
-                    rs.getString("datum"));
+        List<Run> runs = db.getRuns();
+        for (Run run : runs) {
+            String str = String.format("%3d  %s", run.getRunId(),
+                    run.getDatum());
             out.println(str);
         }
     }
@@ -364,14 +373,11 @@ public final class NamiStatistics {
         }
 
         CsvWriter csvWriter = new CsvWriter(csvOut);
-        ResultSet rs;
         if (runId != -1) {
-            rs = db.getStatsAllGruppierungen(runId, cumulate);
+            db.getStatsAllGruppierungen(runId, cumulate, csvWriter);
         } else {
-            rs = db.getStatsAllGruppierungen(cumulate);
+            db.getStatsAllGruppierungen(cumulate, csvWriter);
         }
-
-        csvWriter.writeResultSet(rs);
 
         // Der CSV-Ausgabe-Stream wird nur dann geschlossen, wenn es nicht der
         // übergebene Ausgabestrom ist (denn dann wird dieser noch gebraucht)
@@ -451,8 +457,7 @@ public final class NamiStatistics {
         }
 
         CsvWriter csvWriter = new CsvWriter(csvOut);
-        ResultSet rs = db.getHistory(gruppierungsnummer, cumulate);
-        csvWriter.writeResultSet(rs);
+        db.getHistory(gruppierungsnummer, cumulate, csvWriter);
 
         // Der CSV-Ausgabe-Stream wird nur dann geschlossen, wenn es nicht der
         // übergebene Ausgabestrom ist (denn dann wird dieser noch gebraucht)
