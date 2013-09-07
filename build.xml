@@ -20,8 +20,8 @@
 	</path>
 	<path id="run.path.id">
 		<!-- Classpath für Ausführung -->
-		<path refid="lib.path.id" />
 		<path location="${classes.dir}" />
+		<path refid="lib.path.id" />
 		<files includes="/home/fabian/.java/libwallet/dbus-java/dbus-java-2.7/libdbus-java-2.7.jar" />
 		<files includes="/usr/share/java/mysql-connector-java.jar" />
 	</path>
@@ -39,6 +39,7 @@
 		<touch file="${lib.dir}/ivy.run" />
 	</target>
 	<target name="report" depends="resolve" description="--> generates a report of dependencies">
+		<ivy:resolve />
 		<ivy:report todir="${build.dir}" />
 	</target>
 
@@ -49,7 +50,7 @@
 			<fileset dir="${src.dir}" excludes="**/*.java" />
 		</copy>
 
-		<!-- Ausführungs-Classpath in Datei schreiben (wird bei Ausführung von Shell-Skript eingelesen -->
+		<!-- Ausführungs-Classpath in Datei schreiben (wird bei Ausführung von Shell-Skript eingelesen) -->
 		<property refid="run.path.id" name="classpath.property" />
 		<echo file="namicli.classpath" message="${classpath.property}" />
 	</target>
