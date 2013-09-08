@@ -61,8 +61,8 @@ public final class NamiStatistics {
     private static StatisticsDatabase db = null;
     private static Collection<Gruppe> gruppen = null;
 
-    private static Logger log = Logger.getLogger(NamiStatistics.class
-            .getCanonicalName());
+    private static Logger log = Logger
+            .getLogger(NamiStatistics.class.getName());
     private static CliParser parser = new CliParser(NamiStatistics.class,
             "statistics");
 
@@ -213,8 +213,7 @@ public final class NamiStatistics {
 
         readConfig();
 
-        Logger dbLogger = Logger.getLogger(StatisticsDatabase.class
-                .getCanonicalName());
+        Logger dbLogger = Logger.getLogger(StatisticsDatabase.class.getName());
         dbLogger.setLevel(Level.FINEST);
         Handler handler = new ConsoleHandler();
         handler.setLevel(Level.ALL);

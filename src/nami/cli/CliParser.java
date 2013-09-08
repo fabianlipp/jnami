@@ -38,8 +38,7 @@ import nami.connector.NamiConnector;
  */
 public class CliParser {
 
-    private static Logger log = Logger.getLogger(CliParser.class
-            .getCanonicalName());
+    private static Logger log = Logger.getLogger(CliParser.class.getName());
 
     /**
      * Enthält die Kommandos, die NamiCli versteht, und die zugeordneten

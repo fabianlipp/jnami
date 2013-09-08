@@ -18,7 +18,7 @@ public final class Configuration {
     private Configuration() {
     }
 
-    private static Logger log = Logger.getLogger("nami.configuration");
+    private static Logger log = Logger.getLogger(Configuration.class.getName());
 
     /**
      * Liefert das Verzeichnis, in dem alle veränderlichen Dateien gespeichert

@@ -37,8 +37,7 @@ public final class NamiCli {
 
     private static final String HISTORY_FILE = System.getProperty("user.home")
             + "/.namicli_history";
-    // private static Logger log = Logger.getLogger(NamiCli.class
-    // .getCanonicalName());
+    // private static Logger log = Logger.getLogger(NamiCli.class.getName());
 
     /**
      * Klassen, in denen die verfügbaren Funktionen deklariert sind. Die
