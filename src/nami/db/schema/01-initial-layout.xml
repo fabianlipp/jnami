@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+	<changeSet author="fabian" id="01-1">
+		<createTable tableName="gruppierung">
+			<column name="gruppierungId" type="CHAR(6)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="descriptor" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="dioezeseId" type="CHAR(6)" defaultValue="null" />
+			<column name="bezirkId" type="CHAR(6)" defaultValue="null" />
+		</createTable>
+	</changeSet>
+
+	<changeSet author="fabian" id="01-2">
+		<createTable tableName="statisticsRun">
+			<column autoIncrement="true" name="runId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="datum" type="datetime">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+
+	<changeSet author="fabian" id="01-3">
+		<createTable tableName="statisticsGruppe">
+			<column name="gruppeId" type="INT(10)">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="bezeichnung" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+
+	<changeSet author="fabian" id="01-4">
+		<createTable tableName="statisticsData">
+			<column name="gruppierungId" type="CHAR(6)">
+				<constraints nullable="false" />
+			</column>
+			<column name="gruppeId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="runId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="anzahl" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+
+	<changeSet author="fabian" id="01-5">
+		<addPrimaryKey columnNames="gruppierungId, gruppeId, runId"
+			constraintName="PRIMARY" tableName="statisticsData" />
+	</changeSet>
+
+	<changeSet author="fabian" id="01-6">
+		<addForeignKeyConstraint baseColumnNames="runId"
+			baseTableName="statisticsData" constraintName="statisticsData_ibfk_3"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="runId"
+			referencedTableName="statisticsRun" />
+	</changeSet>
+
+	<changeSet author="fabian" id="01-7">
+		<addForeignKeyConstraint baseColumnNames="gruppeId"
+			baseTableName="statisticsData" constraintName="statisticsData_ibfk_2"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="gruppeId"
+			referencedTableName="statisticsGruppe" />
+	</changeSet>
+
+	<changeSet author="fabian" id="01-8">
+		<addForeignKeyConstraint baseColumnNames="gruppierungId"
+			baseTableName="statisticsData" constraintName="statisticsData_ibfk_1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="gruppierungId"
+			referencedTableName="gruppierung" />
+	</changeSet>
+</databaseChangeLog>

@@ -105,7 +105,7 @@ public interface StatisticsMapper {
      *            Feld <tt>runId</tt> die neu eingefügte ID gespeichert
      * @return Anzahl geänderte Zeilen
      */
-    int newRun(Map<String, Long> param);
+    int newRun(Map<String, Object> param);
 
     /**
      * Fügt eine Personenzahl in die Datenbank ein.

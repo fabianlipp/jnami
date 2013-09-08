@@ -46,37 +46,18 @@ public class StatisticsDatabase {
     }
 
     /**
-     * Bereitet die Datenbank vor. Dazu werden alle benötigten Tabellen angelegt
-     * (falls noch nicht vorhanden). Anschließend werden die verfügbaren
-     * Gruppierungen und Gruppen in die entsprechenden Tabellen eingetragen.
+     * Schreibt die verfügbaren Gruppierungen und Gruppen in die entsprechenden
+     * Tabellen der Datenbank.
      * 
      * @param rootGruppierung
      *            Wurzel des Gruppierungsbaums (die untergeordneten
      *            Gruppierungen müssen in den entsprechenden Feldern enthalten
-     *            sein.
+     *            sein).
      * @throws SQLException
      *             Probleme beim Ausführen der SQL-Kommandos
      */
-    public void createDatabase(NamiGruppierung rootGruppierung)
+    public void populateDatabase(NamiGruppierung rootGruppierung)
             throws SQLException {
-
-        SqlSession session = sqlSessionFactory.openSession();
-        try {
-            StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
-
-            // Erzeuge Tabellen
-            mapper.createTableGruppierung();
-            mapper.createTableStatisticsGruppe();
-            mapper.createTableStatisticsRun();
-            mapper.createTableStatisticsData();
-
-            session.commit();
-        } catch (Exception e) {
-            log.log(Level.SEVERE, "SQL call throws exception", e);
-        } finally {
-            session.close();
-        }
-
         // Füge Gruppierungen in Datenbank ein, falls noch nicht vorhanden
         writeGruppierungToDb(rootGruppierung);
 
@@ -150,13 +131,21 @@ public class StatisticsDatabase {
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
 
-            Map<String, Long> map = new HashMap<>();
+            Map<String, Object> map = new HashMap<>();
             mapper.newRun(map);
             session.commit();
 
-            Long res = map.get("runId");
+            Object res = map.get("runId");
             if (res != null) {
-                return res;
+                if (res instanceof Long) {
+                    return (Long) res;
+                } else if (res instanceof Integer) {
+                    return (Integer) res;
+                } else {
+                    log.severe("Wrong type for auto generated key "
+                            + "runId in parameter map");
+                    return -1;
+                }
             } else {
                 return -1;
             }
@@ -184,8 +173,8 @@ public class StatisticsDatabase {
      * @throws SQLException
      *             Probleme beim Ausführen der SQL-Kommandos
      */
-    public void writeAnzahl(String gruppierungsnummer, int gruppeId, long runId,
-            int anzahl) throws SQLException {
+    public void writeAnzahl(String gruppierungsnummer, int gruppeId,
+            long runId, int anzahl) throws SQLException {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);

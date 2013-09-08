@@ -34,6 +34,7 @@ import nami.connector.credentials.NamiCredentials;
 import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiGruppierung;
 import nami.connector.namitypes.NamiSearchedValues;
+import nami.db.schema.SchemaUpdater;
 import nami.statistics.StatisticsDatabase.Run;
 
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -120,6 +121,11 @@ public final class NamiStatistics {
             }
             gruppen.add(new Gruppe(gruppeId, bezeichnung, searches));
         }
+
+        // Update Database Schema
+        SchemaUpdater updater = new SchemaUpdater(dbDriver, dbUrl, dbUsername,
+                dbPassword);
+        updater.update();
 
         // Initialise MyBatis
         Properties prop = new Properties();
@@ -244,7 +250,7 @@ public final class NamiStatistics {
         namicon.namiLogin();
         NamiGruppierung rootGruppierung = NamiGruppierung
                 .getGruppierungen(namicon);
-        db.createDatabase(rootGruppierung);
+        db.populateDatabase(rootGruppierung);
 
         long runId = db.writeNewStatisticRun();
         if (runId != -1) {
