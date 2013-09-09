@@ -35,8 +35,11 @@ public final class NamiCli {
     private NamiCli() {
     }
 
-    private static final String HISTORY_FILE = System.getProperty("user.home")
-            + "/.namicli_history";
+    /**
+     * Dateiname im Konfigurationsverzeichnis, in dem die Kommandozeilen-History
+     * gespeichert wird.
+     */
+    private static final String HISTORY_FILENAME = "namicli_history";
     // private static Logger log = Logger.getLogger(NamiCli.class.getName());
 
     /**
@@ -93,7 +96,9 @@ public final class NamiCli {
             // Completer Configuration
             reader.addCompleter(parser.getCompleter());
             // Commandline History
-            FileHistory history = new FileHistory(new File(HISTORY_FILE));
+            File historyFile = new File(
+                    Configuration.getApplicationDirectory(), HISTORY_FILENAME);
+            FileHistory history = new FileHistory(historyFile);
             reader.setHistory(history);
             PrintWriter out = new PrintWriter(reader.getOutput());
             // needed to enable Ctrl+C
