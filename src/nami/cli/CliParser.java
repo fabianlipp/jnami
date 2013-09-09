@@ -96,16 +96,16 @@ public class CliParser {
                                 + mtd.getName()
                                 + " (annotated with CliCommand)"
                                 + " because its parameters are wrong.");
-                    }
+                    } else {
+                        Completer completer = getCompleterForMethod(mtd);
+                        addToCommands(anno.value(), mtd, completer, true);
 
-                    Completer completer = getCompleterForMethod(mtd);
-                    addToCommands(anno.value(), mtd, completer, true);
-
-                    AlternateCommands alt = mtd
-                            .getAnnotation(AlternateCommands.class);
-                    if (alt != null) {
-                        for (String str : alt.value()) {
-                            addToCommands(str, mtd, completer, false);
+                        AlternateCommands alt = mtd
+                                .getAnnotation(AlternateCommands.class);
+                        if (alt != null) {
+                            for (String str : alt.value()) {
+                                addToCommands(str, mtd, completer, false);
+                            }
                         }
                     }
                 }

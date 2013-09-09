@@ -328,7 +328,7 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Statistik für alle Gruppierungen")
     public static void statsAsCsv(String[] args, NamiConnector namicon,
-            Writer out) throws SQLException, IOException {
+            PrintWriter out) throws SQLException, IOException {
         statsAsCsv(args, out, false);
     }
 
@@ -358,12 +358,12 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Statistik für alle Gruppierungen (kumuliert)")
     public static void statsAsCsvCum(String[] args, NamiConnector namicon,
-            Writer out) throws SQLException, IOException {
+            PrintWriter out) throws SQLException, IOException {
         statsAsCsv(args, out, true);
     }
 
-    private static void statsAsCsv(String[] args, Writer out, boolean cumulate)
-            throws SQLException, IOException {
+    private static void statsAsCsv(String[] args, PrintWriter out,
+            boolean cumulate) throws SQLException, IOException {
         Writer csvOut = getOutputWriter(args, out);
 
         int runId = -1;
@@ -416,7 +416,7 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Mitgliederzahlen einer Gruppierung im zeitlichen Verlauf")
     public static void historyAsCsv(String[] args, NamiConnector namicon,
-            Writer out) throws IOException, SQLException {
+            PrintWriter out) throws IOException, SQLException {
         historyAsCsv(args, out, false);
     }
 
@@ -444,12 +444,12 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Mitgliederzahlen einer Gruppierung im zeitlichen Verlauf (kumuliert)")
     public static void historyAsCsvCum(String[] args, NamiConnector namicon,
-            Writer out) throws IOException, SQLException {
+            PrintWriter out) throws IOException, SQLException {
         historyAsCsv(args, out, true);
     }
 
-    private static void historyAsCsv(String[] args, Writer out, boolean cumulate)
-            throws IOException, SQLException {
+    private static void historyAsCsv(String[] args, PrintWriter out,
+            boolean cumulate) throws IOException, SQLException {
         Writer csvOut = getOutputWriter(args, out);
 
         String gruppierungsnummer;
@@ -480,7 +480,7 @@ public final class NamiStatistics {
      * @return Writer, der args[0] entspricht
      * @throws IOException
      */
-    private static Writer getOutputWriter(String[] args, Writer out)
+    private static Writer getOutputWriter(String[] args, PrintWriter out)
             throws IOException {
         Writer csvOut = out;
         if (args.length > 0) {
