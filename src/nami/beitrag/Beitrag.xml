@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.BeitragMapper">
+	<select id="getMitglied" parameterType="int" resultType="BeitragMitglied">
+		SELECT *
+		FROM beitragMitglied
+		WHERE mitgliedId = #{id}
+	</select>
+	
+	<select id="getMitgliedIds" resultType="int">
+		SELECT mitgliedId
+		FROM beitragMitglied
+	</select>
+
+	<insert id="insertMitglied" parameterType="BeitragMitglied">
+		INSERT INTO beitragMitglied
+			(mitgliedId,
+			mitgliedsnummer,
+			nachname,
+			vorname,
+			status,
+			beitragsart,
+			strasse,
+			plz,
+			ort,
+			version,
+			zahlungsart,
+			mandatIBAN,
+			mandatBIC,
+			mandatDatum,
+			mandatKontoinhaber,
+			mandatStrasse,
+			mandatPlz,
+			mandatOrt,
+			deleted)
+		VALUES
+			(#{mitgliedId},
+			#{mitgliedsnummer},
+			#{nachname},
+			#{vorname},
+			#{status},
+			#{beitragsart},
+			#{strasse},
+			#{plz},
+			#{ort},
+			#{version},
+			#{zahlungsart},
+			#{mandatIBAN},
+			#{mandatBIC},
+			#{mandatDatum},
+			#{mandatKontoinhaber},
+			#{mandatStrasse},
+			#{mandatPlz},
+			#{mandatOrt},
+			#{deleted})
+	</insert>
+	
+	<update id="updateMitglied" parameterType="BeitragMitglied">
+		UPDATE beitragMitglied
+		SET
+			mitgliedsnummer = #{mitgliedsnummer},
+			nachname = #{nachname},
+			vorname = #{vorname},
+			status = #{status},
+			beitragsart = #{beitragsart},
+			strasse = #{strasse},
+			plz = #{plz},
+			ort = #{ort},
+			version = #{version},
+			zahlungsart = #{zahlungsart},
+			mandatIBAN = #{mandatIBAN},
+			mandatBIC = #{mandatBIC},
+			mandatDatum = #{mandatDatum},
+			mandatKontoinhaber = #{mandatKontoinhaber},
+			mandatStrasse = #{mandatStrasse},
+			mandatPlz = #{mandatPlz},
+			mandatOrt = #{mandatOrt},
+			deleted = #{deleted}
+		WHERE mitgliedId = #{mitgliedId}
+	</update>
+
+	<select id="isDeleted" parameterType="int" resultType="boolean">
+		SELECT deleted
+		FROM beitragMitglied
+		WHERE mitgliedId = #{id} 
+	</select>
+
+	<update id="setDeleted" parameterType="int">
+		UPDATE beitragMitglied
+		SET deleted = TRUE
+		WHERE mitgliedId = #{id}
+	</update>
+</mapper>

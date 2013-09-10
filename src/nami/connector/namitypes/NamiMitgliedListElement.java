@@ -1,11 +1,19 @@
 package nami.connector.namitypes;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Collection;
 
 import nami.connector.Geschlecht;
 import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
+import nami.connector.NamiResponse;
+import nami.connector.NamiURIBuilder;
 import nami.connector.exception.NamiApiException;
+
+import org.apache.http.client.methods.HttpGet;
+
+import com.google.gson.reflect.TypeToken;
 
 public class NamiMitgliedListElement extends NamiAbstractMitglied implements
         Comparable<NamiMitgliedListElement> {
@@ -93,6 +101,11 @@ public class NamiMitgliedListElement extends NamiAbstractMitglied implements
     }
 
     @Override
+    public int getVersion() {
+        return Integer.parseInt(entries.version);
+    }
+
+    @Override
     public NamiMitglied getFullData(NamiConnector con) throws NamiApiException,
             IOException {
         return NamiMitglied.getMitgliedById(con, id);
@@ -127,6 +140,47 @@ public class NamiMitgliedListElement extends NamiAbstractMitglied implements
             return false;
         }
         return true;
+    }
+
+    /**
+     * Liefert die Mitglieder, die einer bestimmten Gruppierung angehören
+     * (entweder als Stammgruppierung oder sie üben dort eine Tätigkeit aus).
+     * 
+     * @param con
+     *            Verbindung zum NaMi-Server
+     * @param gruppierungsnummer
+     *            Nummer der Gruppierung, in der gesucht werden soll
+     * @return gefundene Mitglieder
+     * @throws NamiApiException
+     *             API-Fehler beim Zugriff auf NaMi
+     * @throws IOException
+     *             IOException
+     */
+    public static Collection<NamiMitgliedListElement> getMitgliederFromGruppierung(
+            NamiConnector con, String gruppierungsnummer)
+            throws NamiApiException, IOException {
+
+        String url = String.format(
+                NamiURIBuilder.URL_MITGLIEDER_FROM_GRUPPIERUNG,
+                gruppierungsnummer);
+        NamiURIBuilder builder = con.getURIBuilder(url);
+        builder.setParameter("limit", "5000");
+        builder.setParameter("page", "1");
+        builder.setParameter("start", "0");
+        HttpGet httpGet = new HttpGet(builder.build());
+
+        Type type = new TypeToken<NamiResponse<Collection<NamiMitgliedListElement>>>() {
+        }.getType();
+        NamiResponse<Collection<NamiMitgliedListElement>> resp = con
+                .executeApiRequest(httpGet, type);
+
+        if (resp.isSuccess()) {
+            return resp.getData();
+        } else {
+            throw new NamiApiException("Could not get member list from Nami: "
+                    + resp.getMessage());
+        }
+
     }
 
 }

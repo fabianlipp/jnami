@@ -16,6 +16,8 @@
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.0"/>
 		<dependency org="org.mybatis" name="mybatis" rev="3.2.2" />
 		<dependency org="org.liquibase" name="liquibase-core" rev="3.0.3"/>
+		<!--<dependency org="org.projectlombok" name="lombok" rev="0.12.0" conf="build" />-->
+		<dependency org="org.projectlombok" name="lombok" rev="0.12.0" />
 
 		<exclude org="maven-plugins" module="maven-cobertura-plugin"/>
 		<exclude org="maven-plugins" module="maven-findbugs-plugin"/>

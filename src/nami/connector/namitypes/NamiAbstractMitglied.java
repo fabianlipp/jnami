@@ -26,6 +26,8 @@ public abstract class NamiAbstractMitglied {
 
     public abstract String getGruppierung();
 
+    public abstract int getVersion();
+
     /**
      * Liefert den vollständigen Mitgliedsdatensatz. Dazu ist evtl. noch eine
      * Anfrage an NaMi notwendig.

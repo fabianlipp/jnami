@@ -40,6 +40,13 @@ public class NamiURIBuilder extends URIBuilder {
     public static final String URL_NAMI_TAETIGKEIT = "/nami/zugeordnete-taetigkeiten/filtered-for-navigation/gruppierung-mitglied/mitglied";
 
     /**
+     * URL, mit der die Mitglieder ausgelesen werden können, die einer
+     * bestimmten Gruppierung angehören (entweder als Stammgruppierung oder sie
+     * üben dort eine Tätigkeit aus).
+     */
+    public static final String URL_MITGLIEDER_FROM_GRUPPIERUNG = "/nami/mitglied/filtered-for-navigation/gruppierung/gruppierung/%s/flist";
+
+    /**
      * URL, um eine Suchanfrage an NaMi zu senden.
      */
     public static final String URL_NAMI_SEARCH = "/nami/search/result-list";
