@@ -28,6 +28,7 @@ import nami.connector.NamiConnector;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
 import nami.connector.exception.NamiApiException;
+import nami.connector.namitypes.NamiBeitragszahlung;
 import nami.connector.namitypes.NamiMitgliedListElement;
 import nami.connector.namitypes.NamiSearchedValues;
 
@@ -178,8 +179,6 @@ public final class NamiBeitrag {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
-     * @throws SQLException
-     *             SQL-Fehler
      * @throws IOException
      *             IOException
      * @throws NamiApiException
@@ -189,7 +188,7 @@ public final class NamiBeitrag {
     @AlternateCommands("sync")
     @ParentCommand("beitrag")
     public static void syncMitglieder(String[] args, NamiConnector namicon,
-            PrintWriter out) throws SQLException, NamiApiException, IOException {
+            PrintWriter out) throws NamiApiException, IOException {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             BeitragMapper mapper = session.getMapper(BeitragMapper.class);
@@ -205,7 +204,7 @@ public final class NamiBeitrag {
             Collection<NamiMitgliedListElement> tmp = new LinkedList<>();
             Iterator<NamiMitgliedListElement> iter = mitgliederFromNami
                     .iterator();
-            for (int i = 0; i <= 20; i++) {
+            for (int i = 0; i <= 9; i++) {
                 if (iter.hasNext()) {
                     tmp.add(iter.next());
                 }
@@ -246,9 +245,70 @@ public final class NamiBeitrag {
                     mapper.setDeleted(mglId);
                 }
             }
+
             session.commit();
         } finally {
             session.close();
+        }
+    }
+
+    /**
+     * Holt die Beitragszahlungen aller Mitglieder ab und fügt sie in die lokale
+     * Datenbank ein, falls sie noch nicht vorhanden sind.
+     * 
+     * @param args
+     *            nicht verwendet
+     * @param con
+     *            Verbindung zum NaMi-Server
+     * @param out
+     *            Writer, auf dem die Ausgabe erfolgt
+     * @throws IOException
+     *             IOException
+     * @throws NamiApiException
+     *             Fehler bei einer Anfrage an NaMi
+     */
+    @CliCommand("fetchBeitragszahlungen")
+    @ParentCommand("beitrag")
+    public static void fetchBeitragszahlungen(String[] args, NamiConnector con,
+            PrintWriter out) throws NamiApiException, IOException {
+        SqlSession session = sqlSessionFactory.openSession();
+        try {
+            BeitragMapper mapper = session.getMapper(BeitragMapper.class);
+            con.namiLogin();
+
+            Set<Integer> localMglIds = mapper.getMitgliedIds();
+            for (int mglId : localMglIds) {
+                fetchBeitragszahlungen(con, mglId, mapper);
+            }
+
+            session.commit();
+        } finally {
+            session.close();
+        }
+    }
+
+    private static void fetchBeitragszahlungen(NamiConnector con,
+            int mitgliedId, BeitragMapper mapper) throws NamiApiException,
+            IOException {
+        Collection<NamiBeitragszahlung> zahlungen = NamiBeitragszahlung
+                .getBeitragszahlungen(con, mitgliedId);
+        for (NamiBeitragszahlung zahlung : zahlungen) {
+            BeitragBuchung buchung = mapper.getBuchungByNamiId(zahlung.getId());
+            if (buchung == null) {
+                // Buchung existiert noch nicht lokal -> einfügen
+                buchung = new BeitragBuchung(mitgliedId, zahlung);
+                log.log(Level.INFO,
+                        "Inserting BuchungID {0,number,#} for MitgliedID "
+                                + "{1,number,#} into local database",
+                        new Object[] { zahlung.getId(), mitgliedId });
+
+                BeitragZeitraum zeitr = buchung.getZeitraum();
+                if (mapper.getZeitraum(zeitr) == null) {
+                    mapper.insertZeitraum(zeitr);
+                }
+
+                mapper.insertBuchung(buchung);
+            }
         }
     }
 

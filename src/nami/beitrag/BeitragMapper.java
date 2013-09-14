@@ -62,4 +62,40 @@ public interface BeitragMapper {
      *            ID des Mitglieds
      */
     void setDeleted(int mitgliedsId);
+
+    /**
+     * Liefert einen Buchungs-Datensatz aus der Datenbank.
+     * 
+     * @param namiBuchungId
+     *            ID der Buchung in NaMi
+     * @return Datensatz der Buchung; <tt>null</tt>, falls keine Buchung mit der
+     *         ID existiert
+     */
+    BeitragBuchung getBuchungByNamiId(int namiBuchungId);
+
+    /**
+     * Fügt einen Buchungs-Datensatz in die Datenbank ein.
+     * 
+     * @param buchung
+     *            die einzufügende Buchung
+     */
+    void insertBuchung(BeitragBuchung buchung);
+
+    /**
+     * Holt einen Zeitraum aus der Datenbank.
+     * 
+     * @param zeitraum
+     *            Beschreibt den Zeitraum, der abgefragt werden soll. Dazu
+     *            müssen Halbjahr und Jahr gesetzt sein
+     * @return vollständiger Zeitraum-Datensatz
+     */
+    BeitragZeitraum getZeitraum(BeitragZeitraum zeitraum);
+
+    /**
+     * Fügt einen Zeitraum in die Datenbank ein.
+     * 
+     * @param zeitraum
+     *            einzufügender Zeitraum
+     */
+    void insertZeitraum(BeitragZeitraum zeitraum);
 }

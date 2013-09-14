@@ -4,6 +4,7 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="nami.beitrag.BeitragMapper">
+	<!-- *** Mitglieder *** -->
 	<select id="getMitglied" parameterType="int" resultType="BeitragMitglied">
 		SELECT *
 		FROM beitragMitglied
@@ -93,4 +94,53 @@
 		SET deleted = TRUE
 		WHERE mitgliedId = #{id}
 	</update>
+
+	<!-- *** Buchungen *** -->
+	<select id="getBuchungByNamiId" parameterType="int" resultType="BeitragBuchung">
+		SELECT *
+		FROM beitragBuchung
+		WHERE namiBuchungId = #{id}
+	</select>
+
+	<insert id="insertBuchung" parameterType="BeitragBuchung">
+		INSERT INTO beitragBuchung
+			(buchungId,
+			mitgliedId,
+			namiBuchungId,
+			rechnungsNummer,
+			typ,
+			datum,
+			betrag,
+			halbjahr,
+			jahr,
+			vorausberechnung,
+			kommentar)
+		VALUES
+			(#{buchungId},
+			#{mitgliedId},
+			#{namiBuchungId},
+			#{rechnungsNummer},
+			#{typ},
+			#{datum},
+			#{betrag},
+			#{halbjahr},
+			#{jahr},
+			#{vorausberechnung},
+			#{kommentar})
+	</insert>
+
+	<!-- *** Zeiträume *** -->
+	<select id="getZeitraum" parameterType="BeitragZeitraum" resultType="BeitragZeitraum">
+		SELECT *
+		FROM beitragZeitraum
+		WHERE halbjahr = #{halbjahr}
+			AND jahr = #{jahr}
+	</select>
+
+	<insert id="insertZeitraum" parameterType="BeitragZeitraum">
+		INSERT INTO beitragZeitraum
+			(halbjahr, jahr, abgeschlossen)
+		VALUES
+			(#{halbjahr}, #{jahr}, #{abgeschlossen})
+	</insert>
 </mapper>
