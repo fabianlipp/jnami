@@ -15,6 +15,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jline.console.completer.Completer;
+import nami.beitrag.db.BeitragBuchung;
+import nami.beitrag.db.BeitragMapper;
+import nami.beitrag.db.BeitragMitglied;
+import nami.beitrag.db.BeitragZeitraum;
 import nami.cli.CliParser;
 import nami.cli.CompleterFactory;
 import nami.cli.annotation.AlternateCommands;
@@ -55,7 +59,7 @@ public final class NamiBeitrag {
     private static CliParser parser = new CliParser(NamiBeitrag.class,
             "beitrag");
 
-    private static final String MYBATIS_CONFIGFILE = "mybatis-config.xml";
+    private static final String MYBATIS_CONFIGFILE = "db/mybatis-config.xml";
 
     static {
         // TODO: Datenbank aus Konfigurationsdatei lesen

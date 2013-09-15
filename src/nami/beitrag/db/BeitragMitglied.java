@@ -1,9 +1,10 @@
-package nami.beitrag;
+package nami.beitrag.db;
 
 import java.util.Date;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import nami.beitrag.Zahlungsart;
 import nami.connector.Beitragsart;
 import nami.connector.Mitgliedstyp;
 import nami.connector.namitypes.NamiMitglied;

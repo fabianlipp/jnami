@@ -3,7 +3,7 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="nami.beitrag.BeitragMapper">
+<mapper namespace="nami.beitrag.db.BeitragMapper">
 	<!-- *** Mitglieder *** -->
 	<select id="getMitglied" parameterType="int" resultType="BeitragMitglied">
 		SELECT *

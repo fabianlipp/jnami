@@ -9,9 +9,9 @@
 	</settings>
 
 	<typeAliases>
-		<typeAlias type="nami.beitrag.BeitragMitglied" alias="BeitragMitglied" />
-		<typeAlias type="nami.beitrag.BeitragBuchung" alias="BeitragBuchung" />
-		<typeAlias type="nami.beitrag.BeitragZeitraum" alias="BeitragZeitraum" />
+		<typeAlias type="nami.beitrag.db.BeitragMitglied" alias="BeitragMitglied" />
+		<typeAlias type="nami.beitrag.db.BeitragBuchung" alias="BeitragBuchung" />
+		<typeAlias type="nami.beitrag.db.BeitragZeitraum" alias="BeitragZeitraum" />
 	</typeAliases>
 
 	<environments default="development">
@@ -32,7 +32,7 @@
 	</databaseIdProvider>
 
 	<mappers>
-		<mapper resource="nami/beitrag/Beitrag.xml" />
+		<mapper resource="nami/beitrag/db/Beitrag.xml" />
 	</mappers>
 
 </configuration>

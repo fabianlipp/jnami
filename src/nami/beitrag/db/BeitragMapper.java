@@ -1,4 +1,4 @@
-package nami.beitrag;
+package nami.beitrag.db;
 
 import java.util.Set;
 

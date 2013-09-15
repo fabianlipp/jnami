@@ -1,9 +1,10 @@
-package nami.beitrag;
+package nami.beitrag.db;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 
+import nami.beitrag.Buchungstyp;
 import nami.connector.namitypes.NamiBeitragszahlung;
 import lombok.Data;
 import lombok.NoArgsConstructor;
