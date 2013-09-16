@@ -95,6 +95,22 @@
 		WHERE mitgliedId = #{id}
 	</update>
 
+	<select id="findMitglieder" resultType="BeitragMitglied">
+		SELECT *
+		FROM beitragMitglied
+		<where>
+			<if test="mitgliedsnummer != null and mitgliedsnummer != ''">
+			mitgliedsnummer = #{mitgliedsnummer}
+			</if>
+			<if test="vorname != null and vorname != ''">
+			AND vorname LIKE #{vorname}
+			</if>
+			<if test="nachname != null and nachname != ''">
+			AND nachname LIKE #{nachname}
+			</if>
+		</where>
+	</select>
+
 	<!-- *** Buchungen *** -->
 	<select id="getBuchungByNamiId" parameterType="int" resultType="BeitragBuchung">
 		SELECT *

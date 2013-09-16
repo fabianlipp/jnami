@@ -1,6 +1,9 @@
 package nami.beitrag.db;
 
+import java.util.Collection;
 import java.util.Set;
+
+import org.apache.ibatis.annotations.Param;
 
 /**
  * Beschreibt einen Mapper für die Datenbankabfragen, die auf die Tabelle
@@ -98,4 +101,24 @@ public interface BeitragMapper {
      *            einzufügender Zeitraum
      */
     void insertZeitraum(BeitragZeitraum zeitraum);
+
+    /**
+     * Findet alle Mitglieder in der lokalen Datenbank, die den Suchkriterien
+     * entsprechen.
+     * 
+     * @param mitgliedsnummer
+     *            gesuchte Mitgliedsnummer; <tt>null</tt> bzw. der leere String
+     *            werden ignoriert; ansonsten wird exakt verglichen
+     *            (SQL-Operator =)
+     * @param vorname
+     *            gesuchter Vorname; <tt>null</tt> bzw. der leere String werden
+     *            ignoriert; ansonsten wird mittels LIKE verglichen
+     * @param nachname
+     *            gesuchter Nachname; <tt>null</tt> bzw. der leere String werden
+     *            ignoriert; ansonsten wird mittels LIKE verglichen
+     * @return Mitglieder, die den Kriterien entsprechen
+     */
+    Collection<BeitragMitglied> findMitglieder(
+            @Param("mitgliedsnummer") String mitgliedsnummer,
+            @Param("vorname") String vorname, @Param("nachname") String nachname);
 }
