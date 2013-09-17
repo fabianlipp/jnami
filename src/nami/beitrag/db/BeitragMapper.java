@@ -3,6 +3,8 @@ package nami.beitrag.db;
 import java.util.Collection;
 import java.util.Set;
 
+import nami.connector.Halbjahr;
+
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -16,11 +18,11 @@ public interface BeitragMapper {
     /**
      * Liefert den Datensatz eines Mitglieds.
      * 
-     * @param mitgliedsId
+     * @param mitgliedId
      *            ID des Mitglieds
      * @return kompletter Datensatz des Mitglieds
      */
-    BeitragMitglied getMitglied(int mitgliedsId);
+    BeitragMitglied getMitglied(int mitgliedId);
 
     /**
      * Liefert die Mitglieds-IDs, die in der Datenbank vorhanden sind.
@@ -77,6 +79,31 @@ public interface BeitragMapper {
     BeitragBuchung getBuchungByNamiId(int namiBuchungId);
 
     /**
+     * Gibt die Anzahl von Buchungen für das angegebene Mitglied und Halbjahr
+     * an, die als RECHNUNG_BUNDESEBENE markiert sind.
+     * 
+     * @param halbjahr
+     *            Halbjahr
+     * @param mitgliedId
+     *            ID des Mitglieds
+     * @return Anzahl der gefundenen Buchungen
+     */
+    int checkForRechnungBundesebene(@Param("halbjahr") Halbjahr halbjahr,
+            @Param("mitgliedId") int mitgliedId);
+
+    /**
+     * Löscht alle Buchungen für das angegebene Mitglied und Halbjahr, die als
+     * Vorausberechnung markiert sind.
+     * 
+     * @param halbjahr
+     *            Halbjahr
+     * @param mitgliedId
+     *            ID des Mitglieds
+     */
+    void deleteVorausberechnung(@Param("halbjahr") Halbjahr halbjahr,
+            @Param("mitgliedId") int mitgliedId);
+
+    /**
      * Fügt einen Buchungs-Datensatz in die Datenbank ein.
      * 
      * @param buchung
@@ -87,12 +114,12 @@ public interface BeitragMapper {
     /**
      * Holt einen Zeitraum aus der Datenbank.
      * 
-     * @param zeitraum
-     *            Beschreibt den Zeitraum, der abgefragt werden soll. Dazu
-     *            müssen Halbjahr und Jahr gesetzt sein
+     * @param halbjahr
+     *            Das Halbjahr, zu dem der entsprechende Zeitraum aus der
+     *            Datenbank geholt werden soll
      * @return vollständiger Zeitraum-Datensatz
      */
-    BeitragZeitraum getZeitraum(BeitragZeitraum zeitraum);
+    BeitragZeitraum getZeitraum(Halbjahr halbjahr);
 
     /**
      * Fügt einen Zeitraum in die Datenbank ein.

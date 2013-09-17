@@ -4,6 +4,14 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="nami.beitrag.db.BeitragMapper">
+	<!-- *** Allgemeine ResultMaps *** -->
+	<resultMap id="halbjahrResult" type="Halbjahr">
+		<constructor>
+			<arg column="halbjahr" javaType="_int"/>
+			<arg column="jahr" javaType="_int"/>
+		</constructor>
+	</resultMap>
+
 	<!-- *** Mitglieder *** -->
 	<select id="getMitglied" parameterType="int" resultType="BeitragMitglied">
 		SELECT *
@@ -24,6 +32,7 @@
 			vorname,
 			status,
 			beitragsart,
+			eintrittsdatum,
 			strasse,
 			plz,
 			ort,
@@ -44,6 +53,7 @@
 			#{vorname},
 			#{status},
 			#{beitragsart},
+			#{eintrittsdatum},
 			#{strasse},
 			#{plz},
 			#{ort},
@@ -67,6 +77,7 @@
 			vorname = #{vorname},
 			status = #{status},
 			beitragsart = #{beitragsart},
+			eintrittsdatum = #{eintrittsdatum},
 			strasse = #{strasse},
 			plz = #{plz},
 			ort = #{ort},
@@ -112,16 +123,37 @@
 	</select>
 
 	<!-- *** Buchungen *** -->
-	<select id="getBuchungByNamiId" parameterType="int" resultType="BeitragBuchung">
+	<resultMap id="buchungResult" type="BeitragBuchung" autoMapping="true">
+		<association property="halbjahr" resultMap="halbjahrResult" />
+	</resultMap>
+
+	<select id="getBuchungByNamiId" parameterType="int" resultType="BeitragBuchung"
+		resultMap="buchungResult">
 		SELECT *
 		FROM beitragBuchung
 		WHERE namiBuchungId = #{id}
 	</select>
 
+	<select id="checkForRechnungBundesebene" resultType="int">
+		SELECT COUNT(*)
+		FROM beitragBuchung
+		WHERE mitgliedId = #{mitgliedId}
+			AND halbjahr = #{halbjahr.halbjahr}
+			AND jahr = #{halbjahr.jahr}
+			AND typ = 'RECHNUNG_BUNDESEBENE'
+	</select>
+
+	<delete id="deleteVorausberechnung">
+		DELETE FROM beitragBuchung
+		WHERE mitgliedId = #{mitgliedId}
+			AND halbjahr = #{halbjahr.halbjahr}
+			AND jahr = #{halbjahr.jahr}
+			AND vorausberechnung = true
+	</delete>
+
 	<insert id="insertBuchung" parameterType="BeitragBuchung">
 		INSERT INTO beitragBuchung
-			(buchungId,
-			mitgliedId,
+			(mitgliedId,
 			namiBuchungId,
 			rechnungsNummer,
 			typ,
@@ -132,21 +164,25 @@
 			vorausberechnung,
 			kommentar)
 		VALUES
-			(#{buchungId},
-			#{mitgliedId},
+			(#{mitgliedId},
 			#{namiBuchungId},
 			#{rechnungsNummer},
 			#{typ},
 			#{datum},
 			#{betrag},
-			#{halbjahr},
-			#{jahr},
+			#{halbjahr.halbjahr},
+			#{halbjahr.jahr},
 			#{vorausberechnung},
 			#{kommentar})
 	</insert>
 
 	<!-- *** Zeiträume *** -->
-	<select id="getZeitraum" parameterType="BeitragZeitraum" resultType="BeitragZeitraum">
+	<resultMap id="zeitraumResult" type="BeitragZeitraum" autoMapping="true">
+		<association property="halbjahr" resultMap="halbjahrResult" />
+	</resultMap>
+
+	<select id="getZeitraum" parameterType="Halbjahr"
+		resultType="BeitragZeitraum" resultMap="zeitraumResult">
 		SELECT *
 		FROM beitragZeitraum
 		WHERE halbjahr = #{halbjahr}
@@ -157,6 +193,6 @@
 		INSERT INTO beitragZeitraum
 			(halbjahr, jahr, abgeschlossen)
 		VALUES
-			(#{halbjahr}, #{jahr}, #{abgeschlossen})
+			(#{halbjahr.halbjahr}, #{halbjahr.jahr}, #{abgeschlossen})
 	</insert>
 </mapper>

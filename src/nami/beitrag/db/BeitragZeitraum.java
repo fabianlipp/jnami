@@ -4,6 +4,7 @@ import java.util.Date;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import nami.connector.Halbjahr;
 
 /**
  * Beschreibt einen Zeitraum für den Mitgliedsbeiträge berechnet werden.
@@ -14,8 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class BeitragZeitraum {
-    private int halbjahr;
-    private int jahr;
+    private Halbjahr halbjahr;
     private Date abgeschlossen = null;
 
     /**
@@ -27,7 +27,26 @@ public class BeitragZeitraum {
      *            Jahr
      */
     public BeitragZeitraum(int halbjahr, int jahr) {
+        this.halbjahr = new Halbjahr(halbjahr, jahr);
+    }
+
+    /**
+     * Erzeugt einen neuen Zeitraum, gegeben durch ein Halbjahr.
+     * 
+     * @param halbjahr
+     *            Halbjahr (inkl. Jahr)
+     */
+    public BeitragZeitraum(Halbjahr halbjahr) {
         this.halbjahr = halbjahr;
-        this.jahr = jahr;
+    }
+
+    /**
+     * Erzeugt den Zeitraum, in dem das übergebene Datum liegt.
+     * 
+     * @param date
+     *            Datum, dessen Zeitraum bestimmt werden soll
+     */
+    public BeitragZeitraum(Date date) {
+        this.halbjahr = new Halbjahr(date);
     }
 }

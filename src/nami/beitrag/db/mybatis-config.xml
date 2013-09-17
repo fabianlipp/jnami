@@ -12,6 +12,7 @@
 		<typeAlias type="nami.beitrag.db.BeitragMitglied" alias="BeitragMitglied" />
 		<typeAlias type="nami.beitrag.db.BeitragBuchung" alias="BeitragBuchung" />
 		<typeAlias type="nami.beitrag.db.BeitragZeitraum" alias="BeitragZeitraum" />
+		<typeAlias type="nami.connector.Halbjahr" alias="Halbjahr" />
 	</typeAliases>
 
 	<environments default="development">

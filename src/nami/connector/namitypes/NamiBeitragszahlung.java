@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import nami.connector.Halbjahr;
 import nami.connector.NamiConnector;
 import nami.connector.NamiURIBuilder;
 import nami.connector.exception.NamiApiException;
@@ -114,6 +115,15 @@ public class NamiBeitragszahlung {
                     "Unexpected month in end date for Beitragszahlung: "
                             + beitragBis.toString());
         }
+    }
+
+    /**
+     * Liefert das Halbjahr, für den der Beitrag gilt.
+     * 
+     * @return Halbjahr
+     */
+    public Halbjahr getZeitraum() {
+        return new Halbjahr(getHalbjahr(), getJahr());
     }
 
     /**

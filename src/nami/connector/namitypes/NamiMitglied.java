@@ -2,7 +2,12 @@ package nami.connector.namitypes;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -160,6 +165,22 @@ public class NamiMitglied extends NamiAbstractMitglied {
      */
     public Beitragsart getBeitragsart() {
         return Beitragsart.fromString(beitragsarten);
+    }
+
+    /**
+     * Liefert das Eintrittsdatum des Mitglieds.
+     * 
+     * @return Eintrittsdatum
+     */
+    public Date getEintrittsdatum() {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        try {
+            cal.setTime(df.parse(eintrittsdatum));
+            return cal.getTime();
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     /**

@@ -50,7 +50,6 @@ public class MitgliedSelectPanel extends JPanel {
                 throw new IllegalArgumentException(
                         "Focus listener on wrong object");
             }
-            System.out.println("focus lost: " + txtMitgliedid.getText());
             searchMitgliedId();
         }
     }

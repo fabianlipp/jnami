@@ -25,6 +25,7 @@ public class BeitragMitglied {
     private String vorname;
     private Mitgliedstyp status;
     private Beitragsart beitragsart;
+    private Date eintrittsdatum;
     private String strasse;
     private String plz;
     private String ort;
@@ -55,6 +56,7 @@ public class BeitragMitglied {
         vorname = namiMgl.getVorname();
         status = namiMgl.getMitgliedstyp();
         beitragsart = namiMgl.getBeitragsart();
+        eintrittsdatum = namiMgl.getEintrittsdatum();
         strasse = namiMgl.getStrasse();
         plz = namiMgl.getPlz();
         ort = namiMgl.getOrt();

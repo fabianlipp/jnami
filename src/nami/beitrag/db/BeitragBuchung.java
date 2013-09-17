@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import nami.beitrag.Buchungstyp;
+import nami.connector.Halbjahr;
 import nami.connector.namitypes.NamiBeitragszahlung;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,8 +26,7 @@ public class BeitragBuchung {
     private Buchungstyp typ;
     private Date datum;
     private BigDecimal betrag;
-    private int halbjahr;
-    private int jahr;
+    private Halbjahr halbjahr;
     private boolean vorausberechnung;
     private String kommentar;
 
@@ -57,18 +57,8 @@ public class BeitragBuchung {
         datum = cal.getTime();
 
         betrag = beitr.getValue();
-        halbjahr = beitr.getHalbjahr();
-        jahr = beitr.getJahr();
+        halbjahr = beitr.getZeitraum();
         vorausberechnung = false;
         kommentar = beitr.getBuchungstext();
-    }
-
-    /**
-     * Liefert den Zeitraum der Buchung.
-     * 
-     * @return Zeitraum, zu dem die Buchung gehört
-     */
-    public BeitragZeitraum getZeitraum() {
-        return new BeitragZeitraum(halbjahr, jahr);
     }
 }
