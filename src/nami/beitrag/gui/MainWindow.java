@@ -12,7 +12,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import nami.beitrag.NamiBeitrag;
-import nami.connector.Halbjahr;
 import nami.connector.exception.NamiApiException;
 import net.miginfocom.swing.MigLayout;
 
@@ -110,7 +109,10 @@ public class MainWindow extends JFrame {
         button5.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                namiBeitrag.vorausberechnung(new Halbjahr(2, 2013));
+                HalbjahrSelectDialog halbjahrSel = new HalbjahrSelectDialog(
+                        MainWindow.this);
+                halbjahrSel.setVisible(true);
+                namiBeitrag.vorausberechnung(halbjahrSel.getChosenHalbjahr());
             }
         });
         JLabel label5 = new JLabel("def");

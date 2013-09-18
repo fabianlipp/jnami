@@ -66,6 +66,7 @@ public class MitgliedSelectDialog extends JDialog {
      */
     public MitgliedSelectDialog(Window parent, SqlSessionFactory sqlSessionFactory) {
         super(parent, DEFAULT_MODALITY_TYPE);
+        setTitle("Mitglied auswählen");
         this.sqlSessionFactory = sqlSessionFactory;
         buildFrame();
     }

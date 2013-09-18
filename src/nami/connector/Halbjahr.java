@@ -73,4 +73,9 @@ public class Halbjahr implements Comparable<Halbjahr> {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return halbjahr + "/" + jahr;
+    }
 }

@@ -114,6 +114,11 @@ public class MitgliedSelectPanel extends JPanel {
      * entsprechend.
      */
     private void searchMitgliedId() {
+        if (sessionFactory == null) {
+            throw new IllegalArgumentException(
+                    "Used MitgliedSelectPanel without a SqlSessionFactory");
+        }
+
         int mitgliedId;
         String mitgliedIdStr = txtMitgliedid.getText().trim();
         if (mitgliedIdStr.isEmpty()) {
