@@ -62,6 +62,8 @@
 	<select id="getStatsAllGruppierungen" resultType="java.util.LinkedHashMap">
 		SELECT g.gruppierungId AS Gruppierungsnummer,
 			g.descriptor AS Gruppierungsname,
+			g.dioezeseId AS "Diözese",
+			g.bezirkId AS "Bezirk",
 		<foreach item="gruppe" index="index" collection="gruppen" separator=",">
 			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS "${gruppe.bezeichnung}"
 		</foreach>
