@@ -62,7 +62,7 @@ public class StatisticsDatabase {
     }
 
     private void writeGruppierungToDb(NamiGruppierung grp) {
-        writeGruppierungToDb(grp.getId(), grp.getDescriptor(),
+        writeGruppierungToDb(grp.getGruppierungsnummer(), grp.getDescriptor(),
                 grp.getParentId(Ebene.DIOEZESE), grp.getParentId(Ebene.BEZIRK));
 
         for (NamiGruppierung child : grp.getChildren()) {

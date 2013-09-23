@@ -297,8 +297,10 @@ public final class NamiStatistics {
             NamiGruppierung gruppierung, NamiConnector namicon)
             throws NamiApiException, IOException {
         for (Gruppe gruppe : gruppen) {
-            int anzahl = gruppe.getAnzahl(namicon, gruppierung.getId());
-            db.writeAnzahl(gruppierung.getId(), gruppe.getId(), runId, anzahl);
+            int anzahl = gruppe.getAnzahl(namicon,
+                    gruppierung.getGruppierungsnummer());
+            db.writeAnzahl(gruppierung.getGruppierungsnummer(), gruppe.getId(),
+                    runId, anzahl);
         }
 
         for (NamiGruppierung child : gruppierung.getChildren()) {

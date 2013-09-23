@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import nami.connector.Ebene;
 import nami.connector.NamiConnector;
@@ -30,8 +32,10 @@ public class NamiGruppierung {
     // müssen extra abgefragt werden.
     private Collection<NamiGruppierung> children;
 
+    private static final Pattern GRPNUM_PATTERN = Pattern.compile("[\\d]+");
+
     /**
-     * Liefert den Namen der Gruppierung ("Stamm XYZ").
+     * Liefert den Namen der Gruppierung ("Stamm XYZ") inkl. Gruppierungsnummer.
      * 
      * @return Name
      */
@@ -40,17 +44,35 @@ public class NamiGruppierung {
     }
 
     /**
+     * Liefert die ID der Gruppierung (das ist nicht zwangsweise die
+     * Gruppierungsnummer).
+     * 
+     * @return ID der Gruppierung
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
      * Liefert die Gruppierungsnummer.
      * 
      * @return Gruppierungsnummer
      */
-    public String getId() {
-        // Fülle die GruppierungsID links mit Nullen auf 6 Stellen auf
-        String gruppierungsString = Integer.toString(id);
-        while (gruppierungsString.length() < 6) {
-            gruppierungsString = "0" + gruppierungsString;
+    public String getGruppierungsnummer() {
+        // Die Gruppierungsnummer muss aus der Beschreibung ausgelesen werden,
+        // da sie nicht zwangsweise mit der ID übereinstimmt. Bei den meisten
+        // Gruppierungen stimmen sie überein, aber eben nicht bei allen. Das ist
+        // halt eine Merkwürdigkeit in NaMi, für die wir hier einen Workaround
+        // brauchen.
+
+        Matcher match = GRPNUM_PATTERN.matcher(descriptor);
+        if (!match.find()) {
+            throw new IllegalArgumentException(
+                    "Could not find Gruppierungsnummer in descriptior: "
+                            + descriptor);
         }
-        return gruppierungsString;
+
+        return match.group();
     }
 
     /**
@@ -77,16 +99,18 @@ public class NamiGruppierung {
      *         eine niedrigere Ebene verlangt wird
      */
     public String getParentId(Ebene targetE) {
-        Ebene thisE = Ebene.getFromGruppierungId(id);
+        // Gruppierungsnummer dieser Gruppierung
+        String grpNum = getGruppierungsnummer();
+        Ebene thisE = Ebene.getFromGruppierungId(grpNum);
         if (thisE.compareTo(targetE) < 0) {
             // Es wird eine niedrigere Ebene verlangt
             return null;
         } else if (thisE.compareTo(targetE) == 0) {
             // Es wird die gleiche Ebene verlangt
-            return getId();
+            return grpNum;
         } else {
             // Es wird eine höhere Ebene verlangt
-            String result = getId().substring(0, targetE.getSignificantChars());
+            String result = grpNum.substring(0, targetE.getSignificantChars());
 
             // Fülle die GruppierungsID rechts mit Nullen auf 6 Stellen auf
             while (result.length() < 6) {
