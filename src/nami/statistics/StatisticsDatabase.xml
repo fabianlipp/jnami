@@ -63,7 +63,7 @@
 		SELECT g.gruppierungId AS Gruppierungsnummer,
 			g.descriptor AS Gruppierungsname,
 		<foreach item="gruppe" index="index" collection="gruppen" separator=",">
-			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS ${gruppe.bezeichnung}
+			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS "${gruppe.bezeichnung}"
 		</foreach>
 		FROM gruppierung AS g, gruppierung AS c, statisticsData AS d
 		WHERE runId = #{runId}
@@ -83,7 +83,7 @@
 		SELECT runId AS RunID,
 			datum AS Datum,
 		<foreach item="gruppe" index="index" collection="gruppen" separator=",">
-			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS ${gruppe.bezeichnung}
+			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS "${gruppe.bezeichnung}"
 		</foreach>
 		FROM statisticsData
 			NATURAL JOIN statisticsRun

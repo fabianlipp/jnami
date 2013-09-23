@@ -287,6 +287,10 @@ public class CliParser {
     public void callMethod(String line, NamiConnector con, PrintWriter out) {
         // split line at spaces
         String[] lineSplitted = splitCommandline(line);
+        if (lineSplitted.length < 1) {
+            out.println("No command given");
+            return;
+        }
         String[] arguments = Arrays.copyOfRange(lineSplitted, 1,
                 lineSplitted.length);
 

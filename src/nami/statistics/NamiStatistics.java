@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -28,6 +29,7 @@ import nami.cli.annotation.ParentCommand;
 import nami.configuration.ApplicationDirectoryException;
 import nami.configuration.ConfigFormatException;
 import nami.configuration.Configuration;
+import nami.connector.Geschlecht;
 import nami.connector.NamiConnector;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
@@ -60,6 +62,12 @@ public final class NamiStatistics {
 
     private static StatisticsDatabase db = null;
     private static Collection<Gruppe> gruppen = null;
+    /**
+     * Wurzel-Gruppierung, für die die Statistik erstellt wird. Wenn die
+     * Wurzel-Gruppierung <tt>null</tt> ist, wird der gesamte verfügbare
+     * Gruppierungsbaum ausgewertet.
+     */
+    private static String rootGrp = null;
 
     private static Logger log = Logger
             .getLogger(NamiStatistics.class.getName());
@@ -79,7 +87,6 @@ public final class NamiStatistics {
         }
 
         // Lese Konfigurationsdatei ein (inkl. Validierung)
-        // TODO: Fange Exception ab, wenn Dokument nicht valide
         Document doc;
         try {
             XMLReaderJDOMFactory schemafac = new XMLReaderXSDFactory(XSDFILE);
@@ -102,6 +109,7 @@ public final class NamiStatistics {
         if (namistatisticsEl.getName() != "namistatistics") {
             throw new ConfigFormatException("Wrong root element in config file");
         }
+        rootGrp = namistatisticsEl.getAttributeValue("root");
 
         // Datenbankverbindung aus XML lesen
         Element databaseEl = namistatisticsEl.getChild("database");
@@ -112,14 +120,35 @@ public final class NamiStatistics {
 
         // Gruppen aus XML einlesen
         gruppen = new LinkedList<>();
+        TreeSet<Integer> gruppenIds = new TreeSet<>();
         for (Element gruppeEl : namistatisticsEl.getChildren("gruppe")) {
+            // ID der Gruppe
             int gruppeId = Integer.parseInt(gruppeEl.getAttributeValue("id"));
+            if (gruppenIds.contains(gruppeId)) {
+                throw new ConfigFormatException("Duplicate ID in config file: "
+                        + gruppeId);
+            }
+            gruppenIds.add(gruppeId);
+
+            // Gruppenbezeichnung
             String bezeichnung = gruppeEl.getAttributeValue("bezeichnung");
+
+            // Suchausdrücke
             List<NamiSearchedValues> searches = new LinkedList<>();
             for (Element namiSearchEl : gruppeEl.getChildren("namiSearch")) {
                 searches.add(NamiSearchedValues.fromXml(namiSearchEl));
             }
-            gruppen.add(new Gruppe(gruppeId, bezeichnung, searches));
+
+            // Filter
+            Element filterEl;
+            List<Filter> filters = new LinkedList<>();
+            filterEl = gruppeEl.getChild("geschlechtFilter");
+            if (filterEl != null) {
+                String value = filterEl.getAttributeValue("value");
+                filters.add(new GeschlechtFilter(Geschlecht.fromString(value)));
+            }
+
+            gruppen.add(new Gruppe(gruppeId, bezeichnung, searches, filters));
         }
 
         // Update Database Schema
@@ -247,8 +276,12 @@ public final class NamiStatistics {
             PrintWriter out) throws IOException, NamiApiException, SQLException {
 
         namicon.namiLogin();
-        NamiGruppierung rootGruppierung = NamiGruppierung
-                .getGruppierungen(namicon);
+        NamiGruppierung rootGruppierung;
+        if (rootGrp == null) {
+            rootGruppierung = NamiGruppierung.getGruppierungen(namicon);
+        } else {
+            rootGruppierung = NamiGruppierung.getGruppierungen(namicon, rootGrp);
+        }
         db.populateDatabase(rootGruppierung);
 
         long runId = db.writeNewStatisticRun();
@@ -258,7 +291,7 @@ public final class NamiStatistics {
         } // else {
           // TODO Fehlerbehandlung
           // oder werfe Exception
-        // }
+          // }
 
         // TODO: Erfolgsmeldung loggen
         // out.println("Daten aus NaMi wurden abgefragt");

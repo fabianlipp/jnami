@@ -28,12 +28,13 @@ public enum Geschlecht {
     public static Geschlecht fromString(String str) {
         switch (str) {
         case "männlich":
+        case "MAENNLICH":
             return MAENNLICH;
         case "weiblich":
+        case "WEIBLICH":
             return WEIBLICH;
         case "":
-            // TODO: nur zu DEBUG-Zwecken für die Testversion
-            return MAENNLICH;
+            return null;
         default:
             throw new IllegalArgumentException(
                     "Unexpected String for Geschlecht");
