@@ -280,7 +280,8 @@ public final class NamiStatistics {
         if (rootGrp == null) {
             rootGruppierung = NamiGruppierung.getGruppierungen(namicon);
         } else {
-            rootGruppierung = NamiGruppierung.getGruppierungen(namicon, rootGrp);
+            rootGruppierung = NamiGruppierung
+                    .getGruppierungen(namicon, rootGrp);
         }
         db.populateDatabase(rootGruppierung);
 
@@ -288,16 +289,15 @@ public final class NamiStatistics {
         if (runId != -1) {
             writeAnzahlForGruppierungAndChildren(runId, rootGruppierung,
                     namicon);
-        } // else {
-          // TODO Fehlerbehandlung
-          // oder werfe Exception
-          // }
+        } else {
+            log.warning("Could not insert new run into local database");
+        }
 
-        // TODO: Erfolgsmeldung loggen
-        // out.println("Daten aus NaMi wurden abgefragt");
+        log.info("Got data from NaMi");
     }
 
     // verwendet von collectData()
+    // wird rekursiv für jede Gruppierung aufgerufen
     private static void writeAnzahlForGruppierungAndChildren(long runId,
             NamiGruppierung gruppierung, NamiConnector namicon)
             throws NamiApiException, IOException, SQLException {
