@@ -18,6 +18,7 @@
 		<dependency org="org.liquibase" name="liquibase-core" rev="3.0.3"/>
 		<!--<dependency org="org.projectlombok" name="lombok" rev="0.12.0" conf="build" />-->
 		<dependency org="org.projectlombok" name="lombok" rev="0.12.0" />
+		<dependency org="com.miglayout" name="miglayout" rev="3.7.4"/>
 
 		<exclude org="maven-plugins" module="maven-cobertura-plugin"/>
 		<exclude org="maven-plugins" module="maven-findbugs-plugin"/>
@@ -34,5 +35,7 @@
 		<exclude org="javax.jms" module="jms" />
 		<exclude org="javax.mail" module="mail" />
 
+		<!-- Excludes for miglayout -->
+		<exclude org="net.java.desktop" module="substance" />
 	</dependencies>
 </ivy-module>
