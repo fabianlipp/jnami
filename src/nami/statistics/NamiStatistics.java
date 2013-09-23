@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,7 +79,7 @@ public final class NamiStatistics {
     private static final String MYBATIS_CONFIGFILE = "mybatis-config.xml";
 
     private static void readConfig() throws ApplicationDirectoryException,
-            ConfigFormatException, IOException, SQLException {
+            ConfigFormatException, IOException {
         // check if config already parsed
         if (db != null && gruppen != null) {
             return;
@@ -227,8 +226,6 @@ public final class NamiStatistics {
      *             IOException
      * @throws ConfigFormatException
      *             Fehler in der Konfigurationsdatei
-     * @throws SQLException
-     *             Fehler bei einer SQL-Anfrage
      * @throws ApplicationDirectoryException
      *             Probleme beim Zugriff auf das Konfigurationsverzeichnis
      */
@@ -238,7 +235,7 @@ public final class NamiStatistics {
     @ParamCompleter(StatisticsCompleter.class)
     public static void statistics(String[] args, NamiConnector namicon,
             PrintWriter out) throws IOException, ConfigFormatException,
-            SQLException, ApplicationDirectoryException {
+            ApplicationDirectoryException {
 
         readConfig();
 
@@ -266,14 +263,12 @@ public final class NamiStatistics {
      *             IOException
      * @throws NamiApiException
      *             API-Fehler beim Zugriff auf NaMi
-     * @throws SQLException
-     *             SQL-Fehler
      */
     @CliCommand("collectData")
     @ParentCommand("statistics")
     @CommandDoc("Lädt die aktuellen Mitgliederzahlen aus NaMi")
     public static void collectData(String[] args, NamiConnector namicon,
-            PrintWriter out) throws IOException, NamiApiException, SQLException {
+            PrintWriter out) throws IOException, NamiApiException {
 
         namicon.namiLogin();
         NamiGruppierung rootGruppierung;
@@ -300,7 +295,7 @@ public final class NamiStatistics {
     // wird rekursiv für jede Gruppierung aufgerufen
     private static void writeAnzahlForGruppierungAndChildren(long runId,
             NamiGruppierung gruppierung, NamiConnector namicon)
-            throws NamiApiException, IOException, SQLException {
+            throws NamiApiException, IOException {
         for (Gruppe gruppe : gruppen) {
             int anzahl = gruppe.getAnzahl(namicon, gruppierung.getId());
             db.writeAnzahl(gruppierung.getId(), gruppe.getId(), runId, anzahl);
@@ -320,14 +315,12 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
-     * @throws SQLException
-     *             SQL-Fehler
      */
     @CliCommand("listRuns")
     @ParentCommand("statistics")
     @CommandDoc("Listet die durchgeführten Statistik-Läufe auf")
     public static void listRuns(String[] args, NamiConnector namicon,
-            PrintWriter out) throws SQLException {
+            PrintWriter out) {
         List<Run> runs = db.getRuns();
         for (Run run : runs) {
             String str = String.format("%3d  %s", run.getRunId(),
@@ -352,8 +345,6 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
-     * @throws SQLException
-     *             SQL-Fehler
      * @throws IOException
      *             Fehler beim Schreiben in die Ausgabe
      */
@@ -361,7 +352,7 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Statistik für alle Gruppierungen")
     public static void statsAsCsv(String[] args, NamiConnector namicon,
-            PrintWriter out) throws SQLException, IOException {
+            PrintWriter out) throws IOException {
         statsAsCsv(args, out, false);
     }
 
@@ -382,8 +373,6 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
-     * @throws SQLException
-     *             SQL-Fehler
      * @throws IOException
      *             Fehler beim Schreiben in die Ausgabe
      */
@@ -391,12 +380,12 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Statistik für alle Gruppierungen (kumuliert)")
     public static void statsAsCsvCum(String[] args, NamiConnector namicon,
-            PrintWriter out) throws SQLException, IOException {
+            PrintWriter out) throws IOException {
         statsAsCsv(args, out, true);
     }
 
     private static void statsAsCsv(String[] args, PrintWriter out,
-            boolean cumulate) throws SQLException, IOException {
+            boolean cumulate) throws IOException {
         Writer csvOut = getOutputWriter(args, out);
 
         int runId = -1;
@@ -440,8 +429,6 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
-     * @throws SQLException
-     *             SQL-Fehler
      * @throws IOException
      *             Fehler beim Schreiben in die Ausgabe
      */
@@ -449,7 +436,7 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Mitgliederzahlen einer Gruppierung im zeitlichen Verlauf")
     public static void historyAsCsv(String[] args, NamiConnector namicon,
-            PrintWriter out) throws IOException, SQLException {
+            PrintWriter out) throws IOException {
         historyAsCsv(args, out, false);
     }
 
@@ -468,8 +455,6 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
-     * @throws SQLException
-     *             SQL-Fehler
      * @throws IOException
      *             Fehler beim Schreiben in die Ausgabe
      */
@@ -477,12 +462,12 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Mitgliederzahlen einer Gruppierung im zeitlichen Verlauf (kumuliert)")
     public static void historyAsCsvCum(String[] args, NamiConnector namicon,
-            PrintWriter out) throws IOException, SQLException {
+            PrintWriter out) throws IOException {
         historyAsCsv(args, out, true);
     }
 
     private static void historyAsCsv(String[] args, PrintWriter out,
-            boolean cumulate) throws IOException, SQLException {
+            boolean cumulate) throws IOException {
         Writer csvOut = getOutputWriter(args, out);
 
         String gruppierungsnummer;
