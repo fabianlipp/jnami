@@ -36,6 +36,7 @@ public final class Configuration {
         File f = new File(System.getProperty("user.home"), ".jnami");
         if (!f.exists()) {
             f.mkdir();
+            log.info("Creating application directory: " + f.getAbsolutePath());
         }
 
         if (!f.exists() || !f.isDirectory()) {
