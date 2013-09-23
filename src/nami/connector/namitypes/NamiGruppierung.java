@@ -97,6 +97,15 @@ public class NamiGruppierung {
     }
 
     /**
+     * Liefert die Ebene der Gruppierung.
+     * 
+     * @return Ebene der Gruppierung
+     */
+    public Ebene getEbene() {
+        return Ebene.getFromGruppierungId(id);
+    }
+
+    /**
      * Liest den kompletten Gruppierungsbaum aus, auf den der Benutzer Zugriff
      * hat.
      * 
@@ -110,7 +119,7 @@ public class NamiGruppierung {
      */
     public static NamiGruppierung getGruppierungen(NamiConnector con)
             throws IOException, NamiApiException {
-        NamiGruppierung rootGrp = getRootGruppierung(con);
+        NamiGruppierung rootGrp = getRootGruppierungWithoutChildren(con);
 
         rootGrp.children = getChildGruppierungen(con,
                 Integer.toString(rootGrp.id));
@@ -118,9 +127,37 @@ public class NamiGruppierung {
         return rootGrp;
     }
 
-    // TODO: in der Live-Version wohl nicht nötig
-    private boolean isActive() {
-        return !descriptor.contains("***");
+    /**
+     * Liest den Gruppierungsbaum ausgehend von einer vorgegebenen Wurzel aus.
+     * 
+     * @param con
+     *            Verbindung zum NaMi-Server
+     * @param gruppierungsnummer
+     *            Gruppierungsnummer der Gruppierung, die die Wurzel des Baumes
+     *            bilden soll
+     * @return vorgegebene Wurzel-Gruppierung (in dieser sind die Kinder
+     *         gespeichert)
+     * @throws IOException
+     *             IOException
+     * @throws NamiApiException
+     *             API-Fehler beim Zugriff auf NaMi
+     */
+    public static NamiGruppierung getGruppierungen(NamiConnector con,
+            String gruppierungsnummer) throws IOException, NamiApiException {
+        NamiGruppierung rootGrp = getGruppierungen(con);
+
+        // nicht sehr effizient, da trotzdem der gesamte Baum aus NaMi geladen
+        // wird
+        // auf Diözesanebene sollte das aber kein Problem sein, da die Anzahl
+        // der Bezirke doch sehr begrenzt ist
+        NamiGruppierung found = rootGrp
+                .findGruppierungInTree(gruppierungsnummer);
+        if (found == null) {
+            throw new NamiApiException("Gruppierung not found: "
+                    + gruppierungsnummer);
+        } else {
+            return found;
+        }
     }
 
     /**
@@ -136,8 +173,8 @@ public class NamiGruppierung {
      * @throws NamiApiException
      *             API-Fehler beim Zugriff auf NaMi
      */
-    public static NamiGruppierung getRootGruppierung(NamiConnector con)
-            throws IOException, NamiApiException {
+    private static NamiGruppierung getRootGruppierungWithoutChildren(
+            NamiConnector con) throws IOException, NamiApiException {
         NamiURIBuilder builder = con.getURIBuilder(NamiURIBuilder.URL_NAMI_GRP);
         builder.appendPath("root");
         builder.addParameter("node", "root");
@@ -148,7 +185,11 @@ public class NamiGruppierung {
         NamiResponse<Collection<NamiGruppierung>> resp = con.executeApiRequest(
                 httpGet, type);
 
+        if (!resp.isSuccess()) {
+            throw new NamiApiException("Could not get root Gruppierung");
+        }
         NamiGruppierung rootGrp = resp.getData().iterator().next();
+
         rootGrp.children = null;
 
         return rootGrp;
@@ -170,13 +211,43 @@ public class NamiGruppierung {
         Collection<NamiGruppierung> allChildren = resp.getData();
         Collection<NamiGruppierung> activeChildren = new LinkedList<>();
         for (NamiGruppierung child : allChildren) {
-            if (child.isActive()) {
-                activeChildren.add(child);
+            activeChildren.add(child);
+            // Kinder brauchen nur abgefragt werden, wenn es sich nicht um
+            // einen Stamm handelt (denn Stämme haben keine Kinder)
+            if (child.getEbene() == Ebene.STAMM) {
+                child.children = new LinkedList<>();
+            } else {
                 child.children = getChildGruppierungen(con,
                         Integer.toString(child.id));
             }
         }
 
         return activeChildren;
+    }
+
+    /**
+     * Sucht im Gruppierungsbaum (ausgehend von dieser Gruppierung) nach einer
+     * Gruppierung mit einer vorgegebenen Nummer.
+     * 
+     * @param gruppierungsnummer
+     *            gesuchte Gruppierungssnummer
+     * @return gefundene Gruppierung; <tt>null</tt> wenn die Gruppierungsnummer
+     *         nicht gefunden wird
+     */
+    private NamiGruppierung findGruppierungInTree(String gruppierungsnummer) {
+        if (Integer.toString(id).equals(gruppierungsnummer)) {
+            return this;
+        } else {
+            for (NamiGruppierung grp : children) {
+                NamiGruppierung res = grp
+                        .findGruppierungInTree(gruppierungsnummer);
+                if (res != null) {
+                    return res;
+                }
+            }
+            // in keiner der Kinder wurde die gesuchte Nummer gefunden (sonst
+            // wäre diese bereits oben zurückgegeben worden
+            return null;
+        }
     }
 }

@@ -25,7 +25,8 @@ public final class Gruppierungen {
      * Listet die verfügbaren Gruppierungen baumförmig auf.
      * 
      * @param args
-     *            nicht verwendet
+     *            das erste Argument (falls vorhanden) gibt die
+     *            Gruppierungsnummer der Wurzel des Gruppierungsbaumes an
      * @param con
      *            Verbindung zum NaMi-Server
      * @param out
@@ -40,7 +41,12 @@ public final class Gruppierungen {
     @CommandDoc("Listet die verfügbaren Gruppierungen auf")
     public static void listGruppierungen(String[] args, NamiConnector con,
             PrintWriter out) throws NamiApiException, IOException {
-        NamiGruppierung rootGruppierung = NamiGruppierung.getGruppierungen(con);
+        NamiGruppierung rootGruppierung;
+        if (args.length > 0) {
+            rootGruppierung = NamiGruppierung.getGruppierungen(con, args[0]);
+        } else {
+            rootGruppierung = NamiGruppierung.getGruppierungen(con);
+        }
         printGruppierungenTeilbaum(out, rootGruppierung, 0);
     }
 
