@@ -88,7 +88,8 @@ public final class NamiCli {
                 System.exit(1);
             }
 
-            CliParser parser = new CliParser(COMMAND_CLASSES);
+            CliParser parser = new CliParser(COMMAND_CLASSES, new Class<?>[] {
+                    NamiConnector.class, PrintWriter.class });
 
             // Initialise JLine2
             ConsoleReader reader = new ConsoleReader();
@@ -125,7 +126,7 @@ public final class NamiCli {
                     break;
                 }
 
-                parser.callMethod(line, con, out);
+                parser.callMethod(line, out, con, out);
             }
 
             out.println();

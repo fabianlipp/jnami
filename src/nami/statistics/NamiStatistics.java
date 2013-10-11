@@ -3,15 +3,11 @@ package nami.statistics;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.net.URL;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.TreeSet;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -28,24 +24,20 @@ import nami.cli.annotation.ParentCommand;
 import nami.configuration.ApplicationDirectoryException;
 import nami.configuration.ConfigFormatException;
 import nami.configuration.Configuration;
-import nami.connector.Geschlecht;
 import nami.connector.NamiConnector;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
 import nami.connector.exception.NamiApiException;
 import nami.connector.namitypes.NamiGruppierung;
-import nami.connector.namitypes.NamiSearchedValues;
-import nami.db.schema.SchemaUpdater;
 import nami.statistics.StatisticsDatabase.Run;
 
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.input.sax.XMLReaderJDOMFactory;
-import org.jdom2.input.sax.XMLReaderXSDFactory;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 /**
  * Liest Mitgliederzahlen aus NaMi aus und erstellt Statistiken daraus.
@@ -57,115 +49,29 @@ public final class NamiStatistics {
     private NamiStatistics() {
     }
 
-    private static SqlSessionFactory sqlSessionFactory;
-
-    private static StatisticsDatabase db = null;
-    private static Collection<Gruppe> gruppen = null;
-    /**
-     * Wurzel-Gruppierung, für die die Statistik erstellt wird. Wenn die
-     * Wurzel-Gruppierung <tt>null</tt> ist, wird der gesamte verfügbare
-     * Gruppierungsbaum ausgewertet.
-     */
-    private static String rootGrp = null;
-
     private static Logger log = Logger
             .getLogger(NamiStatistics.class.getName());
+
+    private static final String DEFAULT_CONFIG_FILENAME = "namistatistics.xml";
+
     private static CliParser parser = new CliParser(NamiStatistics.class,
-            "statistics");
+            "statistics", new Class<?>[] { NamiConnector.class,
+                    PrintWriter.class, StatisticsConfig.class });
 
-    private static final String CONFIG_FILENAME = "namistatistics.xml";
-    private static final URL XSDFILE = NamiStatistics.class
-            .getResource("namistatistics.xsd");
-    private static final String MYBATIS_CONFIGFILE = "mybatis-config.xml";
+    private static File getDefaultConfigFile()
+            throws ApplicationDirectoryException {
+        return new File(Configuration.getApplicationDirectory(),
+                DEFAULT_CONFIG_FILENAME);
+    }
 
-    private static void readConfig() throws ApplicationDirectoryException,
-            ConfigFormatException, IOException {
-        // check if config already parsed
-        if (db != null && gruppen != null) {
-            return;
-        }
+    @SuppressWarnings("static-access")
+    private static Options createOptions() {
+        Options options = new Options();
+        Option configfile = OptionBuilder.hasArg().withArgName("filename")
+                .withLongOpt("configfile").create('c');
+        options.addOption(configfile);
 
-        // Lese Konfigurationsdatei ein (inkl. Validierung)
-        Document doc;
-        try {
-            XMLReaderJDOMFactory schemafac = new XMLReaderXSDFactory(XSDFILE);
-            SAXBuilder builder = new SAXBuilder(schemafac);
-
-            File configFile = new File(Configuration.getApplicationDirectory(),
-                    CONFIG_FILENAME);
-            log.info("Using statistics config file: "
-                    + configFile.getAbsolutePath());
-            if (!configFile.exists() || !configFile.canRead()) {
-                throw new ConfigFormatException("Cannot read config file");
-            }
-            doc = builder.build(configFile);
-        } catch (JDOMException e) {
-            throw new ConfigFormatException("Could not parse config file", e);
-        }
-
-        // Parse Konfiguration aus XML
-        Element namistatisticsEl = doc.getRootElement();
-        if (namistatisticsEl.getName() != "namistatistics") {
-            throw new ConfigFormatException("Wrong root element in config file");
-        }
-        rootGrp = namistatisticsEl.getAttributeValue("root");
-
-        // Datenbankverbindung aus XML lesen
-        Element databaseEl = namistatisticsEl.getChild("database");
-        String dbDriver = databaseEl.getChildText("driver");
-        String dbUrl = databaseEl.getChildText("url");
-        String dbUsername = databaseEl.getChildText("username");
-        String dbPassword = databaseEl.getChildText("password");
-
-        // Gruppen aus XML einlesen
-        gruppen = new LinkedList<>();
-        TreeSet<Integer> gruppenIds = new TreeSet<>();
-        for (Element gruppeEl : namistatisticsEl.getChildren("gruppe")) {
-            // ID der Gruppe
-            int gruppeId = Integer.parseInt(gruppeEl.getAttributeValue("id"));
-            if (gruppenIds.contains(gruppeId)) {
-                throw new ConfigFormatException("Duplicate ID in config file: "
-                        + gruppeId);
-            }
-            gruppenIds.add(gruppeId);
-
-            // Gruppenbezeichnung
-            String bezeichnung = gruppeEl.getAttributeValue("bezeichnung");
-
-            // Suchausdrücke
-            List<NamiSearchedValues> searches = new LinkedList<>();
-            for (Element namiSearchEl : gruppeEl.getChildren("namiSearch")) {
-                searches.add(NamiSearchedValues.fromXml(namiSearchEl));
-            }
-
-            // Filter
-            Element filterEl;
-            List<Filter> filters = new LinkedList<>();
-            filterEl = gruppeEl.getChild("geschlechtFilter");
-            if (filterEl != null) {
-                String value = filterEl.getAttributeValue("value");
-                filters.add(new GeschlechtFilter(Geschlecht.fromString(value)));
-            }
-
-            gruppen.add(new Gruppe(gruppeId, bezeichnung, searches, filters));
-        }
-
-        // Update Database Schema
-        SchemaUpdater updater = new SchemaUpdater(dbDriver, dbUrl, dbUsername,
-                dbPassword);
-        updater.update();
-
-        // Initialise MyBatis
-        Properties prop = new Properties();
-        prop.setProperty("driver", dbDriver);
-        prop.setProperty("url", dbUrl);
-        prop.setProperty("username", dbUsername);
-        prop.setProperty("password", dbPassword);
-        InputStream is = NamiStatistics.class
-                .getResourceAsStream(MYBATIS_CONFIGFILE);
-        sqlSessionFactory = new SqlSessionFactoryBuilder().build(is, prop);
-
-        db = new StatisticsDatabase(gruppen, sqlSessionFactory);
+        return options;
     }
 
     /**
@@ -228,6 +134,8 @@ public final class NamiStatistics {
      *             Fehler in der Konfigurationsdatei
      * @throws ApplicationDirectoryException
      *             Probleme beim Zugriff auf das Konfigurationsverzeichnis
+     * @throws ParseException
+     *             Probleme beim Parsen der Kommandozeile
      */
     @CliCommand("statistics")
     @AlternateCommands("stats")
@@ -235,10 +143,22 @@ public final class NamiStatistics {
     @ParamCompleter(StatisticsCompleter.class)
     public static void statistics(String[] args, NamiConnector namicon,
             PrintWriter out) throws IOException, ConfigFormatException,
-            ApplicationDirectoryException {
+            ApplicationDirectoryException, ParseException {
 
-        readConfig();
+        Options options = createOptions();
+        CommandLineParser clParser = new GnuParser();
+        CommandLine cl = clParser.parse(options, args);
 
+        // Konfiguration einlesen
+        File configFile;
+        if (cl.hasOption('c')) {
+            configFile = new File(cl.getOptionValue('c'));
+        } else {
+            configFile = getDefaultConfigFile();
+        }
+        StatisticsConfig config = new StatisticsConfig(configFile);
+
+        // Logger-Konfiguration (zu DEBUG-Zwecken)
         Logger dbLogger = Logger.getLogger(StatisticsDatabase.class.getName());
         dbLogger.setLevel(Level.FINEST);
         Handler handler = new ConsoleHandler();
@@ -246,7 +166,7 @@ public final class NamiStatistics {
         Logger.getLogger("").addHandler(handler);
         Logger.getLogger("").setLevel(Level.ALL);
 
-        parser.callMethod(args, namicon, out);
+        parser.callMethod(cl.getArgs(), out, namicon, out, config);
     }
 
     /**
@@ -259,6 +179,8 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
+     * @param config
+     *            Statistik-Konfiguration
      * @throws IOException
      *             IOException
      * @throws NamiApiException
@@ -268,22 +190,23 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Lädt die aktuellen Mitgliederzahlen aus NaMi")
     public static void collectData(String[] args, NamiConnector namicon,
-            PrintWriter out) throws IOException, NamiApiException {
+            PrintWriter out, StatisticsConfig config) throws IOException,
+            NamiApiException {
 
         namicon.namiLogin();
         NamiGruppierung rootGruppierung;
-        if (rootGrp == null) {
+        if (config.getRootGrp() == null) {
             rootGruppierung = NamiGruppierung.getGruppierungen(namicon);
         } else {
-            rootGruppierung = NamiGruppierung
-                    .getGruppierungen(namicon, rootGrp);
+            rootGruppierung = NamiGruppierung.getGruppierungen(namicon,
+                    config.getRootGrp());
         }
-        db.populateDatabase(rootGruppierung);
+        config.getDb().populateDatabase(rootGruppierung);
 
-        long runId = db.writeNewStatisticRun();
+        long runId = config.getDb().writeNewStatisticRun();
         if (runId != -1) {
             writeAnzahlForGruppierungAndChildren(runId, rootGruppierung,
-                    namicon);
+                    namicon, config.getDb(), config.getGruppen());
         } else {
             log.warning("Could not insert new run into local database");
         }
@@ -294,7 +217,8 @@ public final class NamiStatistics {
     // verwendet von collectData()
     // wird rekursiv für jede Gruppierung aufgerufen
     private static void writeAnzahlForGruppierungAndChildren(long runId,
-            NamiGruppierung gruppierung, NamiConnector namicon)
+            NamiGruppierung gruppierung, NamiConnector namicon,
+            StatisticsDatabase db, Collection<Gruppe> gruppen)
             throws NamiApiException, IOException {
         for (Gruppe gruppe : gruppen) {
             int anzahl = gruppe.getAnzahl(namicon,
@@ -304,7 +228,8 @@ public final class NamiStatistics {
         }
 
         for (NamiGruppierung child : gruppierung.getChildren()) {
-            writeAnzahlForGruppierungAndChildren(runId, child, namicon);
+            writeAnzahlForGruppierungAndChildren(runId, child, namicon, db,
+                    gruppen);
         }
     }
 
@@ -317,13 +242,15 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
+     * @param config
+     *            Statistik-Konfiguration
      */
     @CliCommand("listRuns")
     @ParentCommand("statistics")
     @CommandDoc("Listet die durchgeführten Statistik-Läufe auf")
     public static void listRuns(String[] args, NamiConnector namicon,
-            PrintWriter out) {
-        List<Run> runs = db.getRuns();
+            PrintWriter out, StatisticsConfig config) {
+        List<Run> runs = config.getDb().getRuns();
         for (Run run : runs) {
             String str = String.format("%3d  %s", run.getRunId(),
                     run.getDatum());
@@ -347,6 +274,8 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
+     * @param config
+     *            Statistik-Konfiguration
      * @throws IOException
      *             Fehler beim Schreiben in die Ausgabe
      */
@@ -354,8 +283,8 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Statistik für alle Gruppierungen")
     public static void statsAsCsv(String[] args, NamiConnector namicon,
-            PrintWriter out) throws IOException {
-        statsAsCsv(args, out, false);
+            PrintWriter out, StatisticsConfig config) throws IOException {
+        statsAsCsv(args, out, false, config);
     }
 
     /**
@@ -375,6 +304,8 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
+     * @param config
+     *            Statistik-Konfiguration
      * @throws IOException
      *             Fehler beim Schreiben in die Ausgabe
      */
@@ -382,12 +313,12 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Statistik für alle Gruppierungen (kumuliert)")
     public static void statsAsCsvCum(String[] args, NamiConnector namicon,
-            PrintWriter out) throws IOException {
-        statsAsCsv(args, out, true);
+            PrintWriter out, StatisticsConfig config) throws IOException {
+        statsAsCsv(args, out, true, config);
     }
 
     private static void statsAsCsv(String[] args, PrintWriter out,
-            boolean cumulate) throws IOException {
+            boolean cumulate, StatisticsConfig config) throws IOException {
         Writer csvOut = getOutputWriter(args, out);
 
         int runId = -1;
@@ -403,9 +334,9 @@ public final class NamiStatistics {
 
         CsvWriter csvWriter = new CsvWriter(csvOut);
         if (runId != -1) {
-            db.getStatsAllGruppierungen(runId, cumulate, csvWriter);
+            config.getDb().getStatsAllGruppierungen(runId, cumulate, csvWriter);
         } else {
-            db.getStatsAllGruppierungen(cumulate, csvWriter);
+            config.getDb().getStatsAllGruppierungen(cumulate, csvWriter);
         }
 
         // Der CSV-Ausgabe-Stream wird nur dann geschlossen, wenn es nicht der
@@ -431,6 +362,8 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
+     * @param config
+     *            Statistik-Konfiguration
      * @throws IOException
      *             Fehler beim Schreiben in die Ausgabe
      */
@@ -438,8 +371,8 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Mitgliederzahlen einer Gruppierung im zeitlichen Verlauf")
     public static void historyAsCsv(String[] args, NamiConnector namicon,
-            PrintWriter out) throws IOException {
-        historyAsCsv(args, out, false);
+            PrintWriter out, StatisticsConfig config) throws IOException {
+        historyAsCsv(args, out, false, config);
     }
 
     /**
@@ -457,6 +390,8 @@ public final class NamiStatistics {
      *            Verbindung zum NaMi-Server
      * @param out
      *            Writer, auf dem die Ausgabe erfolgt
+     * @param config
+     *            Statistik-Konfiguration
      * @throws IOException
      *             Fehler beim Schreiben in die Ausgabe
      */
@@ -464,12 +399,12 @@ public final class NamiStatistics {
     @ParentCommand("statistics")
     @CommandDoc("Mitgliederzahlen einer Gruppierung im zeitlichen Verlauf (kumuliert)")
     public static void historyAsCsvCum(String[] args, NamiConnector namicon,
-            PrintWriter out) throws IOException {
-        historyAsCsv(args, out, true);
+            PrintWriter out, StatisticsConfig config) throws IOException {
+        historyAsCsv(args, out, true, config);
     }
 
     private static void historyAsCsv(String[] args, PrintWriter out,
-            boolean cumulate) throws IOException {
+            boolean cumulate, StatisticsConfig config) throws IOException {
         Writer csvOut = getOutputWriter(args, out);
 
         String gruppierungsnummer;
@@ -482,7 +417,7 @@ public final class NamiStatistics {
         }
 
         CsvWriter csvWriter = new CsvWriter(csvOut);
-        db.getHistory(gruppierungsnummer, cumulate, csvWriter);
+        config.getDb().getHistory(gruppierungsnummer, cumulate, csvWriter);
 
         // Der CSV-Ausgabe-Stream wird nur dann geschlossen, wenn es nicht der
         // übergebene Ausgabestrom ist (denn dann wird dieser noch gebraucht)

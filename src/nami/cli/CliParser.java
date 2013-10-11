@@ -15,8 +15,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-
 import jline.console.completer.Completer;
 import jline.console.completer.NullCompleter;
 import jline.console.completer.StringsCompleter;
@@ -25,7 +23,8 @@ import nami.cli.annotation.CliCommand;
 import nami.cli.annotation.CommandDoc;
 import nami.cli.annotation.ParamCompleter;
 import nami.cli.annotation.ParentCommand;
-import nami.connector.NamiConnector;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Klasse, die die Kommandozeile parst und abhängig vom ersten Wort in dieser
@@ -63,6 +62,7 @@ public class CliParser {
      * Enthält die Second-Level-Completer für jedes der unterstützten Kommandos.
      */
     private Map<String, Completer> completersMap = new HashMap<>();
+    private Class<?>[] expectedSig;
 
     /**
      * Initialisiert den Parser.
@@ -74,8 +74,19 @@ public class CliParser {
      *            muss, damit die Methode berücksichtigt wird. Falls hier
      *            <tt>null</tt> übergeben wird, werden nur Methoden gewählt, bei
      *            denen die Annotation nicht vorhanden ist.
+     * @param expectedSig
+     *            erwartete Signatur der aufzurufenden Methoden. Als erstes
+     *            Argument wird immer die Kommandozeile übergeben, danach folgen
+     *            die in dieser Variablen angegebenen Datentypen. Nur Methoden
+     *            mit dieser Signatur werden berücksichtigt.
+     * 
+     *            Datentypen der Parameter müssen also sein: (String[],
+     *            expectedSig[0], expectedSig[1], ...)
      */
-    public CliParser(Class<?>[] commandClasses, String parentCommand) {
+    public CliParser(Class<?>[] commandClasses, String parentCommand,
+            Class<?>[] expectedSig) {
+        this.expectedSig = expectedSig;
+
         // Read available commands from methods annotated with CliCommand in
         // commandClasses
         for (Class<?> cls : commandClasses) {
@@ -91,7 +102,7 @@ public class CliParser {
                                 + mtd.getName()
                                 + " (annotated with CliCommand)"
                                 + " because it is not static.");
-                    } else if (!checkSignature(mtd)) {
+                    } else if (!checkSignature(mtd, expectedSig)) {
                         log.warning("Cannot use method " + cls.getName() + "."
                                 + mtd.getName()
                                 + " (annotated with CliCommand)"
@@ -124,9 +135,18 @@ public class CliParser {
      *            muss, damit die Methode berücksichtigt wird. Falls hier
      *            <tt>null</tt> übergeben wird, werden nur Methoden gewählt, bei
      *            denen die Annotation nicht vorhanden ist.
+     * @param expectedSig
+     *            erwartete Signatur der aufzurufenden Methoden. Als erstes
+     *            Argument wird immer die Kommandozeile übergeben, danach folgen
+     *            die in dieser Variablen angegebenen Datentypen. Nur Methoden
+     *            mit dieser Signatur werden berücksichtigt.
+     * 
+     *            Datentypen der Parameter müssen also sein: (String[],
+     *            expectedSig[0], expectedSig[1], ...)
      */
-    public CliParser(Class<?> commandClass, String parentCommand) {
-        this(new Class<?>[] { commandClass }, parentCommand);
+    public CliParser(Class<?> commandClass, String parentCommand,
+            Class<?>[] expectedSig) {
+        this(new Class<?>[] { commandClass }, parentCommand, expectedSig);
     }
 
     /**
@@ -135,9 +155,17 @@ public class CliParser {
      * 
      * @param commandClasses
      *            Klassen, in denen die aufzurufenden Methoden enthalten sind.
+     * @param expectedSig
+     *            erwartete Signatur der aufzurufenden Methoden. Als erstes
+     *            Argument wird immer die Kommandozeile übergeben, danach folgen
+     *            die in dieser Variablen angegebenen Datentypen. Nur Methoden
+     *            mit dieser Signatur werden berücksichtigt.
+     * 
+     *            Datentypen der Parameter müssen also sein: (String[],
+     *            expectedSig[0], expectedSig[1], ...)
      */
-    public CliParser(Class<?>[] commandClasses) {
-        this(commandClasses, null);
+    public CliParser(Class<?>[] commandClasses, Class<?>[] expectedSig) {
+        this(commandClasses, null, expectedSig);
     }
 
     /**
@@ -146,9 +174,17 @@ public class CliParser {
      * 
      * @param commandClass
      *            Klasse, in der die aufzurufenden Methoden enthalten sind.
+     * @param expectedSig
+     *            erwartete Signatur der aufzurufenden Methoden. Als erstes
+     *            Argument wird immer die Kommandozeile übergeben, danach folgen
+     *            die in dieser Variablen angegebenen Datentypen. Nur Methoden
+     *            mit dieser Signatur werden berücksichtigt.
+     * 
+     *            Datentypen der Parameter müssen also sein: (String[],
+     *            expectedSig[0], expectedSig[1], ...)
      */
-    public CliParser(Class<?> commandClass) {
-        this(commandClass, null);
+    public CliParser(Class<?> commandClass, Class<?>[] expectedSig) {
+        this(new Class<?>[] { commandClass }, null, expectedSig);
     }
 
     /**
@@ -207,21 +243,27 @@ public class CliParser {
      * 
      * @param mtd
      *            zu prüfende Methode
+     * @param expectedSig
+     *            Erwartete Signatur. Als erstes Argument vor dieser Signatur
+     *            wird ein String[] erwartet
      * @return <tt>true</tt>, falls die Methode die passenden Parameter
      *         entgegennimmt
      */
-    private static boolean checkSignature(Method mtd) {
+    private static boolean checkSignature(Method mtd, Class<?>[] expectedSig) {
         Class<?>[] params = mtd.getParameterTypes();
-        if (params.length != 3) {
+        if (params.length != expectedSig.length + 1) {
             return false;
         }
 
         if (!(new String[0]).getClass().isAssignableFrom(params[0])) {
+            // first argument has to be String[]
             return false;
-        } else if (!NamiConnector.class.isAssignableFrom(params[1])) {
-            return false;
-        } else if (!PrintWriter.class.isAssignableFrom(params[2])) {
-            return false;
+        }
+
+        for (int i = 0; i < expectedSig.length; i++) {
+            if (!expectedSig[i].isAssignableFrom(params[i + 1])) {
+                return false;
+            }
         }
 
         return true;
@@ -279,12 +321,13 @@ public class CliParser {
      * 
      * @param line
      *            Kommandozeile
-     * @param con
-     *            Verbindung zum NaMi-Server
      * @param out
-     *            PrintWriter, auf dem die Ausgabe erfolgt
+     *            PrintWriter, auf dem Fehlermeldungen beim Parsen des Kommandos
+     *            oder Hilfetexte ausgegeben werden
+     * @param params
+     *            Parameter, die an die aufgerufene Funktion übergeben werden
      */
-    public void callMethod(String line, NamiConnector con, PrintWriter out) {
+    public void callMethod(String line, PrintWriter out, Object... params) {
         // split line at spaces
         String[] lineSplitted = splitCommandline(line);
         if (lineSplitted.length < 1) {
@@ -303,7 +346,22 @@ public class CliParser {
             out.println("Unknown Command");
         } else {
             try {
-                mtd.invoke(null, new Object[] { arguments, con, out });
+                Object[] mtdParams = new Object[1 + params.length];
+                mtdParams[0] = arguments;
+                if (params.length != expectedSig.length) {
+                    throw new IllegalArgumentException(
+                            "Wrong parameter count in call of CliParser");
+                }
+                for (int i = 1; i <= expectedSig.length; i++) {
+                    if (!expectedSig[i - 1].isInstance(params[i - 1])) {
+                        throw new IllegalArgumentException(
+                                "Wrong parameter type in call of CliParser. Type is "
+                                        + params[i - 1].getClass()
+                                        + " but expected " + expectedSig[i - 1]);
+                    }
+                    mtdParams[i] = params[i - 1];
+                }
+                mtd.invoke(null, mtdParams);
             } catch (InvocationTargetException e) {
                 // called method throws an exception
                 e.getTargetException().printStackTrace(out);
@@ -318,13 +376,14 @@ public class CliParser {
      * 
      * @param args
      *            Kommandozeile, aufgeteilt in einzelne Wörter
-     * @param con
-     *            Verbindung zum NaMi-Server
      * @param out
-     *            PrintWriter, auf dem die Ausgabe erfolgt
+     *            PrintWriter, auf dem Fehlermeldungen beim Parsen des Kommandos
+     *            oder Hilfetexte ausgegeben werden
+     * @param params
+     *            Parameter, die an die aufgerufene Funktion übergeben werden
      */
-    public void callMethod(String[] args, NamiConnector con, PrintWriter out) {
-        callMethod(StringUtils.join(args, ' '), con, out);
+    public void callMethod(String[] args, PrintWriter out, Object... params) {
+        callMethod(StringUtils.join(args, ' '), out, params);
     }
 
     /**
@@ -365,7 +424,7 @@ public class CliParser {
      * @param args
      *            nicht verwendet
      * @param out
-     *            Writer, auf dem die Ausgabe erfolgt
+     *            PrintWriter, auf dem die Ausgabe der Hilfe erfolgt
      */
     public void printHelp(String[] args, PrintWriter out) {
         // TODO Werte Argumente aus und zeige ggf. Detail zu Befehl an
