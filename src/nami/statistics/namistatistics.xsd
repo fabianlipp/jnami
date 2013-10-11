@@ -12,6 +12,7 @@
 			<element name="gruppe" type="tns:gruppeT" maxOccurs="unbounded"
 				minOccurs="1"></element>
 		</sequence>
+		<attribute name="root" type="string" use="optional"></attribute>
 	</complexType>
 
 	<complexType name="databaseT">
@@ -30,6 +31,8 @@
 		<sequence>
 			<element name="namiSearch" type="tns:namiSearchT" maxOccurs="unbounded"
 				minOccurs="1"></element>
+			<element name="geschlechtFilter" type="tns:geschlechtFilterT" maxOccurs="1"
+				minOccurs="0"></element>
 		</sequence>
 		<attribute name="id" type="int" use="required"></attribute>
 		<attribute name="bezeichnung" type="string" use="required"></attribute>
@@ -48,6 +51,17 @@
 				maxOccurs="1" minOccurs="0">
 			</element>
 		</all>
+	</complexType>
+
+	<complexType name="geschlechtFilterT">
+		<attribute name="value" use="required">
+			<simpleType>
+				<restriction base="string">
+					<enumeration value="MAENNLICH" />
+					<enumeration value="WEIBLICH" />
+				</restriction>
+			</simpleType>
+		</attribute>
 	</complexType>
 
 	<complexType name="idAttributeT">

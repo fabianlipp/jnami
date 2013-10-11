@@ -1,6 +1,10 @@
 <tns:namistatistics xmlns:tns="http://www.example.org/namistatistics/"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.example.org/namistatistics/ /home/fabian/eclipse/nami/src/nami/statistics/namistatistics.xsd">
+	xsi:schemaLocation="http://www.example.org/namistatistics/ /home/fabian/eclipse/nami/src/nami/statistics/namistatistics.xsd"
+	root="123456">
+	<!-- Erstelle Statistik unterhalb von Gruppierung 123456
+	(diese Gruppierung wird als Wurzel des Gruppierungsbaumes verwendet)
+	(Attribut root ist optional) -->
 
 	<!-- Konfiguration der verwendeten SQL-Datenbank -->
 	<database>
@@ -69,11 +73,20 @@
 			<untergliederung id="5" /> <!-- Vorstand -->
 		</namiSearch>
 	</gruppe>
-	<gruppe id="6" bezeichnung="Mitglieder">
+	<gruppe id="6" bezeichnung="Mitglieder (männlich)">
 		<namiSearch>
 			<!-- Suche nach Personen mit einem bestimmten Mitgliedstyp. Mögliche Werte: 
 				MITGLIED, NICHT_MITGLIED, SCHNUPPER_MITGLIED -->
 			<mitgliedstyp id="MITGLIED" />
 		</namiSearch>
+		<!-- Zähle nur männliche Mitglieder -->
+		<geschlechtFilter value="MAENNLICH" />
+	</gruppe>
+	<gruppe id="7" bezeichnung="Mitglieder (weiblich)">
+		<namiSearch>
+			<mitgliedstyp id="MITGLIED" />
+		</namiSearch>
+		<!-- Zähle nur weibliche Mitglieder -->
+		<geschlechtFilter value="WEIBLICH" />
 	</gruppe>
 </tns:namistatistics>

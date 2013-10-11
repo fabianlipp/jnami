@@ -1,6 +1,5 @@
 package nami.statistics;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,11 +35,9 @@ public class StatisticsDatabase {
      *            Gruppen, die in der Statistik erfasst werden
      * @param sqlSessionFactory
      *            die Factory aus der die SQL-Sessions erzeugt werden sollen
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
     public StatisticsDatabase(Collection<Gruppe> gruppen,
-            SqlSessionFactory sqlSessionFactory) throws SQLException {
+            SqlSessionFactory sqlSessionFactory) {
         this.gruppen = gruppen;
         this.sqlSessionFactory = sqlSessionFactory;
     }
@@ -53,11 +50,8 @@ public class StatisticsDatabase {
      *            Wurzel des Gruppierungsbaums (die untergeordneten
      *            Gruppierungen müssen in den entsprechenden Feldern enthalten
      *            sein).
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
-    public void populateDatabase(NamiGruppierung rootGruppierung)
-            throws SQLException {
+    public void populateDatabase(NamiGruppierung rootGruppierung) {
         // Füge Gruppierungen in Datenbank ein, falls noch nicht vorhanden
         writeGruppierungToDb(rootGruppierung);
 
@@ -67,8 +61,8 @@ public class StatisticsDatabase {
         }
     }
 
-    private void writeGruppierungToDb(NamiGruppierung grp) throws SQLException {
-        writeGruppierungToDb(grp.getId(), grp.getDescriptor(),
+    private void writeGruppierungToDb(NamiGruppierung grp) {
+        writeGruppierungToDb(grp.getGruppierungsnummer(), grp.getDescriptor(),
                 grp.getParentId(Ebene.DIOEZESE), grp.getParentId(Ebene.BEZIRK));
 
         for (NamiGruppierung child : grp.getChildren()) {
@@ -77,8 +71,7 @@ public class StatisticsDatabase {
     }
 
     private void writeGruppierungToDb(String id, String descriptor,
-            String dioezese, String bezirk) throws SQLException {
-
+            String dioezese, String bezirk) {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
@@ -97,9 +90,7 @@ public class StatisticsDatabase {
         }
     }
 
-    private void writeGruppeToDb(int id, String bezeichnung)
-            throws SQLException {
-
+    private void writeGruppeToDb(int id, String bezeichnung) {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
@@ -123,10 +114,8 @@ public class StatisticsDatabase {
      * der Datenbank an.
      * 
      * @return ID des neu angelegten Runs
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
-    public long writeNewStatisticRun() throws SQLException {
+    public long writeNewStatisticRun() {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
@@ -170,11 +159,9 @@ public class StatisticsDatabase {
      *            ID des Runs, in dem die Anzahl abgefragt wurde
      * @param anzahl
      *            Anzahl gefundener Mitglieder
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
     public void writeAnzahl(String gruppierungsnummer, int gruppeId,
-            long runId, int anzahl) throws SQLException {
+            long runId, int anzahl) {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
@@ -218,10 +205,8 @@ public class StatisticsDatabase {
      * Liefert die durchgeführten Runs aus der Datenbank.
      * 
      * @return Runs mit ID und Datum
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
-    public List<Run> getRuns() throws SQLException {
+    public List<Run> getRuns() {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
@@ -238,10 +223,8 @@ public class StatisticsDatabase {
      * Liefert die ID des zuletzt durchgeführten Runs.
      * 
      * @return ID des letzten Runs
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
-    public int getLatestRunId() throws SQLException {
+    public int getLatestRunId() {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
@@ -269,11 +252,8 @@ public class StatisticsDatabase {
      *            Gruppierung alle untergeordneten Gruppierungen aufsummiert
      * @param handler
      *            Aktion, die für jede zurückgegebene Zeile ausgeführt wird
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
-    public void getStatsAllGruppierungen(boolean cumulate, ResultHandler handler)
-            throws SQLException {
+    public void getStatsAllGruppierungen(boolean cumulate, ResultHandler handler) {
         getStatsAllGruppierungen(getLatestRunId(), cumulate, handler);
     }
 
@@ -290,11 +270,9 @@ public class StatisticsDatabase {
      *            Gruppierung alle untergeordneten Gruppierungen aufsummiert
      * @param handler
      *            Aktion, die für jede zurückgegebene Zeile ausgeführt wird
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
     public void getStatsAllGruppierungen(int runId, boolean cumulate,
-            ResultHandler handler) throws SQLException {
+            ResultHandler handler) {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);
@@ -317,11 +295,9 @@ public class StatisticsDatabase {
      *            Gruppierung alle untergeordneten Gruppierungen aufsummiert
      * @param handler
      *            Aktion, die für jede zurückgegebene Zeile ausgeführt wird
-     * @throws SQLException
-     *             Probleme beim Ausführen der SQL-Kommandos
      */
     public void getHistory(String gruppierungId, boolean cumulate,
-            ResultHandler handler) throws SQLException {
+            ResultHandler handler) {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             StatisticsMapper mapper = session.getMapper(StatisticsMapper.class);

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import nami.connector.Ebene;
 import nami.connector.NamiConnector;
@@ -30,8 +32,10 @@ public class NamiGruppierung {
     // müssen extra abgefragt werden.
     private Collection<NamiGruppierung> children;
 
+    private static final Pattern GRPNUM_PATTERN = Pattern.compile("[\\d]+");
+
     /**
-     * Liefert den Namen der Gruppierung ("Stamm XYZ").
+     * Liefert den Namen der Gruppierung ("Stamm XYZ") inkl. Gruppierungsnummer.
      * 
      * @return Name
      */
@@ -40,17 +44,35 @@ public class NamiGruppierung {
     }
 
     /**
+     * Liefert die ID der Gruppierung (das ist nicht zwangsweise die
+     * Gruppierungsnummer).
+     * 
+     * @return ID der Gruppierung
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
      * Liefert die Gruppierungsnummer.
      * 
      * @return Gruppierungsnummer
      */
-    public String getId() {
-        // Fülle die GruppierungsID links mit Nullen auf 6 Stellen auf
-        String gruppierungsString = Integer.toString(id);
-        while (gruppierungsString.length() < 6) {
-            gruppierungsString = "0" + gruppierungsString;
+    public String getGruppierungsnummer() {
+        // Die Gruppierungsnummer muss aus der Beschreibung ausgelesen werden,
+        // da sie nicht zwangsweise mit der ID übereinstimmt. Bei den meisten
+        // Gruppierungen stimmen sie überein, aber eben nicht bei allen. Das ist
+        // halt eine Merkwürdigkeit in NaMi, für die wir hier einen Workaround
+        // brauchen.
+
+        Matcher match = GRPNUM_PATTERN.matcher(descriptor);
+        if (!match.find()) {
+            throw new IllegalArgumentException(
+                    "Could not find Gruppierungsnummer in descriptior: "
+                            + descriptor);
         }
-        return gruppierungsString;
+
+        return match.group();
     }
 
     /**
@@ -77,16 +99,18 @@ public class NamiGruppierung {
      *         eine niedrigere Ebene verlangt wird
      */
     public String getParentId(Ebene targetE) {
-        Ebene thisE = Ebene.getFromGruppierungId(id);
+        // Gruppierungsnummer dieser Gruppierung
+        String grpNum = getGruppierungsnummer();
+        Ebene thisE = Ebene.getFromGruppierungId(grpNum);
         if (thisE.compareTo(targetE) < 0) {
             // Es wird eine niedrigere Ebene verlangt
             return null;
         } else if (thisE.compareTo(targetE) == 0) {
             // Es wird die gleiche Ebene verlangt
-            return getId();
+            return grpNum;
         } else {
             // Es wird eine höhere Ebene verlangt
-            String result = getId().substring(0, targetE.getSignificantChars());
+            String result = grpNum.substring(0, targetE.getSignificantChars());
 
             // Fülle die GruppierungsID rechts mit Nullen auf 6 Stellen auf
             while (result.length() < 6) {
@@ -94,6 +118,15 @@ public class NamiGruppierung {
             }
             return result;
         }
+    }
+
+    /**
+     * Liefert die Ebene der Gruppierung.
+     * 
+     * @return Ebene der Gruppierung
+     */
+    public Ebene getEbene() {
+        return Ebene.getFromGruppierungId(id);
     }
 
     /**
@@ -110,7 +143,7 @@ public class NamiGruppierung {
      */
     public static NamiGruppierung getGruppierungen(NamiConnector con)
             throws IOException, NamiApiException {
-        NamiGruppierung rootGrp = getRootGruppierung(con);
+        NamiGruppierung rootGrp = getRootGruppierungWithoutChildren(con);
 
         rootGrp.children = getChildGruppierungen(con,
                 Integer.toString(rootGrp.id));
@@ -118,9 +151,37 @@ public class NamiGruppierung {
         return rootGrp;
     }
 
-    // TODO: in der Live-Version wohl nicht nötig
-    private boolean isActive() {
-        return !descriptor.contains("***");
+    /**
+     * Liest den Gruppierungsbaum ausgehend von einer vorgegebenen Wurzel aus.
+     * 
+     * @param con
+     *            Verbindung zum NaMi-Server
+     * @param gruppierungsnummer
+     *            Gruppierungsnummer der Gruppierung, die die Wurzel des Baumes
+     *            bilden soll
+     * @return vorgegebene Wurzel-Gruppierung (in dieser sind die Kinder
+     *         gespeichert)
+     * @throws IOException
+     *             IOException
+     * @throws NamiApiException
+     *             API-Fehler beim Zugriff auf NaMi
+     */
+    public static NamiGruppierung getGruppierungen(NamiConnector con,
+            String gruppierungsnummer) throws IOException, NamiApiException {
+        NamiGruppierung rootGrp = getGruppierungen(con);
+
+        // nicht sehr effizient, da trotzdem der gesamte Baum aus NaMi geladen
+        // wird
+        // auf Diözesanebene sollte das aber kein Problem sein, da die Anzahl
+        // der Bezirke doch sehr begrenzt ist
+        NamiGruppierung found = rootGrp
+                .findGruppierungInTree(gruppierungsnummer);
+        if (found == null) {
+            throw new NamiApiException("Gruppierung not found: "
+                    + gruppierungsnummer);
+        } else {
+            return found;
+        }
     }
 
     /**
@@ -136,8 +197,8 @@ public class NamiGruppierung {
      * @throws NamiApiException
      *             API-Fehler beim Zugriff auf NaMi
      */
-    public static NamiGruppierung getRootGruppierung(NamiConnector con)
-            throws IOException, NamiApiException {
+    private static NamiGruppierung getRootGruppierungWithoutChildren(
+            NamiConnector con) throws IOException, NamiApiException {
         NamiURIBuilder builder = con.getURIBuilder(NamiURIBuilder.URL_NAMI_GRP);
         builder.appendPath("root");
         builder.addParameter("node", "root");
@@ -148,7 +209,11 @@ public class NamiGruppierung {
         NamiResponse<Collection<NamiGruppierung>> resp = con.executeApiRequest(
                 httpGet, type);
 
+        if (!resp.isSuccess()) {
+            throw new NamiApiException("Could not get root Gruppierung");
+        }
         NamiGruppierung rootGrp = resp.getData().iterator().next();
+
         rootGrp.children = null;
 
         return rootGrp;
@@ -170,13 +235,43 @@ public class NamiGruppierung {
         Collection<NamiGruppierung> allChildren = resp.getData();
         Collection<NamiGruppierung> activeChildren = new LinkedList<>();
         for (NamiGruppierung child : allChildren) {
-            if (child.isActive()) {
-                activeChildren.add(child);
+            activeChildren.add(child);
+            // Kinder brauchen nur abgefragt werden, wenn es sich nicht um
+            // einen Stamm handelt (denn Stämme haben keine Kinder)
+            if (child.getEbene() == Ebene.STAMM) {
+                child.children = new LinkedList<>();
+            } else {
                 child.children = getChildGruppierungen(con,
                         Integer.toString(child.id));
             }
         }
 
         return activeChildren;
+    }
+
+    /**
+     * Sucht im Gruppierungsbaum (ausgehend von dieser Gruppierung) nach einer
+     * Gruppierung mit einer vorgegebenen Nummer.
+     * 
+     * @param gruppierungsnummer
+     *            gesuchte Gruppierungssnummer
+     * @return gefundene Gruppierung; <tt>null</tt> wenn die Gruppierungsnummer
+     *         nicht gefunden wird
+     */
+    private NamiGruppierung findGruppierungInTree(String gruppierungsnummer) {
+        if (Integer.toString(id).equals(gruppierungsnummer)) {
+            return this;
+        } else {
+            for (NamiGruppierung grp : children) {
+                NamiGruppierung res = grp
+                        .findGruppierungInTree(gruppierungsnummer);
+                if (res != null) {
+                    return res;
+                }
+            }
+            // in keiner der Kinder wurde die gesuchte Nummer gefunden (sonst
+            // wäre diese bereits oben zurückgegeben worden
+            return null;
+        }
     }
 }

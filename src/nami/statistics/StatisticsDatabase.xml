@@ -62,8 +62,10 @@
 	<select id="getStatsAllGruppierungen" resultType="java.util.LinkedHashMap">
 		SELECT g.gruppierungId AS Gruppierungsnummer,
 			g.descriptor AS Gruppierungsname,
+			(CASE WHEN g.dioezeseId IS NOT NULL THEN g.dioezeseId ELSE "" END) AS "Diözese",
+			(CASE WHEN g.bezirkId IS NOT NULL THEN g.bezirkId ELSE "" END) AS "Bezirk",
 		<foreach item="gruppe" index="index" collection="gruppen" separator=",">
-			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS ${gruppe.bezeichnung}
+			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS "${gruppe.bezeichnung}"
 		</foreach>
 		FROM gruppierung AS g, gruppierung AS c, statisticsData AS d
 		WHERE runId = #{runId}
@@ -83,7 +85,7 @@
 		SELECT runId AS RunID,
 			datum AS Datum,
 		<foreach item="gruppe" index="index" collection="gruppen" separator=",">
-			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS ${gruppe.bezeichnung}
+			SUM(CASE WHEN gruppeId = ${gruppe.id} THEN anzahl END) AS "${gruppe.bezeichnung}"
 		</foreach>
 		FROM statisticsData
 			NATURAL JOIN statisticsRun

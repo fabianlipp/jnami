@@ -60,7 +60,14 @@ public enum Ebene {
         return getFromGruppierungId(gruppierungsString);
     }
 
-    private static Ebene getFromGruppierungId(String gruppierungId) {
+    /**
+     * Liefert die Ebene zu einer Gruppierung.
+     * 
+     * @param gruppierungId
+     *            Gruppierungsnummer
+     * @return Ebene, zu der die Gruppierungsnummer gehört
+     */
+    public static Ebene getFromGruppierungId(String gruppierungId) {
         if (gruppierungId.equals("000000")) {
             return BUND;
         } else if (gruppierungId.substring(2).equals("0000")) {
