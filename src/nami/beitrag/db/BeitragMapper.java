@@ -69,6 +69,26 @@ public interface BeitragMapper {
     void setDeleted(int mitgliedsId);
 
     /**
+     * Findet alle Mitglieder in der lokalen Datenbank, die den Suchkriterien
+     * entsprechen.
+     * 
+     * @param mitgliedsnummer
+     *            gesuchte Mitgliedsnummer; <tt>null</tt> bzw. der leere String
+     *            werden ignoriert; ansonsten wird exakt verglichen
+     *            (SQL-Operator =)
+     * @param vorname
+     *            gesuchter Vorname; <tt>null</tt> bzw. der leere String werden
+     *            ignoriert; ansonsten wird mittels LIKE verglichen
+     * @param nachname
+     *            gesuchter Nachname; <tt>null</tt> bzw. der leere String werden
+     *            ignoriert; ansonsten wird mittels LIKE verglichen
+     * @return Mitglieder, die den Kriterien entsprechen
+     */
+    Collection<BeitragMitglied> findMitglieder(
+            @Param("mitgliedsnummer") String mitgliedsnummer,
+            @Param("vorname") String vorname, @Param("nachname") String nachname);
+
+    /**
      * Liefert einen Buchungs-Datensatz aus der Datenbank.
      * 
      * @param namiBuchungId
@@ -112,6 +132,30 @@ public interface BeitragMapper {
     void insertBuchung(BeitragBuchung buchung);
 
     /**
+     * Liefert für jedes Halbjahr die Summe aller Buchungen für ein bestimmtes
+     * Mitglied.
+     * 
+     * @param mitgliedId
+     *            Mitglied, für das die Buchungen abgefragt werden
+     * @return für jedes Halbjahr die Summe der Buchungsbeträge und Anzahl der
+     *         Buchungen
+     */
+    Collection<ZeitraumSaldo> getSaldoPerHalbjahr(int mitgliedId);
+
+    /**
+     * Liefert alle Buchungen, die den Kriterien entsprechen.
+     * 
+     * @param halbjahr
+     *            Halbjahr, in dem die Buchung liegt
+     * @param mitgliedId
+     *            Mitglied, dem die Buchung zugeordnet ist
+     * @return Buchungen des Mitglieds im Halbjahr
+     */
+    Collection<BeitragBuchung> getBuchungenByHalbjahr(
+            @Param("halbjahr") Halbjahr halbjahr,
+            @Param("mitgliedId") int mitgliedId);
+
+    /**
      * Holt einen Zeitraum aus der Datenbank.
      * 
      * @param halbjahr
@@ -129,23 +173,4 @@ public interface BeitragMapper {
      */
     void insertZeitraum(BeitragZeitraum zeitraum);
 
-    /**
-     * Findet alle Mitglieder in der lokalen Datenbank, die den Suchkriterien
-     * entsprechen.
-     * 
-     * @param mitgliedsnummer
-     *            gesuchte Mitgliedsnummer; <tt>null</tt> bzw. der leere String
-     *            werden ignoriert; ansonsten wird exakt verglichen
-     *            (SQL-Operator =)
-     * @param vorname
-     *            gesuchter Vorname; <tt>null</tt> bzw. der leere String werden
-     *            ignoriert; ansonsten wird mittels LIKE verglichen
-     * @param nachname
-     *            gesuchter Nachname; <tt>null</tt> bzw. der leere String werden
-     *            ignoriert; ansonsten wird mittels LIKE verglichen
-     * @return Mitglieder, die den Kriterien entsprechen
-     */
-    Collection<BeitragMitglied> findMitglieder(
-            @Param("mitgliedsnummer") String mitgliedsnummer,
-            @Param("vorname") String vorname, @Param("nachname") String nachname);
 }

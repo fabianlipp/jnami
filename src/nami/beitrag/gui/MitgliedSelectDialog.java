@@ -64,7 +64,8 @@ public class MitgliedSelectDialog extends JDialog {
      * @param sqlSessionFactory
      *            Zugriff auf die Datenbank
      */
-    public MitgliedSelectDialog(Window parent, SqlSessionFactory sqlSessionFactory) {
+    public MitgliedSelectDialog(Window parent,
+            SqlSessionFactory sqlSessionFactory) {
         super(parent, DEFAULT_MODALITY_TYPE);
         setTitle("Mitglied auswählen");
         this.sqlSessionFactory = sqlSessionFactory;
@@ -121,8 +122,8 @@ public class MitgliedSelectDialog extends JDialog {
                         WindowEvent.WINDOW_CLOSING));
             }
         };
-        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "jnami.ESC");
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "jnami.ESC");
         rootPane.getActionMap().put("jnami.ESC", escListener);
 
         pack();
@@ -164,6 +165,9 @@ public class MitgliedSelectDialog extends JDialog {
 
                 if (results.size() == 1) {
                     chooseMglId(results.iterator().next().getMitgliedId());
+                } else if (results.size() == 0) {
+                    tablePane.setViewportView(new JLabel(
+                            "Keine Mitglieder mit diesen Kriterien gefunden!"));
                 } else {
                     tableModel = new MitgliedListTableModel(results);
                     table = new JTable(tableModel);

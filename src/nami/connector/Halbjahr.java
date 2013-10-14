@@ -3,6 +3,7 @@ package nami.connector;
 import java.util.Calendar;
 import java.util.Date;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
@@ -20,6 +21,7 @@ import lombok.Getter;
  * @author Fabian Lipp
  * 
  */
+@EqualsAndHashCode
 public class Halbjahr implements Comparable<Halbjahr> {
     @Getter
     private int halbjahr;

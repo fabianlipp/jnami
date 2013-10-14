@@ -176,6 +176,28 @@
 			#{kommentar})
 	</insert>
 
+	<resultMap id="zeitraumSaldoResult" type="ZeitraumSaldo" autoMapping="true">
+		<association property="halbjahr" resultMap="halbjahrResult" />
+	</resultMap>
+	<select id="getSaldoPerHalbjahr" parameterType="int" resultMap="zeitraumSaldoResult">
+		SELECT halbjahr,
+			jahr,
+			COUNT(buchungId) AS anzahlBuchungen,
+			SUM(betrag) AS saldo
+		FROM beitragBuchung
+		WHERE mitgliedId = #{mitgliedId}
+			AND vorausberechnung = false
+		GROUP BY jahr, halbjahr
+	</select>
+
+	<select id="getBuchungenByHalbjahr" resultMap="buchungResult">
+		SELECT *
+		FROM beitragBuchung
+		WHERE mitgliedId = #{mitgliedId}
+			AND halbjahr = #{halbjahr.halbjahr}
+			AND jahr = #{halbjahr.jahr}
+	</select>
+
 	<!-- *** Zeiträume *** -->
 	<resultMap id="zeitraumResult" type="BeitragZeitraum" autoMapping="true">
 		<association property="halbjahr" resultMap="halbjahrResult" />

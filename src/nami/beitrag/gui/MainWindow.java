@@ -120,6 +120,19 @@ public class MainWindow extends JFrame {
         JLabel label5 = new JLabel("def");
         buttons.add(label5, "grow,wrap");
 
+        JButton button6 = new JButton("Beitragskonto");
+        buttons.add(button6, "grow");
+        button6.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BeitragskontoWindow beitragskontoWin = new BeitragskontoWindow(
+                        namiBeitrag.getSessionFactory());
+                beitragskontoWin.setVisible(true);
+            }
+        });
+        JLabel label6 = new JLabel("def");
+        buttons.add(label6, "grow,wrap");
+
         JButton buttonClose = new JButton("Beenden");
         buttonClose.addActionListener(new ActionListener() {
             @Override

@@ -9,11 +9,13 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragMitglied;
@@ -23,12 +25,12 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 
 /**
- * Stellt ein Panel bereit, mit dem ein Mitglied ausgewählt werden kann.
+ * Stellt ein Element bereit, mit dem ein Mitglied ausgewählt werden kann.
  * 
  * @author Fabian Lipp
  * 
  */
-public class MitgliedSelectPanel extends JPanel {
+public class MitgliedSelectComponent extends JComponent {
     private static final long serialVersionUID = 969876938697755251L;
 
     private JTextField txtMitgliedid;
@@ -55,6 +57,17 @@ public class MitgliedSelectPanel extends JPanel {
     }
 
     /**
+     * Überprüft die eingegebene ID beim Drücken der Eingabetaste im Textfeld
+     * und füllt die Labels entsprechend.
+     */
+    private class MitgliedIdEnterListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            searchMitgliedId();
+        }
+    }
+
+    /**
      * Ruft den Suchdialog beim Klick auf den Button auf und trägt die
      * zurückgegebene Mitglieds-ID in das Textfeld ein.
      */
@@ -62,7 +75,7 @@ public class MitgliedSelectPanel extends JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             Window win = SwingUtilities
-                    .getWindowAncestor(MitgliedSelectPanel.this);
+                    .getWindowAncestor(MitgliedSelectComponent.this);
             MitgliedSelectDialog selectDiag = new MitgliedSelectDialog(win,
                     sessionFactory);
             selectDiag.setVisible(true);
@@ -80,7 +93,7 @@ public class MitgliedSelectPanel extends JPanel {
      * @param sessionFactory
      *            Verbindung zur Datenbank
      */
-    public MitgliedSelectPanel(SqlSessionFactory sessionFactory) {
+    public MitgliedSelectComponent(SqlSessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
         createPanel();
     }
@@ -92,6 +105,7 @@ public class MitgliedSelectPanel extends JPanel {
         txtMitgliedid.setText("");
         txtMitgliedid.setColumns(10);
         txtMitgliedid.addFocusListener(new MitgliedIdFocusListener());
+        txtMitgliedid.addActionListener(new MitgliedIdEnterListener());
         add(txtMitgliedid, "flowx,alignx left");
 
         JButton btnSearchbutton = new JButton("...");
@@ -125,6 +139,10 @@ public class MitgliedSelectPanel extends JPanel {
             lblMitgliedsnummer.setText("");
             lblVorname.setText("");
             lblNachname.setText("");
+            if (validatedMitgliedId != -1) {
+                validatedMitgliedId = -1;
+                fireStateChanged();
+            }
             markError(false);
             return;
         }
@@ -146,7 +164,10 @@ public class MitgliedSelectPanel extends JPanel {
                         .getMitgliedsnummer()));
                 lblVorname.setText(mgl.getVorname());
                 lblNachname.setText(mgl.getNachname());
-                validatedMitgliedId = mitgliedId;
+                if (validatedMitgliedId != mitgliedId) {
+                    validatedMitgliedId = mitgliedId;
+                    fireStateChanged();
+                }
                 markError(false);
             } else {
                 markError(true);
@@ -169,7 +190,10 @@ public class MitgliedSelectPanel extends JPanel {
             lblVorname.setText("");
             lblNachname.setText("");
             txtMitgliedid.setBackground(Color.RED);
-            validatedMitgliedId = -1;
+            if (validatedMitgliedId != -1) {
+                validatedMitgliedId = -1;
+                fireStateChanged();
+            }
         } else {
             txtMitgliedid.setBackground(UIManager
                     .getColor("TextField.background"));
@@ -186,5 +210,72 @@ public class MitgliedSelectPanel extends JPanel {
      */
     public int getMitgliedId() {
         return validatedMitgliedId;
+    }
+
+    /*
+     * Behandlung von ChangeListener/ChangeEvent von JSlider (OpenJDK) kopiert
+     * und modifiziert
+     */
+    /**
+     * Only one <code>ChangeEvent</code> is needed per instance since the
+     * event's only (read-only) state is the source property. The source of
+     * events generated here is always "this". The event is lazily created the
+     * first time that an event notification is fired.
+     * 
+     * @see #fireStateChanged
+     */
+    private transient ChangeEvent changeEvent = null;
+
+    /**
+     * Fügt einen <tt>ChangeListener</tt> hinzu.
+     * 
+     * @param l
+     *            der <tt>ChangeListener</tt>, der hinzugefügt werden soll
+     * @see #fireStateChanged
+     * @see #removeChangeListener
+     */
+    public void addChangeListener(ChangeListener l) {
+        listenerList.add(ChangeListener.class, l);
+    }
+
+    /**
+     * Entfernt einen <tt>ChangeListener</tt>.
+     * 
+     * @param l
+     *            der <tt>ChangeListener</tt>, der entfernt werden soll
+     * @see #fireStateChanged
+     * @see #addChangeListener
+     */
+    public void removeChangeListener(ChangeListener l) {
+        listenerList.remove(ChangeListener.class, l);
+    }
+
+    /**
+     * Liefert alle bei diesem Objekt registrierten <tt>ChangeListener</tt>.
+     * 
+     * @return alle registrierten <tt>ChangeListener</tt>; ein leeres Array,
+     *         falls keine registriert sind
+     * @since 1.4
+     */
+    public ChangeListener[] getChangeListeners() {
+        return listenerList.getListeners(ChangeListener.class);
+    }
+
+    /**
+     * Sendet ein <tt>ChangeEvent</tt> an alle registrierten
+     * <tt>ChangeListener</tt>.
+     * 
+     * @see #addChangeListener
+     */
+    protected void fireStateChanged() {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ChangeListener.class) {
+                if (changeEvent == null) {
+                    changeEvent = new ChangeEvent(this);
+                }
+                ((ChangeListener) listeners[i + 1]).stateChanged(changeEvent);
+            }
+        }
     }
 }
