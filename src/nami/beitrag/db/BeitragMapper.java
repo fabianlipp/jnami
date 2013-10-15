@@ -91,6 +91,16 @@ public interface BeitragMapper {
     /**
      * Liefert einen Buchungs-Datensatz aus der Datenbank.
      * 
+     * @param buchungId
+     *            ID der Buchung in der lokalen Datenbank
+     * @return Datensatz der Buchung; <tt>null</tt>, falls keine Buchung mit der
+     *         ID existiert
+     */
+    BeitragBuchung getBuchungById(int buchungId);
+
+    /**
+     * Liefert einen Buchungs-Datensatz aus der Datenbank.
+     * 
      * @param namiBuchungId
      *            ID der Buchung in NaMi
      * @return Datensatz der Buchung; <tt>null</tt>, falls keine Buchung mit der

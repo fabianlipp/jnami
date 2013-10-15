@@ -14,6 +14,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import nami.beitrag.NamiBeitrag;
+import nami.beitrag.db.BeitragBuchung;
+import nami.beitrag.db.BeitragMapper;
 import nami.connector.exception.NamiApiException;
 import net.miginfocom.swing.MigLayout;
 
@@ -36,6 +38,9 @@ public class MainWindow extends JFrame {
      */
     public MainWindow(final NamiBeitrag namiBeitrag) {
         setTitle("NamiBeitrag");
+
+        final BeitragMapper mapper = namiBeitrag.getSessionFactory()
+                .openSession().getMapper(BeitragMapper.class);
 
         JPanel buttons = new JPanel();
         JPanel control = new JPanel();
@@ -132,6 +137,33 @@ public class MainWindow extends JFrame {
         });
         JLabel label6 = new JLabel("def");
         buttons.add(label6, "grow,wrap");
+
+        JButton button7 = new JButton("Buchung (ID 11) anzeigen");
+        buttons.add(button7, "grow");
+        button7.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BeitragBuchung buchung = mapper.getBuchungById(11);
+                BuchungDialog diag = new BuchungDialog(namiBeitrag
+                        .getSessionFactory(), buchung);
+                diag.setVisible(true);
+            }
+        });
+        JLabel label7 = new JLabel("def");
+        buttons.add(label7, "grow,wrap");
+
+        JButton button8 = new JButton("Neue Buchung");
+        buttons.add(button8, "grow");
+        button8.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BuchungDialog diag = new BuchungDialog(namiBeitrag
+                        .getSessionFactory());
+                diag.setVisible(true);
+            }
+        });
+        JLabel label8 = new JLabel("def");
+        buttons.add(label8, "grow,wrap");
 
         JButton buttonClose = new JButton("Beenden");
         buttonClose.addActionListener(new ActionListener() {

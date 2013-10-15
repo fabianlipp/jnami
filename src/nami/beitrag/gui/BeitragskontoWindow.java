@@ -65,6 +65,7 @@ public class BeitragskontoWindow extends JFrame {
     private HalbjahrComponent halbjahrSelect;
     private JScrollPane detailsTablePane;
     private JTable detailsTable;
+    private BuchungListTableModel detailsTableModel;
     // aktuell im Details-Tab angezeigte Daten
     private Halbjahr detailsShownHalbjahr;
     private int detailsShownId;
@@ -99,7 +100,9 @@ public class BeitragskontoWindow extends JFrame {
         // verhindert, dass die Spaltenbreiten beim Austausch des Models
         // zurückgesetzt werden
         overviewTable.setAutoCreateColumnsFromModel(false);
+        overviewTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         overviewTable.addMouseListener(new OverviewTableClickListener());
+        overviewTable.addKeyListener(new OverviewTableKeyListener());
         overviewTablePane = new JScrollPane();
         overviewTablePane.setViewportView(overviewTable);
 
@@ -117,6 +120,9 @@ public class BeitragskontoWindow extends JFrame {
 
         detailsTable = new JTable(new BuchungListTableModel());
         detailsTable.setAutoCreateColumnsFromModel(false);
+        detailsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        detailsTable.addMouseListener(new BuchungListClickListener());
+        detailsTable.addKeyListener(new BuchungListKeyListener());
         detailsTablePane = new JScrollPane();
         detailsTablePane.setViewportView(detailsTable);
         detailsPanel.add(detailsTablePane, "cell 0 1,grow");
@@ -180,8 +186,6 @@ public class BeitragskontoWindow extends JFrame {
             if (results.size() > 0) {
                 overviewTable.setRowSelectionInterval(0, 0);
             }
-            overviewTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            overviewTable.addKeyListener(new OverviewTableKeyListener());
 
             // use TAB to give focus to next component instead of next
             // table cell
@@ -325,7 +329,8 @@ public class BeitragskontoWindow extends JFrame {
         detailsShownHalbjahr = halbjahr;
 
         if (mitgliedId == -1) {
-            detailsTable.setModel(new BuchungListTableModel());
+            detailsTableModel = new BuchungListTableModel();
+            detailsTable.setModel(detailsTableModel);
             return;
         }
 
@@ -336,15 +341,11 @@ public class BeitragskontoWindow extends JFrame {
             Collection<BeitragBuchung> results = mapper.getBuchungenByHalbjahr(
                     halbjahr, mitgliedId);
 
-            detailsTable.setModel(new BuchungListTableModel(results));
+            detailsTableModel = new BuchungListTableModel(results);
+            detailsTable.setModel(detailsTableModel);
             if (results.size() > 0) {
                 detailsTable.setRowSelectionInterval(0, 0);
             }
-            detailsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            /*
-             * table.addMouseListener(new TableClickListener());
-             * table.addKeyListener(new TableKeyListener());
-             */
 
             // use TAB to give focus to next component instead of next
             // table cell
@@ -434,15 +435,61 @@ public class BeitragskontoWindow extends JFrame {
         }
 
         /**
-         * Liefert die ID der Buchung in einer bestimmten Zeile.
+         * Liefert die Buchung in einer bestimmten Zeile.
          * 
          * @param rowIndex
          *            Zeile der Tabelle
-         * @return Buchung-ID in dieser Zeile
+         * @return Buchung in dieser Zeile
          */
-        public int getIdAt(int rowIndex) {
-            return buchungen.get(rowIndex).getBuchungId();
+        public BeitragBuchung getBuchungAt(int rowIndex) {
+            return buchungen.get(rowIndex);
         }
 
+    }
+
+    /**
+     * Zeigt alle Daten einer Buchung an, wenn sie durch einen Doppelklick in
+     * der Tabelle ausgewählt wird.
+     */
+    private class BuchungListClickListener extends MouseAdapter {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (detailsTable != e.getComponent()) {
+                throw new IllegalArgumentException(
+                        "Used Listener on unexpected object");
+            }
+
+            if (e.getClickCount() == 2) {
+                int row = detailsTable.rowAtPoint(e.getPoint());
+                BeitragBuchung buchung = detailsTableModel.getBuchungAt(row);
+                BuchungDialog diag = new BuchungDialog(sessionFactory, buchung);
+                diag.setVisible(true);
+            }
+        }
+    }
+
+    /**
+     * Zeigt alle Daten einer Buchung an, die durch die Enter-Taste in der
+     * Tabelle ausgewählt wird.
+     */
+    private class BuchungListKeyListener extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (detailsTable != e.getComponent()) {
+                throw new IllegalArgumentException(
+                        "Used Listener on unexpected object");
+            }
+
+            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                int row = detailsTable.getSelectedRow();
+                if (row >= 0) {
+                    BeitragBuchung buchung = detailsTableModel
+                            .getBuchungAt(row);
+                    BuchungDialog diag = new BuchungDialog(sessionFactory,
+                            buchung);
+                    diag.setVisible(true);
+                }
+            }
+        }
     }
 }

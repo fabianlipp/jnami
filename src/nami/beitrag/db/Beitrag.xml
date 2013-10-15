@@ -124,8 +124,17 @@
 
 	<!-- *** Buchungen *** -->
 	<resultMap id="buchungResult" type="BeitragBuchung" autoMapping="true">
+		<!-- ID ist hier notwendig, da sonst Buchungen mit gleichem Halbjahr als
+		     Duplikat aussortiert werden -->
+		<id property="buchungId" column="buchungId" />
 		<association property="halbjahr" resultMap="halbjahrResult" />
 	</resultMap>
+
+	<select id="getBuchungById" parameterType="int" resultMap="buchungResult">
+		SELECT *
+		FROM beitragBuchung
+		WHERE buchungId = #{id}
+	</select>
 
 	<select id="getBuchungByNamiId" parameterType="int" resultType="BeitragBuchung"
 		resultMap="buchungResult">
@@ -190,7 +199,7 @@
 		GROUP BY jahr, halbjahr
 	</select>
 
-	<select id="getBuchungenByHalbjahr" resultMap="buchungResult">
+	<select id="getBuchungenByHalbjahr" resultType="BeitragBuchung" resultMap="buchungResult">
 		SELECT *
 		FROM beitragBuchung
 		WHERE mitgliedId = #{mitgliedId}

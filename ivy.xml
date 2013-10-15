@@ -19,6 +19,7 @@
 		<!--<dependency org="org.projectlombok" name="lombok" rev="0.12.0" conf="build" />-->
 		<dependency org="org.projectlombok" name="lombok" rev="0.12.0" />
 		<dependency org="com.miglayout" name="miglayout" rev="3.7.4"/>
+		<dependency org="com.toedter" name="jcalendar" rev="1.4"/>
 
 		<exclude org="maven-plugins" module="maven-cobertura-plugin"/>
 		<exclude org="maven-plugins" module="maven-findbugs-plugin"/>

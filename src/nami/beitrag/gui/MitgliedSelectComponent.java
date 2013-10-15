@@ -34,6 +34,7 @@ public class MitgliedSelectComponent extends JComponent {
     private static final long serialVersionUID = 969876938697755251L;
 
     private JTextField txtMitgliedid;
+    private JButton btnSearchbutton;
     private JLabel lblMitgliedsnummer;
     private JLabel lblVorname;
     private JLabel lblNachname;
@@ -99,7 +100,7 @@ public class MitgliedSelectComponent extends JComponent {
     }
 
     private void createPanel() {
-        setLayout(new MigLayout("", "[grow]", "[shrink]"));
+        setLayout(new MigLayout("insets 0", "[grow][][][][]", "[shrink]"));
 
         txtMitgliedid = new JTextField();
         txtMitgliedid.setText("");
@@ -108,7 +109,7 @@ public class MitgliedSelectComponent extends JComponent {
         txtMitgliedid.addActionListener(new MitgliedIdEnterListener());
         add(txtMitgliedid, "flowx,alignx left");
 
-        JButton btnSearchbutton = new JButton("...");
+        btnSearchbutton = new JButton("...");
         btnSearchbutton.setMargin(new Insets(0, 1, 0, 1));
         btnSearchbutton.addActionListener(new MitgliedSearchListener());
         add(btnSearchbutton);
@@ -212,6 +213,25 @@ public class MitgliedSelectComponent extends JComponent {
         return validatedMitgliedId;
     }
 
+    /**
+     * Setzt die MitgliedID, die in diesem Panel eingetragen ist. Wenn es sich
+     * um eine gültige ID handelt, werden die Labels mit dem Namen des Mitglieds
+     * gefüllt.
+     * 
+     * @param mitgliedId
+     *            die MitgliedID; wenn hier <tt>-1</tt> übergeben wird, wird der
+     *            Inhalt des Textfeldes gelöscht
+     */
+    public void setMitgliedId(int mitgliedId) {
+        if (mitgliedId == -1) {
+            txtMitgliedid.setText("");
+            searchMitgliedId();
+        } else {
+            txtMitgliedid.setText(Integer.toString(mitgliedId));
+            searchMitgliedId();
+        }
+    }
+
     /*
      * Behandlung von ChangeListener/ChangeEvent von JSlider (OpenJDK) kopiert
      * und modifiziert
@@ -277,5 +297,18 @@ public class MitgliedSelectComponent extends JComponent {
                 ((ChangeListener) listeners[i + 1]).stateChanged(changeEvent);
             }
         }
+    }
+
+    /**
+     * Aktiviert oder deaktiviert die Komponente.
+     * 
+     * @param b
+     *            <tt>true</tt> aktiviert die Komponente, <tt>false</tt>
+     *            deaktiviert sie
+     */
+    public void setEnabled(boolean b) {
+        super.setEnabled(b);
+        txtMitgliedid.setEnabled(b);
+        btnSearchbutton.setEnabled(b);
     }
 }
