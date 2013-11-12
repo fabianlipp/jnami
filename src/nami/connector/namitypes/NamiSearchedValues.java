@@ -159,6 +159,12 @@ public class NamiSearchedValues {
             res.mitAllenTaetigkeiten = true;
         }
 
+        // Checkbox für aktive Tätigkeiten
+        el = namiSearchEl.getChild("aktiveTaetigkeiten");
+        if (el != null) {
+            res.mitAllenTaetigkeiten = true;
+        }
+
         // Untergliederung
         el = namiSearchEl.getChild("untergliederung");
         if (el != null) {

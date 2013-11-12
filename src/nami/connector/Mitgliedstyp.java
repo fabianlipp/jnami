@@ -23,7 +23,7 @@ public enum Mitgliedstyp {
     /**
      * Schnuppermitgliedschaft.
      */
-    SCHNUPPERMITGLIED;
+    SCHNUPPER_MITGLIED;
 
     /**
      * Setzt einen String in den entsprechenden Mitgliedstyp um.
@@ -44,12 +44,13 @@ public enum Mitgliedstyp {
             return NICHT_MITGLIED;
         case "Schnuppermitglied":
         case "SCHNUPPERMITGLIED":
-            return SCHNUPPERMITGLIED;
+        case "SCHNUPPER_MITGLIED":
+            return SCHNUPPER_MITGLIED;
         case "":
             return null;
         default:
             throw new IllegalArgumentException(
-                    "Unexpected String for Mitgliedstyp");
+                    "Unexpected String for Mitgliedstyp: " + str);
         }
     }
 }

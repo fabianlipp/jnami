@@ -37,7 +37,7 @@ public enum Geschlecht {
             return null;
         default:
             throw new IllegalArgumentException(
-                    "Unexpected String for Geschlecht");
+                    "Unexpected String for Geschlecht: " + str);
         }
     }
 }

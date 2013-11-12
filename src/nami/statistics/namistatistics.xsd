@@ -44,6 +44,9 @@
 			<element name="taetigkeit" type="tns:idAttributeT" maxOccurs="1"
 				minOccurs="0">
 			</element>
+			<element name="aktiveTaetigkeiten" type="tns:emptyT"
+				maxOccurs="1" minOccurs="0">
+			</element>
 			<element name="untergliederung" type="tns:idAttributeT"
 				maxOccurs="1" minOccurs="0">
 			</element>
@@ -78,5 +81,11 @@
 				</restriction>
 			</simpleType>
 		</attribute>
+	</complexType>
+	
+	<complexType name="emptyT">
+		<complexContent>
+			<restriction base="anyType"/>
+		</complexContent>
 	</complexType>
 </schema>
