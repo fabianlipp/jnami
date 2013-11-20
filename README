@@ -4,7 +4,6 @@ Various tools to work with NaMi (membership management of DPSG) from Java. Furth
 
 Das Ganze hat bisher eher dazu gedient mich mit der API vertraut zu machen. Die Tools sind also noch nicht für den produktiven Einsatz gedacht.
 
-Der Code ist noch nicht gut dokumentiert, das werde ich demnächst noch nachholen und dabei möglicherweise auch noch einiges umstrukturieren.
 
 
 
@@ -12,20 +11,37 @@ Begonnene Tools:
 ----------------
 - Nami2Mailman: Sucht Personen nach Gruppenzugehörigkeit und generiert daruas Mailverteiler (als Tetdateien) die dann beispielsweise mit GNU Mailman synchronisiert werden können
 - NamiStatistics: Zählt die Mitglieder (aufgeteilt nach Gruppierung und Stufenzugehörigkeit) in NaMi und speichert die Ergebnisse in eine SQL-Datenbank. Soll dann noch um Funktionen erweitert werden, um die Daten aus dieser Datenbank auszuwerten (um beispielsweise eine Statistik für den Stamm, den ganzen Bezirk usw. zu generieren). Insgesamt soll das Tool mindestens die Statistik-Funktion aus NaMi 1 ersetzen, die es in NaMi 2 nicht mehr gibt (ein Bug-Report diesbezüglich blieb unbeantwortet).
+Das Ganze ist mittels XML konfigurierbar und im Stamm, Bezirk und Diözesanverband schon genutzt.
+- Beitragstool: soll folgendes können: Daten aus NaMi holen, Lastschrift-Aufträge und Rechnungen/Mahnungen generieren und Zahlungseingänge überwachen
+- NaMiCli: Eine Kommandozeilen-Interface, mit dem einige NaMi-Funktionen genutzt werden können (z. B. Personen gesucht werden). Außerdem kann auch hieraus das Statistik-Tool genutzt werden.
 
 
 
 Bemerkungen zum aktuellen Stand:
 --------------------------------
-- Bisher wurde das Ganze nur auf dem NaMi-Test-Server erprobt. Mittlerweile ist der Live-Server anscheinend auf einem neueren Stand als der Test-Server, sodass möglicherweise einige Anpassungen nötig sind.
-- Der Code stammt großteils aus Februar/März 2013. Möglicherweise funktioniert durch die Änderungen in NaMi in den letzten Monaten nicht mehr alles (insbesondere die Suchfunktion wurde verbessert).
-- Mit der verbesserten Suchfunktion kann man möglicherweise an einigen Stellen API-Requests einsparen und so die Belastung für den Server reduzieren.
-Zu der Zeit, als ich den Code geschrieben habe, musste man noch sehr viele Anfragen an den Server schicken, um die Daten zu erhalten. Das ist zumindest mit der erweiterten Suchfunktion etwas besser geworden, in meinen Augen aber noch nicht optimal (habe dazu auch schon einen Bugreport geschrieben, auf den aber niemand reagiert hat).
+- Die Software ist mittlerweile an den Produktiv-Server von NaMi angepasst. Da der Test-Server nicht mehr auf dem aktuellen Software-Stand ist, dürfte die Zusammenarbeit damit nicht mehr richtig funktionieren.
 
 
 
-Benutzte Java-Libraries:
-------------------------
+Kompilierung
+------------
+- Man benötigt dafür ant (http://ant.apache.org/) und Ivy (http://ant.apache.org/ivy/).
+- Dann sollte ein einfacher Aufruf "ant" im Quelltext-Verzeichnis (also dem Verzeichnis, wo die build.xml liegt) reichen, um das Ganze zu kompilieren.
+- Die Datei src/nami/connector/credentials/NamiWalletCredentials.java macht vermutlich Probleme, weil man dafür noch eine Library und zugehörige Abhängigkeiten (inkl. JNI) benötigt (https://evolvis.org/projects/libwallet/). Man kann diese Quelltext-Datei aber einfach löschen, wenn man die Passwörter nicht in KWallet speichern möchte.
+- Der MySQL Connector/J muss zusätzlich heruntergeladen werden, wenn auf MySQL-Datenbanken zugegriffen werden soll.
+
+
+
+Ausführung
+----------
+NaMiCli lässt sich -- nachdem Ant erfolgreich war -- folgendermaßen starten (Bash-Syntax):
+CLASSPATH=$(< namicli.classpath)  # Diese Datei wird von Ant generiert
+java -cp $CLASSPATH nami.cli.NamiCli
+
+
+
+Benutzte Java-Libraries (unvollständig, muss aktualisiert werden):
+------------------------------------------------------------------
 - Apache HttpComponents
 http://hc.apache.org/
 
