@@ -205,8 +205,6 @@ public class RechnungWindow extends JFrame {
             session.close();
 
             treeTableModel.reloadPersons(personsDb);
-
-            System.out.println("test");
         }
     }
 
@@ -240,17 +238,17 @@ public class RechnungWindow extends JFrame {
                 return;
             }
 
-            LinkedHashMap<Integer, Collection<Integer>> rechnungen;
+            LinkedHashMap<Integer, Collection<BeitragBuchung>> rechnungen;
             rechnungen = new LinkedHashMap<>();
             for (PersonNode pNode : treeTableModel.root.persons) {
-                Collection<Integer> buchungen = new LinkedList<>();
+                Collection<BeitragBuchung> buchungen = new LinkedList<>();
                 if (pNode.checked) {
                     for (BuchungNode bNode : pNode.buchungen) {
                         if (bNode.checked) {
-                            buchungen.add(bNode.buchungId);
+                            buchungen.add(bNode.buchung);
                         }
                     }
-                    rechnungen.put(pNode.mitgliedId, buchungen);
+                    rechnungen.put(pNode.person.getMitgliedId(), buchungen);
                 }
             }
 
@@ -310,8 +308,7 @@ public class RechnungWindow extends JFrame {
                     Object lastComp = path.getLastPathComponent();
 
                     // Erfüllt, wenn entsprechende Person deaktiviert ist
-                    PersonNode pNode = (PersonNode) path
-                            .getPathComponent(1);
+                    PersonNode pNode = (PersonNode) path.getPathComponent(1);
                     if (!pNode.checked) {
                         return true;
                     }
@@ -345,25 +342,6 @@ public class RechnungWindow extends JFrame {
         }
     }
 
-    // private class MyCheckboxCellRenderer extends DefaultTableCellRenderer {
-    // @Override
-    // public Component getTableCellRendererComponent(JTable table,
-    // Object value, boolean isSelected, boolean hasFocus, int row,
-    // int column) {
-    // TreePath path = treeTable.getPathForRow(row);
-    // if (path.getLastPathComponent() instanceof RechnungBuchungNode) {
-    // JLabel comp = (JLabel) super.getTableCellRendererComponent(
-    // table, value, isSelected, hasFocus, row, column);
-    // comp.setText(null);
-    // return comp;
-    // }
-    //
-    // return treeTable.getDefaultRenderer(
-    // treeTable.getColumnClass(column))
-    // .getTableCellRendererComponent(table, value, isSelected,
-    // hasFocus, row, column);
-    // }
-    // }
     /**
      * Modifiziert den DefaultRenderer so, dass Steuerelemente disabled werden
      * (enabled=false), wenn die entsprechende Zelle nicht editable ist.
@@ -449,7 +427,9 @@ public class RechnungWindow extends JFrame {
 
         @Override
         public Class<?> getColumnClass(int column) {
-            if (column == CHECK_COLUMN_INDEX) {
+            if (column == KOMMENTAR_COLUMN_INDEX) {
+                return String.class;
+            } else if (column == CHECK_COLUMN_INDEX) {
                 return Boolean.class;
             }
             return super.getColumnClass(column);
@@ -457,6 +437,15 @@ public class RechnungWindow extends JFrame {
 
         @Override
         public boolean isCellEditable(Object node, int column) {
+            // Kommentar-Texte sind nur bearbeitbar, wenn die Buchung selbst und
+            // die zugehörige Person aktiviert sind
+            if (column == KOMMENTAR_COLUMN_INDEX && node instanceof BuchungNode) {
+                BuchungNode bNode = (BuchungNode) node;
+                if (bNode.checked && bNode.person.checked) {
+                    return true;
+                }
+            }
+
             // Die Buchungs-Checkboxen sind nicht bearbeitbar, wenn die
             // zugehörige Person deaktiviert ist
             if (column == CHECK_COLUMN_INDEX) {
@@ -498,15 +487,15 @@ public class RechnungWindow extends JFrame {
                 PersonNode rNode = (PersonNode) node;
                 switch (column) {
                 case ID_COLUMN_INDEX:
-                    return rNode.mitgliedsnummer;
+                    return rNode.person.getMitgliedsnummer();
                 case DATUM_COLUMN_INDEX:
-                    return rNode.nachname;
+                    return rNode.person.getNachname();
                 case TYP_COLUMN_INDEX:
-                    return rNode.vorname;
+                    return rNode.person.getVorname();
                 case KOMMENTAR_COLUMN_INDEX:
                     return "";
                 case BETRAG_COLUMN_INDEX:
-                    return rNode.saldo;
+                    return rNode.person.getSaldo();
                 case CHECK_COLUMN_INDEX:
                     return rNode.checked;
                 default:
@@ -517,15 +506,17 @@ public class RechnungWindow extends JFrame {
                 BuchungNode rNode = (BuchungNode) node;
                 switch (column) {
                 case ID_COLUMN_INDEX:
-                    return rNode.buchungId;
+                    return rNode.buchung.getBuchungId();
                 case DATUM_COLUMN_INDEX:
-                    return rNode.datum;
+                    DateFormat formatter = DateFormat
+                            .getDateInstance(DateFormat.MEDIUM);
+                    return formatter.format(rNode.buchung.getDatum());
                 case TYP_COLUMN_INDEX:
-                    return rNode.typ;
+                    return rNode.buchung.getTyp();
                 case KOMMENTAR_COLUMN_INDEX:
-                    return rNode.kommentar;
+                    return rNode.buchung.getKommentar();
                 case BETRAG_COLUMN_INDEX:
-                    return rNode.betrag;
+                    return rNode.buchung.getBetrag();
                 case CHECK_COLUMN_INDEX:
                     return rNode.checked;
                 default:
@@ -533,15 +524,17 @@ public class RechnungWindow extends JFrame {
                             + column);
                 }
             } else {
-                throw new IllegalArgumentException("Invalid class of object: "
-                        + node.getClass().getName());
+                return "";
             }
-
         }
 
         @Override
         public void setValueAt(Object value, Object node, int column) {
-            if (column == CHECK_COLUMN_INDEX
+            if (column == KOMMENTAR_COLUMN_INDEX && node instanceof BuchungNode) {
+                String stringVal = (String) value;
+                BuchungNode bNode = (BuchungNode) node;
+                bNode.buchung.setKommentar(stringVal);
+            } else if (column == CHECK_COLUMN_INDEX
                     && node instanceof PersonNode) {
                 Boolean boolVal = (Boolean) value;
                 PersonNode pNode = (PersonNode) node;
@@ -617,13 +610,7 @@ public class RechnungWindow extends JFrame {
             // Setzt die Personen in die entsprechenden Objekte für den Baum um
             persons = new ArrayList<>(personsDb.size());
             for (DataMitgliederForderungen person : personsDb) {
-                PersonNode n = new PersonNode();
-                n.mitgliedId = person.getMitgliedId();
-                n.mitgliedsnummer = person.getMitgliedsnummer();
-                n.vorname = person.getVorname();
-                n.nachname = person.getNachname();
-                n.saldo = person.getSaldo().toString();
-                persons.add(n);
+                persons.add(new PersonNode(person));
             }
         }
 
@@ -653,11 +640,7 @@ public class RechnungWindow extends JFrame {
      * Knoten mit Tiefe 1 (also direkt unterhalb der Wurzel).
      */
     private final class PersonNode extends Node {
-        private int mitgliedId;
-        private String mitgliedsnummer;
-        private String vorname;
-        private String nachname;
-        private String saldo;
+        private DataMitgliederForderungen person;
 
         // Gibt an, ob eine Rechnung für die Person erzeugt werden soll (kann in
         // der Tabelle bearbeitet werden)
@@ -667,42 +650,27 @@ public class RechnungWindow extends JFrame {
         // wenn der entsprechende Zweig im Baum aufgeklappt wird) aus der
         // Datenbank geladen.
         private ArrayList<BuchungNode> buchungen = null;
-        // Gibt an, ob das Buchungs-Array bereits aus der Datenbank befüllt
-        // wurde.
-        private boolean loadedBuchungen = false;
 
-        /**
-         * Lädt die Buchungen aus der Datenbank und speichert sie im Objekt.
-         */
-        private void loadBuchungen() {
+        private PersonNode(DataMitgliederForderungen person) {
+            this.person = person;
+
+            // Lade Buchungen aus Datenbank
             SqlSession session = sqlSessionFactory.openSession();
             BeitragMapper beitragMapper = session
                     .getMapper(BeitragMapper.class);
             Collection<BeitragBuchung> buchungenDb = beitragMapper
-                    .getBuchungenByHalbjahr(tableHalbjahr, mitgliedId);
+                    .getBuchungenByHalbjahr(tableHalbjahr,
+                            person.getMitgliedId());
             session.close();
 
             buchungen = new ArrayList<>(buchungenDb.size());
             for (BeitragBuchung buchung : buchungenDb) {
-                BuchungNode n = new BuchungNode(this);
-                n.buchungId = buchung.getBuchungId();
-                DateFormat formatter = DateFormat
-                        .getDateInstance(DateFormat.MEDIUM);
-                n.datum = formatter.format(buchung.getDatum());
-                n.typ = buchung.getTyp().toString();
-                n.kommentar = buchung.getKommentar();
-                n.betrag = buchung.getBetrag().toString();
-                buchungen.add(n);
+                buchungen.add(new BuchungNode(this, buchung));
             }
-
-            loadedBuchungen = true;
         }
 
         @Override
         public int getChildCount() {
-            if (!loadedBuchungen) {
-                loadBuchungen();
-            }
             return buchungen.size();
         }
 
@@ -715,17 +683,11 @@ public class RechnungWindow extends JFrame {
 
         @Override
         public int getIndexOfChild(Object child) {
-            if (!loadedBuchungen) {
-                loadBuchungen();
-            }
             return buchungen.indexOf(child);
         }
 
         @Override
         public Object getChild(int index) {
-            if (!loadedBuchungen) {
-                loadBuchungen();
-            }
             return buchungen.get(index);
         }
     }
@@ -735,20 +697,17 @@ public class RechnungWindow extends JFrame {
      * Knoten mit Tiefe 2 (also Abstand 2 von der Wurzel).
      */
     private final class BuchungNode extends Node {
+        private BeitragBuchung buchung;
+
         // Person, zu der die Buchung gehört (nötig, um im Baum auch aufwärts
         // laufen zu können)
         private PersonNode person;
 
-        private int buchungId;
-        private String datum;
-        private String typ;
-        private String kommentar;
-        private String betrag;
-
         private Boolean checked = true;
 
-        private BuchungNode(PersonNode person) {
+        private BuchungNode(PersonNode person, BeitragBuchung buchung) {
             this.person = person;
+            this.buchung = buchung;
         }
 
         @Override
@@ -766,13 +725,15 @@ public class RechnungWindow extends JFrame {
         @Override
         public int getIndexOfChild(Object child) {
             // Funktion sollte nie aufgerufen werden
-            throw new IllegalArgumentException("BuchungNode has no children");
+            throw new IllegalArgumentException(
+                    "BuchungNode never has any children");
         }
 
         @Override
         public Object getChild(int index) {
             // Funktion sollte nie aufgerufen werden
-            throw new IllegalArgumentException("BuchungNode has no children");
+            throw new IllegalArgumentException(
+                    "BuchungNode never has any children");
         }
     }
 

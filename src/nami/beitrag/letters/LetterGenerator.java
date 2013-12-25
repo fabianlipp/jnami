@@ -48,7 +48,7 @@ public class LetterGenerator {
         private Collection<BeitragBuchung> buchungen;
     }
 
-    public boolean generateRechnungen(LinkedHashMap<Integer, Collection<Integer>> rechnungen) {
+    public boolean generateRechnungen(LinkedHashMap<Integer, Collection<BeitragBuchung>> rechnungen) {
 
         Template template = getTemplate(TEMPLATE_RECHNUNGEN);
 
@@ -56,16 +56,11 @@ public class LetterGenerator {
         Collection<RechnungRecipient> recipients = new LinkedList<>();
         SqlSession session = sqlSessionFactory.openSession();
         BeitragMapper mapper = session.getMapper(BeitragMapper.class);
-        for (Entry<Integer, Collection<Integer>> rechnung : rechnungen.entrySet()) {
+        for (Entry<Integer, Collection<BeitragBuchung>> rechnung : rechnungen.entrySet()) {
             BeitragMitglied mgl = mapper.getMitglied(rechnung.getKey());
-            Collection<BeitragBuchung> buchungen = new LinkedList<>(); 
-            for (Integer buchungId : rechnung.getValue()) {
-                buchungen.add(mapper.getBuchungById(buchungId));
-            }
-
             RechnungRecipient rcpt = new RechnungRecipient();
             rcpt.mgl = mgl;
-            rcpt.buchungen = buchungen;
+            rcpt.buchungen = rechnung.getValue();
             recipients.add(rcpt);
         }
         session.close();
