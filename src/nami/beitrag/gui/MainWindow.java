@@ -5,6 +5,8 @@ import guitest.SelectTest;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -16,6 +18,10 @@ import javax.swing.JPanel;
 import nami.beitrag.NamiBeitrag;
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragMapper;
+import nami.beitrag.db.BeitragMitglied;
+import nami.beitrag.db.ReportsMapper;
+import nami.beitrag.reports.DataAbrechnungHalbjahr;
+import nami.beitrag.reports.PDFReportGenerator;
 import nami.connector.exception.NamiApiException;
 import net.miginfocom.swing.MigLayout;
 
@@ -41,6 +47,8 @@ public class MainWindow extends JFrame {
 
         final BeitragMapper mapper = namiBeitrag.getSessionFactory()
                 .openSession().getMapper(BeitragMapper.class);
+        final ReportsMapper reportMapper = namiBeitrag.getSessionFactory()
+                .openSession().getMapper(ReportsMapper.class);
 
         JPanel buttons = new JPanel();
         JPanel control = new JPanel();
@@ -164,6 +172,58 @@ public class MainWindow extends JFrame {
         });
         JLabel label8 = new JLabel("def");
         buttons.add(label8, "grow,wrap");
+
+        JButton button9 = new JButton("Mitglied bearbeiten");
+        buttons.add(button9, "grow");
+        button9.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MitgliedSelectDialog sel = new MitgliedSelectDialog(
+                        MainWindow.this, namiBeitrag.getSessionFactory());
+                sel.setVisible(true);
+
+                BeitragMitglied mgl = mapper.getMitglied(sel.getChosenMglId());
+                MitgliedDialog diag = new MitgliedDialog(namiBeitrag
+                        .getSessionFactory(), mgl);
+                diag.setVisible(true);
+            }
+        });
+        JLabel label9 = new JLabel("def");
+        buttons.add(label9, "grow,wrap");
+
+        JButton button10 = new JButton("Abrechnung für Halbjahr erzeugen");
+        buttons.add(button10, "grow");
+        button10.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HalbjahrSelectDialog halbjahrSel = new HalbjahrSelectDialog(
+                        MainWindow.this);
+                halbjahrSel.setVisible(true);
+
+                HashMap<String, Object> params = new HashMap<>();
+                params.put("HALBJAHR", halbjahrSel.getChosenHalbjahr()
+                        .toString());
+                Collection<DataAbrechnungHalbjahr> data = reportMapper
+                        .abrechnungHalbjahr(halbjahrSel.getChosenHalbjahr());
+
+                PDFReportGenerator.generateReport("abrechnung_halbjahr",
+                        params, data, "abrechnungHalbjahr.pdf");
+            }
+        });
+        JLabel label10 = new JLabel("def");
+        buttons.add(label10, "grow,wrap");
+        
+        JButton button11 = new JButton("Rechnungen");
+        buttons.add(button11, "grow");
+        button11.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                RechnungWindow win = new RechnungWindow(namiBeitrag.getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+        JLabel label11 = new JLabel("def");
+        buttons.add(label11, "grow,wrap");
 
         JButton buttonClose = new JButton("Beenden");
         buttonClose.addActionListener(new ActionListener() {
