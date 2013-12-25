@@ -77,6 +77,7 @@ public class BeitragskontoWindow extends JFrame {
      *            Verbindung zur Datenbank
      */
     public BeitragskontoWindow(SqlSessionFactory sqlSessionFactory) {
+        super("Beitragskonten anzeigen");
         this.sessionFactory = sqlSessionFactory;
         buildFrame();
     }

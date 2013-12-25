@@ -29,6 +29,7 @@ public class BeitragMitglied {
     private String strasse;
     private String plz;
     private String ort;
+    private String email;
     private int version;
     private Zahlungsart zahlungsart;
     private String mandatIBAN;
@@ -38,6 +39,7 @@ public class BeitragMitglied {
     private String mandatStrasse;
     private String mandatPlz;
     private String mandatOrt;
+    private String mandatEmail;
     private boolean deleted;
 
     /**
@@ -60,6 +62,7 @@ public class BeitragMitglied {
         strasse = namiMgl.getStrasse();
         plz = namiMgl.getPlz();
         ort = namiMgl.getOrt();
+        email = namiMgl.getEmail();
         version = namiMgl.getVersion();
     }
 

@@ -5,6 +5,10 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import nami.beitrag.gui.MainWindow;
 import nami.configuration.Configuration;
@@ -85,6 +89,16 @@ public final class NamiBeitragGui {
         beitragssaetze.put(Beitragsart.SOZIALERMAESSIGUNG, new BigDecimal(
                 "6.90"));
         beitragssaetze.put(Beitragsart.KEIN_BEITRAG, new BigDecimal("0.0"));
+
+        // TODO: Logger-Konfiguration
+        Handler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        Logger.getLogger("org.apache.ibatis").addHandler(handler);
+        Logger.getLogger("org.apache.ibatis").setLevel(Level.ALL);
+        Logger.getLogger("nami.beitrag.db.BeitragMapper")
+                .addHandler(handler);
+        Logger.getLogger("nami.beitrag.db.BeitragMapper")
+                .setLevel(Level.ALL);
 
         // Aufruf der GUI
         NamiBeitrag namiBeitrag = new NamiBeitrag(sqlSessionFactory,

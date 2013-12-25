@@ -148,6 +148,7 @@ public class NamiBeitragszahlung {
      * @throws IOException
      *             IOException
      */
+    // TODO: was passiert, wenn Mitglied nicht vorhanden?
     public static Collection<NamiBeitragszahlung> getBeitragszahlungen(
             NamiConnector con, int mitgliedId) throws NamiApiException,
             IOException {
