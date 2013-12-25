@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.RechnungenMapper">
+	<select id="mitgliederOffeneForderungen" parameterType="Halbjahr" resultType="DataMitgliederForderungen">
+		SELECT beitragBuchung.mitgliedId AS mitgliedId, mitgliedsnummer, nachname,
+			vorname, SUM(betrag) AS saldo
+		FROM beitragBuchung, beitragMitglied
+		WHERE beitragBuchung.mitgliedId = beitragMitglied.mitgliedId
+			AND beitragBuchung.halbjahr = #{halbjahr}
+			AND beitragBuchung.jahr = #{jahr}
+		GROUP BY beitragBuchung.mitgliedId
+		HAVING SUM(betrag) &lt;&gt; 0
+	</select>
+
+
+</mapper>

@@ -12,7 +12,6 @@
 		<dependency org="org.apache.commons" name="commons-lang3" rev="3.1"/>
 		<dependency org="jline" name="jline" rev="2.11"/>
 		<dependency org="net.sourceforge.htmlcleaner" name="htmlcleaner" rev="2.4"/>
-		<!--<dependency org="net.sf.jasperreports" name="jasperreports" rev="5.2.0" />-->
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.0"/>
 		<dependency org="org.mybatis" name="mybatis" rev="3.2.2" />
 		<dependency org="org.liquibase" name="liquibase-core" rev="3.0.3"/>
@@ -20,6 +19,17 @@
 		<dependency org="org.projectlombok" name="lombok" rev="0.12.0" />
 		<dependency org="com.miglayout" name="miglayout" rev="3.7.4"/>
 		<dependency org="com.toedter" name="jcalendar" rev="1.4"/>
+		<dependency org="com.jgoodies" name="jgoodies-validation" rev="2.4.2"/>
+		<dependency org="com.jgoodies" name="jgoodies-binding" rev="2.7.0"/>
+		<dependency org="no.tornado.databinding" name="databinding" rev="1.0"/>
+
+		<dependency org="net.sf.jasperreports" name="jasperreports" rev="5.5.0"/>
+		<dependency org="joda-time" name="joda-time" rev="2.3"/>
+
+		<dependency org="commons-collections" name="commons-collections" rev="3.2.1"/>
+		<dependency org="org.apache.velocity" name="velocity" rev="1.7"/>
+
+		<dependency org="org.swinglabs" name="swingx" rev="1.6.1"/>
 
 		<exclude org="maven-plugins" module="maven-cobertura-plugin"/>
 		<exclude org="maven-plugins" module="maven-findbugs-plugin"/>

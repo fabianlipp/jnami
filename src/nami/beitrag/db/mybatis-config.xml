@@ -13,6 +13,8 @@
 		<typeAlias type="nami.beitrag.db.BeitragBuchung" alias="BeitragBuchung" />
 		<typeAlias type="nami.beitrag.db.BeitragZeitraum" alias="BeitragZeitraum" />
 		<typeAlias type="nami.beitrag.db.ZeitraumSaldo" alias="ZeitraumSaldo" />
+		<typeAlias type="nami.beitrag.db.DataMitgliederForderungen" alias="DataMitgliederForderungen" />
+		<typeAlias type="nami.beitrag.reports.DataAbrechnungHalbjahr" alias="DataAbrechnungHalbjahr" />
 		<typeAlias type="nami.connector.Halbjahr" alias="Halbjahr" />
 	</typeAliases>
 
@@ -35,6 +37,8 @@
 
 	<mappers>
 		<mapper resource="nami/beitrag/db/Beitrag.xml" />
+		<mapper resource="nami/beitrag/db/Reports.xml" />
+		<mapper resource="nami/beitrag/db/Rechnungen.xml" />
 	</mappers>
 
 </configuration>

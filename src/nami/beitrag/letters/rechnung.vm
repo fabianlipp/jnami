@@ -1,0 +1,30 @@
+\documentclass[foldmarks=true]{dpsgbrief}
+
+\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\LoadLetterOption{stamm}
+\setkomavar{signature}{Fabian Lipp}
+\setkomavar{date}{18.12.2013}
+
+\newkomavar{neuefrist}
+\setkomavar{neuefrist}{03.01.2014}
+
+\renewcommand{\arraystretch}{1.5}
+
+\begin{document}
+
+#foreach( $recipient in $recipientList )
+	\begin{rechnung}{$recipient.mgl.vorname $recipient.mgl.nachname}{$recipient.mgl.strasse\\##
+	$recipient.mgl.plz $recipient.mgl.ort}{999,99}
+#foreach( $buchung in $recipient.buchungen )
+		\rechnungposten{$buchung.kommentar}{$buchung.betrag}
+#end
+	\end{rechnung}
+
+#end
+
+
+
+\end{document}
