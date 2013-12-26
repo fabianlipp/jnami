@@ -131,8 +131,8 @@ public class RechnungWindow extends JFrame {
         JPanel contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
-        contentPane
-                .setLayout(new MigLayout("", "[grow][][]", "[][][grow][][]"));
+        contentPane.setLayout(new MigLayout("", "[grow][][][]",
+                "[][][grow][][][][]"));
 
         JLabel lblHalbjahr = new JLabel("Halbjahr:");
         contentPane.add(lblHalbjahr, "flowx,cell 0 0");
@@ -143,11 +143,11 @@ public class RechnungWindow extends JFrame {
                 "Alle offenen Forderungen");
         btnAlleOffenenForderungen
                 .addActionListener(new AlleForderungenListener());
-        contentPane.add(btnAlleOffenenForderungen, "cell 0 1 3 1");
+        contentPane.add(btnAlleOffenenForderungen, "cell 0 1 4 1");
 
         /*** Tabelle vorbereiten ***/
         JScrollPane scrollPane = new JScrollPane();
-        contentPane.add(scrollPane, "cell 0 2 3 1,grow");
+        contentPane.add(scrollPane, "cell 0 2 4 1,grow");
         treeTable = new JXTreeTable(new RechnungTreeTableModel());
         // Model initialisieren
         treeTableModel = new RechnungTreeTableModel();
@@ -185,40 +185,54 @@ public class RechnungWindow extends JFrame {
         treeTable.addHighlighter(high);
 
         /*** Buttons unter der Tabelle ***/
+        JPanel btnsBelow = new JPanel();
+        btnsBelow.setBorder(new TitledBorder(null, "Alle Personen",
+                TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        contentPane.add(btnsBelow, "cell 0 3,growx,span");
+        btnsBelow.setLayout(new MigLayout("", "[][grow]", "[]"));
+
         JButton btnAlleAusklappen = new JButton("Alle ausklappen");
+        btnsBelow.add(btnAlleAusklappen, "cell 0 0,alignx left");
         btnAlleAusklappen.addActionListener(new AlleAusklappenListener());
-        contentPane.add(btnAlleAusklappen, "flowx,cell 0 3");
 
         JButton btnAlleEinklappen = new JButton("Alle einklappen");
+        btnsBelow.add(btnAlleEinklappen, "cell 0 0,alignx left");
         btnAlleEinklappen.addActionListener(new AlleEinklappenListener());
-        contentPane.add(btnAlleEinklappen, "cell 0 3");
+
+        JButton btnAuswaehlen = new JButton("Auswählen");
+        btnsBelow.add(btnAuswaehlen, "cell 1 0,span,alignx right");
+        btnAuswaehlen.addActionListener(new PersonSelectListener(true));
+
+        JButton btnAbwaehlen = new JButton("Abwählen");
+        btnsBelow.add(btnAbwaehlen, "cell 1 0,span,alignx right");
+        btnAbwaehlen.addActionListener(new PersonSelectListener(false));
 
         /*** Rechnungs-Erstellungs-Einstellungen und -Button ***/
-        JPanel panel = new JPanel();
-        panel.setBorder(new TitledBorder(null, "Rechnungen erstellen",
+        JPanel frameErstellen = new JPanel();
+        frameErstellen.setBorder(new TitledBorder(null, "Rechnungen erstellen",
                 TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        panel.setLayout(new MigLayout("", "[153px][grow]",
+        frameErstellen.setLayout(new MigLayout("", "[][grow]",
                 "[grow][25px,grow][]"));
-        contentPane.add(panel, "cell 0 4,growx,span");
+        contentPane.add(frameErstellen, "cell 0 5 4 1,growx");
 
         JLabel lblRechnungsdatum = new JLabel("Rechnungsdatum:");
-        panel.add(lblRechnungsdatum, "cell 0 0");
+        frameErstellen.add(lblRechnungsdatum, "cell 0 0");
 
         rechnungsdatum = new JDateChooser();
         rechnungsdatum.setDate(new Date());
         rechnungsdatum.addPropertyChangeListener("date",
                 new RechnungsdatumAendernListener());
-        panel.add(rechnungsdatum, "cell 1 0,growx");
+        frameErstellen.add(rechnungsdatum, "cell 1 0,growx");
 
         JLabel lblFrist = new JLabel("Frist:");
-        panel.add(lblFrist, "cell 0 1");
+        frameErstellen.add(lblFrist, "cell 0 1");
 
         frist = new JDateChooser();
         frist.setDate(getFristForDatum(new Date()));
-        panel.add(frist, "cell 1 1,growx");
+        frameErstellen.add(frist, "cell 1 1,growx");
 
         JButton btnRechnungenErzeugen = new JButton("Rechnungen erzeugen");
-        panel.add(btnRechnungenErzeugen,
+        frameErstellen.add(btnRechnungenErzeugen,
                 "cell 0 2,span,alignx right,aligny top");
         btnRechnungenErzeugen
                 .addActionListener(new RechnungenErzeugenListener());
@@ -281,6 +295,29 @@ public class RechnungWindow extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             treeTable.collapseAll();
+        }
+    }
+
+    /**
+     * (De-)Selektiert alle Personen in der Tabelle.
+     */
+    private final class PersonSelectListener implements ActionListener {
+        private boolean desiredState;
+
+        private PersonSelectListener(boolean desiredState) {
+            this.desiredState = desiredState;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (treeTableModel.root == null) {
+                // es stehen keine Personen in der Tabelle
+                return;
+            }
+            for (PersonNode pNode : treeTableModel.root.persons) {
+                pNode.checked = desiredState;
+            }
+            treeTable.repaint();
         }
     }
 
@@ -845,5 +882,4 @@ public class RechnungWindow extends JFrame {
                     "BuchungNode never has any children");
         }
     }
-
 }

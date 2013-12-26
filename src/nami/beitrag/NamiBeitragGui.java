@@ -99,6 +99,14 @@ public final class NamiBeitragGui {
                 .addHandler(handler);
         Logger.getLogger("nami.beitrag.db.BeitragMapper")
                 .setLevel(Level.ALL);
+        Logger.getLogger("nami.beitrag.db.RechnungenMapper")
+                .addHandler(handler);
+        Logger.getLogger("nami.beitrag.db.RechnungenMapper")
+                .setLevel(Level.ALL);
+        Logger.getLogger("nami.beitrag.db.ReportsMapper")
+                .addHandler(handler);
+        Logger.getLogger("nami.beitrag.db.ReportsMapper")
+                .setLevel(Level.ALL);
 
         // Aufruf der GUI
         NamiBeitrag namiBeitrag = new NamiBeitrag(sqlSessionFactory,
