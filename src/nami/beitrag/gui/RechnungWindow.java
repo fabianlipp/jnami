@@ -5,11 +5,17 @@ import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -22,6 +28,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIDefaults;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -30,6 +37,7 @@ import javax.swing.tree.TreePath;
 
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragMapper;
+import nami.beitrag.db.BeitragRechnung;
 import nami.beitrag.db.DataMitgliederForderungen;
 import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.letters.LetterGenerator;
@@ -44,6 +52,8 @@ import org.jdesktop.swingx.decorator.ComponentAdapter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
 import org.jdesktop.swingx.decorator.Highlighter;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
+
+import com.toedter.calendar.JDateChooser;
 
 /**
  * Stellt ein Fenster dar, in dem Rechnungen zusammengestellt werden können.
@@ -85,6 +95,8 @@ public class RechnungWindow extends JFrame {
     private static final Icon ICON_PERSON;
     // Icon, mit denen Buchungen in der Tabelle markiert werden
     private static final Icon ICON_BUCHUNG;
+    private JDateChooser rechnungsdatum;
+    private JDateChooser frist;
 
     static {
         ImageIcon nativeIcon;
@@ -119,7 +131,8 @@ public class RechnungWindow extends JFrame {
         JPanel contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("", "[grow][][]", "[][][grow][]"));
+        contentPane
+                .setLayout(new MigLayout("", "[grow][][]", "[][][grow][][]"));
 
         JLabel lblHalbjahr = new JLabel("Halbjahr:");
         contentPane.add(lblHalbjahr, "flowx,cell 0 0");
@@ -180,12 +193,52 @@ public class RechnungWindow extends JFrame {
         btnAlleEinklappen.addActionListener(new AlleEinklappenListener());
         contentPane.add(btnAlleEinklappen, "cell 0 3");
 
+        /*** Rechnungs-Erstellungs-Einstellungen und -Button ***/
+        JPanel panel = new JPanel();
+        panel.setBorder(new TitledBorder(null, "Rechnungen erstellen",
+                TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        panel.setLayout(new MigLayout("", "[153px][grow]",
+                "[grow][25px,grow][]"));
+        contentPane.add(panel, "cell 0 4,growx,span");
+
+        JLabel lblRechnungsdatum = new JLabel("Rechnungsdatum:");
+        panel.add(lblRechnungsdatum, "cell 0 0");
+
+        rechnungsdatum = new JDateChooser();
+        rechnungsdatum.setDate(new Date());
+        rechnungsdatum.addPropertyChangeListener("date",
+                new RechnungsdatumAendernListener());
+        panel.add(rechnungsdatum, "cell 1 0,growx");
+
+        JLabel lblFrist = new JLabel("Frist:");
+        panel.add(lblFrist, "cell 0 1");
+
+        frist = new JDateChooser();
+        frist.setDate(getFristForDatum(new Date()));
+        panel.add(frist, "cell 1 1,growx");
+
         JButton btnRechnungenErzeugen = new JButton("Rechnungen erzeugen");
+        panel.add(btnRechnungenErzeugen,
+                "cell 0 2,span,alignx right,aligny top");
         btnRechnungenErzeugen
                 .addActionListener(new RechnungenErzeugenListener());
-        contentPane.add(btnRechnungenErzeugen, "cell 1 3,alignx right");
 
         pack();
+    }
+
+    /**
+     * Liefert den Standardwert für die Frist (in Abhängigkeit vom
+     * Rechnungsdatum).
+     * 
+     * @param datum
+     *            Rechnugsdatum
+     * @return passende Frist zum Rechnungsdatum
+     */
+    private static Date getFristForDatum(Date datum) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(datum);
+        c.add(Calendar.DATE, 14);
+        return c.getTime();
     }
 
     /**
@@ -198,13 +251,16 @@ public class RechnungWindow extends JFrame {
             tableHalbjahr = halbjahr.getValue();
 
             SqlSession session = sqlSessionFactory.openSession();
-            RechnungenMapper rechnungenMapper = session
-                    .getMapper(RechnungenMapper.class);
-            Collection<DataMitgliederForderungen> personsDb = rechnungenMapper
-                    .mitgliederOffeneForderungen(tableHalbjahr);
-            session.close();
+            try {
+                RechnungenMapper rechnungenMapper = session
+                        .getMapper(RechnungenMapper.class);
+                Collection<DataMitgliederForderungen> personsDb = rechnungenMapper
+                        .mitgliederOffeneForderungen(tableHalbjahr);
+                treeTableModel.reloadPersons(personsDb);
+            } finally {
+                session.close();
+            }
 
-            treeTableModel.reloadPersons(personsDb);
         }
     }
 
@@ -229,31 +285,81 @@ public class RechnungWindow extends JFrame {
     }
 
     /**
+     * Passt die Frist an, wenn das Rechnungsdatum geändert wird.
+     */
+    private class RechnungsdatumAendernListener implements
+            PropertyChangeListener {
+        @Override
+        public void propertyChange(PropertyChangeEvent e) {
+            if ("date".equals(e.getPropertyName())) {
+                frist.setDate(getFristForDatum(rechnungsdatum.getDate()));
+            }
+        }
+    }
+
+    /**
      * Erzeugt Rechnungen für die ausgewählten Personen und Buchungen.
      */
     private class RechnungenErzeugenListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (treeTableModel.root == null) {
+                // es stehen keine Personen in der Tabelle
                 return;
             }
 
-            LinkedHashMap<Integer, Collection<BeitragBuchung>> rechnungen;
-            rechnungen = new LinkedHashMap<>();
-            for (PersonNode pNode : treeTableModel.root.persons) {
-                Collection<BeitragBuchung> buchungen = new LinkedList<>();
-                if (pNode.checked) {
+            // Objekte, die später in den Brief eingefügt werden
+            LinkedHashMap<Integer, Collection<BeitragBuchung>> buchungen;
+            buchungen = new LinkedHashMap<>();
+            Map<Integer, String> rechnungsNummern = new HashMap<>();
+
+            SqlSession session = sqlSessionFactory.openSession();
+            try {
+                for (PersonNode pNode : treeTableModel.root.persons) {
+                    if (!pNode.checked || pNode.buchungen == null
+                            || pNode.buchungen.isEmpty()) {
+                        // erzeuge keine Rechnung
+                        continue;
+                    }
+
+                    // Rechnung in Datenbank einfügen
+                    RechnungenMapper mapper = session
+                            .getMapper(RechnungenMapper.class);
+                    BeitragRechnung rechnung = new BeitragRechnung();
+                    rechnung.setMitgliedId(pNode.person.getMitgliedId());
+                    int jahr = Calendar.getInstance().get(Calendar.YEAR);
+                    int rechnungsNummer = mapper.maxRechnungsnummer(jahr) + 1;
+                    rechnung.setRechnungsNummer(rechnungsNummer);
+                    rechnung.setDatum(rechnungsdatum.getDate());
+                    rechnung.setFrist(frist.getDate());
+                    rechnung.setBeglichen(false);
+                    mapper.insertRechnung(rechnung);
+                    int rechnungId = rechnung.getRechnungId();
+
+                    // Posten in Datenbank einfügen
+                    Collection<BeitragBuchung> personBuchungen = new LinkedList<>();
                     for (BuchungNode bNode : pNode.buchungen) {
                         if (bNode.checked) {
-                            buchungen.add(bNode.buchung);
+                            personBuchungen.add(bNode.buchung);
+                            mapper.insertPosten(rechnungId,
+                                    bNode.buchung.getBuchungId(),
+                                    bNode.buchung.getKommentar());
                         }
                     }
-                    rechnungen.put(pNode.person.getMitgliedId(), buchungen);
-                }
-            }
 
-            LetterGenerator gen = new LetterGenerator(sqlSessionFactory);
-            gen.generateRechnungen(rechnungen);
+                    buchungen
+                            .put(pNode.person.getMitgliedId(), personBuchungen);
+                    rechnungsNummern.put(pNode.person.getMitgliedId(),
+                            rechnung.getCompleteRechnungsNummer());
+                    session.commit();
+                }
+
+                LetterGenerator gen = new LetterGenerator(sqlSessionFactory);
+                gen.generateRechnungen(buchungen, rechnungsNummern,
+                        rechnungsdatum.getDate(), frist.getDate());
+            } finally {
+                session.close();
+            }
         }
     }
 
@@ -656,16 +762,19 @@ public class RechnungWindow extends JFrame {
 
             // Lade Buchungen aus Datenbank
             SqlSession session = sqlSessionFactory.openSession();
-            BeitragMapper beitragMapper = session
-                    .getMapper(BeitragMapper.class);
-            Collection<BeitragBuchung> buchungenDb = beitragMapper
-                    .getBuchungenByHalbjahr(tableHalbjahr,
-                            person.getMitgliedId());
-            session.close();
+            try {
+                BeitragMapper beitragMapper = session
+                        .getMapper(BeitragMapper.class);
+                Collection<BeitragBuchung> buchungenDb = beitragMapper
+                        .getBuchungenByHalbjahr(tableHalbjahr,
+                                person.getMitgliedId());
 
-            buchungen = new ArrayList<>(buchungenDb.size());
-            for (BeitragBuchung buchung : buchungenDb) {
-                buchungen.add(new BuchungNode(this, buchung));
+                buchungen = new ArrayList<>(buchungenDb.size());
+                for (BeitragBuchung buchung : buchungenDb) {
+                    buchungen.add(new BuchungNode(this, buchung));
+                }
+            } finally {
+                session.close();
             }
         }
 

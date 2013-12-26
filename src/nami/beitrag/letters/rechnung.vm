@@ -6,10 +6,10 @@
 
 \LoadLetterOption{stamm}
 \setkomavar{signature}{Fabian Lipp}
-\setkomavar{date}{18.12.2013}
+\setkomavar{date}{$date.format('dd.MM.yyyy', $rechnungsdatum)}
 
 \newkomavar{neuefrist}
-\setkomavar{neuefrist}{03.01.2014}
+\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $frist)}
 
 \renewcommand{\arraystretch}{1.5}
 
@@ -17,7 +17,7 @@
 
 #foreach( $recipient in $recipientList )
 	\begin{rechnung}{$recipient.mgl.vorname $recipient.mgl.nachname}{$recipient.mgl.strasse\\##
-	$recipient.mgl.plz $recipient.mgl.ort}{999,99}
+	$recipient.mgl.plz $recipient.mgl.ort}{$recipient.rechnungsNummer}{999,99}
 #foreach( $buchung in $recipient.buchungen )
 		\rechnungposten{$buchung.kommentar}{$buchung.betrag}
 #end

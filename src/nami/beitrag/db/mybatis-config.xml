@@ -9,11 +9,12 @@
 	</settings>
 
 	<typeAliases>
-		<typeAlias type="nami.beitrag.db.BeitragMitglied" alias="BeitragMitglied" />
 		<typeAlias type="nami.beitrag.db.BeitragBuchung" alias="BeitragBuchung" />
+		<typeAlias type="nami.beitrag.db.BeitragMitglied" alias="BeitragMitglied" />
+		<typeAlias type="nami.beitrag.db.BeitragRechnung" alias="BeitragRechnung" />
 		<typeAlias type="nami.beitrag.db.BeitragZeitraum" alias="BeitragZeitraum" />
-		<typeAlias type="nami.beitrag.db.ZeitraumSaldo" alias="ZeitraumSaldo" />
 		<typeAlias type="nami.beitrag.db.DataMitgliederForderungen" alias="DataMitgliederForderungen" />
+		<typeAlias type="nami.beitrag.db.ZeitraumSaldo" alias="ZeitraumSaldo" />
 		<typeAlias type="nami.beitrag.reports.DataAbrechnungHalbjahr" alias="DataAbrechnungHalbjahr" />
 		<typeAlias type="nami.connector.Halbjahr" alias="Halbjahr" />
 	</typeAliases>

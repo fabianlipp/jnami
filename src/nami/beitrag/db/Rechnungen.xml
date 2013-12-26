@@ -15,5 +15,43 @@
 		HAVING SUM(betrag) &lt;&gt; 0
 	</select>
 
+	<select id="maxRechnungsnummer" parameterType="int" resultType="int">
+		SELECT CASE WHEN MAX(rechnungsNummer) IS NULL THEN 0 ELSE MAX(rechnungsNummer) END
+		FROM beitragRechnung
+		WHERE YEAR(datum) = #{jahr}
+	</select>
+	
+	<insert id="insertRechnung" parameterType="BeitragRechnung" useGeneratedKeys="true"
+		keyProperty="rechnungId">
+		INSERT INTO beitragRechnung
+			(mitgliedId,
+			rechnungsNummer,
+			datum,
+			frist,
+			beglichen)
+		VALUES
+			(#{mitgliedId},
+			#{rechnungsNummer},
+			#{datum},
+			#{frist},
+			#{beglichen})
+	</insert>
+	
+	<select id="getRechnung" parameterType="int" resultType="BeitragRechnung">
+		SELECT *
+		FROM beitragRechnung
+		WHERE rechnungId = #{id}
+	</select>
+	
+	<insert id="insertPosten">
+		INSERT INTO beitragRechnungPosten
+			(rechnungId,
+			buchungId,
+			buchungstext)
+		VALUES
+			(#{rechnungId},
+			#{buchungId},
+			#{buchungstext})
+	</insert>
 
 </mapper>
