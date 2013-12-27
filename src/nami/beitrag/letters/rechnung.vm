@@ -16,11 +16,16 @@
 \begin{document}
 
 #foreach( $recipient in $recipientList )
+	#set( $betragsum = 0 )
+	#foreach( $buchung in $recipient.buchungen )
+		#set( $betragsum = $math.add($betragsum, $buchung.betrag) )
+	#end
+	
 	\begin{rechnung}{$recipient.mgl.vorname $recipient.mgl.nachname}{$recipient.mgl.strasse\\##
-	$recipient.mgl.plz $recipient.mgl.ort}{$recipient.rechnungsNummer}{999,99}
-#foreach( $buchung in $recipient.buchungen )
+	$recipient.mgl.plz $recipient.mgl.ort}{$recipient.rechnungsNummer}{$betragsum}
+	#foreach( $buchung in $recipient.buchungen )
 		\rechnungposten{$buchung.kommentar}{$buchung.betrag}
-#end
+	#end
 	\end{rechnung}
 
 #end

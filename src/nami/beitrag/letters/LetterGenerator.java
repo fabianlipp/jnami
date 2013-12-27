@@ -20,6 +20,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.tools.generic.DateTool;
+import org.apache.velocity.tools.generic.MathTool;
 
 public class LetterGenerator {
 
@@ -55,8 +56,8 @@ public class LetterGenerator {
 
     public boolean generateRechnungen(
             LinkedHashMap<Integer, Collection<BeitragBuchung>> rechnungen,
-            Map<Integer, String> rechnungsNummern,
-            Date rechnungsdatum, Date frist) {
+            Map<Integer, String> rechnungsNummern, Date rechnungsdatum,
+            Date frist) {
 
         Template template = getTemplate(TEMPLATE_RECHNUNGEN);
 
@@ -77,6 +78,7 @@ public class LetterGenerator {
 
         VelocityContext context = new VelocityContext();
         context.put("date", new DateTool());
+        context.put("math", new MathTool());
         context.put("recipientList", recipients);
         context.put("rechnungsdatum", rechnungsdatum);
         context.put("frist", frist);
