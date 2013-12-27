@@ -2,8 +2,11 @@ package nami.beitrag.db;
 
 import java.util.Collection;
 
+import lombok.Data;
+
 import org.apache.ibatis.annotations.Param;
 
+import nami.beitrag.Zahlungsart;
 import nami.connector.Halbjahr;
 
 /**
@@ -14,15 +17,88 @@ import nami.connector.Halbjahr;
  */
 public interface RechnungenMapper {
     /**
-     * Liefert alle Mitglieder, für die in einem bestimmten Halbjahr offene
-     * Forderungen bestehen.
+     * Möglichkeiten Buchungen nach dem Vorausberechnungs-Feld zu filtern.
+     */
+    static enum VorausberechnungFilter {
+        /**
+         * Keine Vorausberechnungen ausgeben.
+         */
+        KEINE,
+
+        /**
+         * Alle Buchungen ausgeben.
+         */
+        AUCH,
+
+        /**
+         * Nur Vorausberechnungen ausgeben.
+         */
+        NUR
+    }
+
+    /**
+     * Beschreibt Filterkriterien für die Suche nach Personen und Buchungen.
+     */
+    @Data
+    static class FilterSettings {
+        /**
+         * Frühestes Halbjahr, dessen Buchungen gewählt werden. Falls der Wert
+         * <tt>null</tt> ist, wird nicht nach diesem Kriterium gefiltert.
+         */
+        private Halbjahr halbjahrVon = null;
+
+        /**
+         * Spätestes Halbjahr, dessen Buchungen gewählt werden. Falls der Wert
+         * <tt>null</tt> ist, wird nicht nach diesem Kriterium gefiltert.
+         */
+        private Halbjahr halbjahrBis = null;
+
+        /**
+         * Gibt an, ob Buchungen selektiert werden sollen, die
+         * Vorausberechnungen sind.
+         */
+        private VorausberechnungFilter vorausberechnung;
+
+        /**
+         * Hiermit können nur Mitglieder selektiert werden, für die eine
+         * bestimmte Zahlungsart eingetragen ist. Falls der Wert <tt>null</tt>
+         * ist, wird nicht nach diesem Kriterium gefiltert.
+         */
+        private Zahlungsart zahlungsart = null;
+
+        /**
+         * Gibt an, ob auch Buchungen selektiert werden, die bereits in einer
+         * Rechnung enthalten sind.
+         */
+        private boolean bereitsBerechnet;
+    }
+
+    /**
+     * Liefert alle Mitglieder, bei denen das Beitragskonto nicht ausgeglichen
+     * sind. Dabei werden nur Buchungen berücksichtigt, die den übergebenen
+     * Filterkriterien entsprechen.
      * 
-     * @param halbjahr
-     *            Halbjahr, für das Buchungen abgefragt werden
-     * @return Mitglieder, die die Bedingung erfüllen
+     * @param filterSettings
+     *            Kriterien, nach denen die Buchungen gefiltert werden
+     * @return Mitglieder, deren Beitragskonto (bezogen auf die Buchungen, die
+     *         <tt>filterSettings</tt> erfüllen) nicht ausgeglichen ist
      */
     Collection<DataMitgliederForderungen> mitgliederOffeneForderungen(
-            Halbjahr halbjahr);
+            @Param("filterSettings") FilterSettings filterSettings);
+
+    /**
+     * Liefert für ein bestimmtes Mitglied alle Buchungen, die vorgegebene
+     * Kriterien erfüllen.
+     * 
+     * @param mitgliedId
+     *            ID des Mitglieds
+     * @param filterSettings
+     *            Kriterien, nach denen die Buchungen gefiltert werden
+     * @return Buchungen, die die Kriterien erfüllen
+     */
+    Collection<BeitragBuchung> getBuchungenFiltered(
+            @Param("mitgliedId") int mitgliedId,
+            @Param("filterSettings") FilterSettings filterSettings);
 
     /**
      * Liefert die höchste Rechnungsnummer, die im übergebenen Jahr bisher

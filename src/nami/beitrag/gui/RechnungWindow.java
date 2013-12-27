@@ -1,5 +1,7 @@
 package nami.beitrag.gui;
 
+import jas.util.CheckBoxBorderPanel;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Image;
@@ -17,12 +19,16 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -35,13 +41,14 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreePath;
 
+import nami.beitrag.Zahlungsart;
 import nami.beitrag.db.BeitragBuchung;
-import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragRechnung;
 import nami.beitrag.db.DataMitgliederForderungen;
 import nami.beitrag.db.RechnungenMapper;
+import nami.beitrag.db.RechnungenMapper.FilterSettings;
+import nami.beitrag.db.RechnungenMapper.VorausberechnungFilter;
 import nami.beitrag.letters.LetterGenerator;
-import nami.connector.Halbjahr;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.ibatis.session.SqlSession;
@@ -69,17 +76,29 @@ public class RechnungWindow extends JFrame {
 
     private SqlSessionFactory sqlSessionFactory;
 
-    private HalbjahrComponent halbjahr;
-    // Das Halbjahr, das gerade in der Tabelle angezeigt wird
-    private Halbjahr tableHalbjahr;
+    // Komponenten für Suche
+    private JCheckBox chckbxHalbjahrFilter;
+    private HalbjahrComponent inputHalbjahrVon;
+    private HalbjahrComponent inputHalbjahrBis;
+    private JRadioButton rdbtnKeineVorausberechnungen;
+    private JRadioButton rdbtnAuchVorausberechnungen;
+    private JRadioButton rdbtnNurVorausberechnungen;
+    private JRadioButton rdbtnAlle;
+    private JRadioButton rdbtnRechnung;
+    private JRadioButton rdbtnLastschrift;
+    private JCheckBox chckbxBereitsBerechnet;
 
-    // Tabelle
+    // Komponenten für Tabelle
     private JXTreeTable treeTable;
     // Model der Tabelle
     private RechnungTreeTableModel treeTableModel;
     // Person, deren Zeile momentan in der Tabelle ausgewählt ist (null, falls
     // keine Zeile oder keine Person ausgewählt ist)
     private PersonNode selectedPerson;
+
+    // Komponenten für "Rechnung erstellen"
+    private JDateChooser rechnungsdatum;
+    private JDateChooser frist;
 
     // Farben für die Hervorhebung von Zeilen in der Tabelle
     private static final UIDefaults UIDEFAULTS = javax.swing.UIManager
@@ -95,8 +114,6 @@ public class RechnungWindow extends JFrame {
     private static final Icon ICON_PERSON;
     // Icon, mit denen Buchungen in der Tabelle markiert werden
     private static final Icon ICON_BUCHUNG;
-    private JDateChooser rechnungsdatum;
-    private JDateChooser frist;
 
     static {
         ImageIcon nativeIcon;
@@ -131,23 +148,14 @@ public class RechnungWindow extends JFrame {
         JPanel contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("", "[grow][][][]",
-                "[][][grow][][][][]"));
+        contentPane.setLayout(new MigLayout("", "[grow]", "[][grow][][]"));
 
-        JLabel lblHalbjahr = new JLabel("Halbjahr:");
-        contentPane.add(lblHalbjahr, "flowx,cell 0 0");
-        halbjahr = new HalbjahrComponent();
-        contentPane.add(halbjahr, "cell 0 0,alignx left");
-
-        JButton btnAlleOffenenForderungen = new JButton(
-                "Alle offenen Forderungen");
-        btnAlleOffenenForderungen
-                .addActionListener(new AlleForderungenListener());
-        contentPane.add(btnAlleOffenenForderungen, "cell 0 1 4 1");
+        /*** Buchungs-Suche ***/
+        contentPane.add(createSearchPanel(), "cell 0 0,grow");
 
         /*** Tabelle vorbereiten ***/
         JScrollPane scrollPane = new JScrollPane();
-        contentPane.add(scrollPane, "cell 0 2 4 1,grow");
+        contentPane.add(scrollPane, "cell 0 1,grow");
         treeTable = new JXTreeTable(new RechnungTreeTableModel());
         // Model initialisieren
         treeTableModel = new RechnungTreeTableModel();
@@ -188,7 +196,7 @@ public class RechnungWindow extends JFrame {
         JPanel btnsBelow = new JPanel();
         btnsBelow.setBorder(new TitledBorder(null, "Alle Personen",
                 TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        contentPane.add(btnsBelow, "cell 0 3,growx,span");
+        contentPane.add(btnsBelow, "cell 0 2,growx");
         btnsBelow.setLayout(new MigLayout("", "[][grow]", "[]"));
 
         JButton btnAlleAusklappen = new JButton("Alle ausklappen");
@@ -208,36 +216,130 @@ public class RechnungWindow extends JFrame {
         btnAbwaehlen.addActionListener(new PersonSelectListener(false));
 
         /*** Rechnungs-Erstellungs-Einstellungen und -Button ***/
-        JPanel frameErstellen = new JPanel();
-        frameErstellen.setBorder(new TitledBorder(null, "Rechnungen erstellen",
+        JPanel erstellenPanel = new JPanel();
+        erstellenPanel.setBorder(new TitledBorder(null, "Rechnungen erstellen",
                 TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        frameErstellen.setLayout(new MigLayout("", "[][grow]",
+        erstellenPanel.setLayout(new MigLayout("", "[][grow]",
                 "[grow][25px,grow][]"));
-        contentPane.add(frameErstellen, "cell 0 5 4 1,growx");
+        contentPane.add(erstellenPanel, "cell 0 3,growx");
 
         JLabel lblRechnungsdatum = new JLabel("Rechnungsdatum:");
-        frameErstellen.add(lblRechnungsdatum, "cell 0 0");
+        erstellenPanel.add(lblRechnungsdatum, "cell 0 0");
 
         rechnungsdatum = new JDateChooser();
         rechnungsdatum.setDate(new Date());
         rechnungsdatum.addPropertyChangeListener("date",
                 new RechnungsdatumAendernListener());
-        frameErstellen.add(rechnungsdatum, "cell 1 0,growx");
+        erstellenPanel.add(rechnungsdatum, "cell 1 0,growx");
 
         JLabel lblFrist = new JLabel("Frist:");
-        frameErstellen.add(lblFrist, "cell 0 1");
+        erstellenPanel.add(lblFrist, "cell 0 1");
 
         frist = new JDateChooser();
         frist.setDate(getFristForDatum(new Date()));
-        frameErstellen.add(frist, "cell 1 1,growx");
+        erstellenPanel.add(frist, "cell 1 1,growx");
 
         JButton btnRechnungenErzeugen = new JButton("Rechnungen erzeugen");
-        frameErstellen.add(btnRechnungenErzeugen,
+        erstellenPanel.add(btnRechnungenErzeugen,
                 "cell 0 2,span,alignx right,aligny top");
         btnRechnungenErzeugen
                 .addActionListener(new RechnungenErzeugenListener());
 
         pack();
+    }
+
+    private JPanel createSearchPanel() {
+        JPanel searchPanel = new JPanel();
+        searchPanel.setBorder(new TitledBorder(null, "Buchungen suchen",
+                TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        searchPanel.setLayout(new MigLayout("", "[][][grow]", "[][]"));
+
+        /*** Zeitraum ***/
+        /*
+         * MigLayout verhält sich in Kombination mit dem CheckBoxBorderPanel
+         * etwas merkwürdig. Für die Checkbox muss manuell das Constraint "span"
+         * gesetzt werden, weil sonst die nächsten Komponenten verschoben
+         * werden. Die Column 0 wird nur von der Checkbox verwendet. Alle
+         * anderen Komponenten beginnen bei Row 1.
+         */
+        MigLayout layout = new MigLayout("", "[][][]", "[][]");
+        CheckBoxBorderPanel zeitraumPanel = new CheckBoxBorderPanel("Zeitraum",
+                layout);
+        chckbxHalbjahrFilter = zeitraumPanel.getCheckBox();
+        layout.setComponentConstraints(chckbxHalbjahrFilter, "span");
+        chckbxHalbjahrFilter.setSelected(true);
+        searchPanel
+                .add(zeitraumPanel, "cell 0 0,shrink,alignx left,aligny top");
+
+        JLabel lblVon = new JLabel("Von:");
+        zeitraumPanel.add(lblVon, "cell 1 0,flowx,alignx left");
+        inputHalbjahrVon = new HalbjahrComponent();
+        zeitraumPanel.add(inputHalbjahrVon, "cell 2 0");
+
+        JLabel lblBis = new JLabel("Bis:");
+        zeitraumPanel.add(lblBis, "cell 1 1,alignx left");
+        inputHalbjahrBis = new HalbjahrComponent();
+        zeitraumPanel.add(inputHalbjahrBis, "cell 2 1");
+
+        /*** Vorausberechnung ***/
+        JPanel vorausberechnungPanel = new JPanel();
+        vorausberechnungPanel.setBorder(new TitledBorder(null,
+                "Vorausberechnungen", TitledBorder.LEADING, TitledBorder.TOP,
+                null, null));
+        vorausberechnungPanel.setLayout(new BoxLayout(vorausberechnungPanel,
+                BoxLayout.Y_AXIS));
+        searchPanel.add(vorausberechnungPanel,
+                "cell 1 0,alignx left,aligny top");
+
+        rdbtnKeineVorausberechnungen = new JRadioButton(
+                "keine Vorausberechnungen");
+        vorausberechnungPanel.add(rdbtnKeineVorausberechnungen);
+        rdbtnAuchVorausberechnungen = new JRadioButton(
+                "auch Vorausberechnungen");
+        vorausberechnungPanel.add(rdbtnAuchVorausberechnungen);
+        rdbtnNurVorausberechnungen = new JRadioButton("nur Vorausberechnungen");
+        vorausberechnungPanel.add(rdbtnNurVorausberechnungen);
+
+        ButtonGroup vorausberechnungGrp = new ButtonGroup();
+        vorausberechnungGrp.add(rdbtnKeineVorausberechnungen);
+        vorausberechnungGrp.add(rdbtnAuchVorausberechnungen);
+        vorausberechnungGrp.add(rdbtnNurVorausberechnungen);
+        rdbtnKeineVorausberechnungen.setSelected(true);
+
+        /*** Zahlungsart ***/
+        JPanel zahlungsartPanel = new JPanel();
+        zahlungsartPanel.setBorder(new TitledBorder(null, "Zahlungsart",
+                TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        zahlungsartPanel.setLayout(new BoxLayout(zahlungsartPanel,
+                BoxLayout.Y_AXIS));
+        searchPanel.add(zahlungsartPanel, "cell 2 0,alignx left,aligny top");
+
+        rdbtnAlle = new JRadioButton("Alle");
+        zahlungsartPanel.add(rdbtnAlle);
+        rdbtnRechnung = new JRadioButton("Rechnung");
+        zahlungsartPanel.add(rdbtnRechnung);
+        rdbtnLastschrift = new JRadioButton("Lastschrift");
+        zahlungsartPanel.add(rdbtnLastschrift);
+
+        ButtonGroup zahlungsartGrp = new ButtonGroup();
+        zahlungsartGrp.add(rdbtnAlle);
+        zahlungsartGrp.add(rdbtnRechnung);
+        zahlungsartGrp.add(rdbtnLastschrift);
+        rdbtnAlle.setSelected(true);
+
+        /*** Untere Zeile ***/
+        JPanel sucheBottomPanel = new JPanel();
+        searchPanel.add(sucheBottomPanel, "cell 0 1 2097051 1,growx");
+        sucheBottomPanel.setLayout(new MigLayout("insets 0", "[][grow]", "[]"));
+        chckbxBereitsBerechnet = new JCheckBox(
+                "Buchungen, für die bereits eine Rechnung gestellt wurde");
+        sucheBottomPanel.add(chckbxBereitsBerechnet,
+                "cell 0 0,alignx left,growy");
+        JButton btnSuchen = new JButton("Suchen");
+        sucheBottomPanel.add(btnSuchen, "cell 1 0,alignx right,aligny top");
+        btnSuchen.addActionListener(new PersonenSucheListener());
+
+        return searchPanel;
     }
 
     /**
@@ -256,25 +358,38 @@ public class RechnungWindow extends JFrame {
     }
 
     /**
-     * Fragt alle Personen ab, deren Beitragskonto für das gegebene Halbjahr
-     * nicht ausgeglichen ist.
+     * Listet alle Personen und deren Buchungen in der Tabelle auf, die die
+     * eingegeben Kriterien erfüllen.
      */
-    private class AlleForderungenListener implements ActionListener {
+    private class PersonenSucheListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            tableHalbjahr = halbjahr.getValue();
+            RechnungenMapper.FilterSettings filterSettings = new FilterSettings();
 
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
-                RechnungenMapper rechnungenMapper = session
-                        .getMapper(RechnungenMapper.class);
-                Collection<DataMitgliederForderungen> personsDb = rechnungenMapper
-                        .mitgliederOffeneForderungen(tableHalbjahr);
-                treeTableModel.reloadPersons(personsDb);
-            } finally {
-                session.close();
+            if (chckbxHalbjahrFilter.isSelected()) {
+                filterSettings.setHalbjahrVon(inputHalbjahrVon.getValue());
+                filterSettings.setHalbjahrBis(inputHalbjahrBis.getValue());
             }
 
+            if (rdbtnKeineVorausberechnungen.isSelected()) {
+                filterSettings
+                        .setVorausberechnung(VorausberechnungFilter.KEINE);
+            } else if (rdbtnAuchVorausberechnungen.isSelected()) {
+                filterSettings.setVorausberechnung(VorausberechnungFilter.AUCH);
+            } else if (rdbtnNurVorausberechnungen.isSelected()) {
+                filterSettings.setVorausberechnung(VorausberechnungFilter.NUR);
+            }
+
+            if (rdbtnRechnung.isSelected()) {
+                filterSettings.setZahlungsart(Zahlungsart.RECHNUNG);
+            } else if (rdbtnLastschrift.isSelected()) {
+                filterSettings.setZahlungsart(Zahlungsart.LASTSCHRIFT);
+            }
+
+            filterSettings.setBereitsBerechnet(chckbxBereitsBerechnet
+                    .isSelected());
+
+            treeTableModel.reloadPersons(filterSettings);
         }
     }
 
@@ -436,7 +551,7 @@ public class RechnungWindow extends JFrame {
      * <ol>
      * <li>Die zur Zeile gehörige Person ist deaktiviert</li>
      * <li>Die Zeile selbst ist deaktiviert</li>
-     * <li>Die Zeile ist eine Person und alle zugehörigen Buchungen sind
+     * <li>Die Zeile ist eine Person un)d alle zugehörigen Buchungen sind
      * deaktiviert</li>
      * </ol>
      */
@@ -557,9 +672,8 @@ public class RechnungWindow extends JFrame {
          * @param personsDb
          *            Ergebnis einer Datenbankabfrage nach Personen
          */
-        private void reloadPersons(
-                Collection<DataMitgliederForderungen> personsDb) {
-            root = new RootNode(personsDb);
+        private void reloadPersons(FilterSettings filterSettings) {
+            root = new RootNode(filterSettings);
             this.modelSupport.fireNewRoot();
         }
 
@@ -749,12 +863,24 @@ public class RechnungWindow extends JFrame {
          * @param personsDb
          *            Personen, die im Baum angezeigt werden sollen
          */
-        private RootNode(Collection<DataMitgliederForderungen> personsDb) {
-            // Setzt die Personen in die entsprechenden Objekte für den Baum um
-            persons = new ArrayList<>(personsDb.size());
-            for (DataMitgliederForderungen person : personsDb) {
-                persons.add(new PersonNode(person));
+        private RootNode(FilterSettings filterSettings) {
+            SqlSession session = sqlSessionFactory.openSession();
+            try {
+                RechnungenMapper rechnungenMapper = session
+                        .getMapper(RechnungenMapper.class);
+                Collection<DataMitgliederForderungen> personsDb = rechnungenMapper
+                        .mitgliederOffeneForderungen(filterSettings);
+
+                // Setzt die Personen in die entsprechenden Objekte für den Baum
+                // um
+                persons = new ArrayList<>(personsDb.size());
+                for (DataMitgliederForderungen person : personsDb) {
+                    persons.add(new PersonNode(person, filterSettings));
+                }
+            } finally {
+                session.close();
             }
+
         }
 
         @Override
@@ -794,17 +920,18 @@ public class RechnungWindow extends JFrame {
         // Datenbank geladen.
         private ArrayList<BuchungNode> buchungen = null;
 
-        private PersonNode(DataMitgliederForderungen person) {
+        private PersonNode(DataMitgliederForderungen person,
+                FilterSettings filterSettings) {
             this.person = person;
 
             // Lade Buchungen aus Datenbank
             SqlSession session = sqlSessionFactory.openSession();
             try {
-                BeitragMapper beitragMapper = session
-                        .getMapper(BeitragMapper.class);
-                Collection<BeitragBuchung> buchungenDb = beitragMapper
-                        .getBuchungenByHalbjahr(tableHalbjahr,
-                                person.getMitgliedId());
+                RechnungenMapper mapper = session
+                        .getMapper(RechnungenMapper.class);
+                Collection<BeitragBuchung> buchungenDb = mapper
+                        .getBuchungenFiltered(person.getMitgliedId(),
+                                filterSettings);
 
                 buchungen = new ArrayList<>(buchungenDb.size());
                 for (BeitragBuchung buchung : buchungenDb) {

@@ -4,15 +4,54 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="nami.beitrag.db.RechnungenMapper">
-	<select id="mitgliederOffeneForderungen" parameterType="Halbjahr" resultType="DataMitgliederForderungen">
-		SELECT beitragBuchung.mitgliedId AS mitgliedId, mitgliedsnummer, nachname,
+	<!-- Bedingungen für die WHERE-Klausel, die die Buchungen nach den filterSettings filtern. -->
+	<sql id="buchungsFilter">
+		<if test="filterSettings.halbjahrVon != null">
+			AND (b.jahr &gt; #{filterSettings.halbjahrVon.jahr}
+				OR (b.jahr = #{filterSettings.halbjahrVon.jahr}
+					AND b.halbjahr &gt;= #{filterSettings.halbjahrVon.halbjahr})
+				)
+		</if>
+		<if test="filterSettings.halbjahrBis != null">
+			AND (b.jahr &lt; #{filterSettings.halbjahrBis.jahr}
+				OR (b.jahr = #{filterSettings.halbjahrBis.jahr}
+					AND b.halbjahr &lt;= #{filterSettings.halbjahrBis.halbjahr})
+				)
+		</if>
+		<if test="filterSettings.vorausberechnung.toString() == 'KEINE'">
+			AND b.vorausberechnung = FALSE
+		</if>
+		<if test="filterSettings.vorausberechnung.toString() == 'NUR'">
+			AND b.vorausberechnung = TRUE
+		</if>
+		<if test="!filterSettings.bereitsBerechnet">
+			AND NOT EXISTS (
+				SELECT rechnungId
+				FROM beitragRechnungPosten AS p
+				WHERE p.buchungId = b.buchungId
+				)
+		</if>
+	</sql>
+	
+	<select id="mitgliederOffeneForderungen" resultType="DataMitgliederForderungen">
+		SELECT b.mitgliedId AS mitgliedId, mitgliedsnummer, nachname,
 			vorname, SUM(betrag) AS saldo
-		FROM beitragBuchung, beitragMitglied
-		WHERE beitragBuchung.mitgliedId = beitragMitglied.mitgliedId
-			AND beitragBuchung.halbjahr = #{halbjahr}
-			AND beitragBuchung.jahr = #{jahr}
-		GROUP BY beitragBuchung.mitgliedId
+		FROM beitragBuchung AS b, beitragMitglied AS m
+		WHERE b.mitgliedId = m.mitgliedId
+			<if test="filterSettings.zahlungsart != null">
+				AND m.zahlungsart = #{filterSettings.zahlungsart}
+			</if>
+			<include refid="buchungsFilter"/>
+		GROUP BY b.mitgliedId
 		HAVING SUM(betrag) &lt;&gt; 0
+	</select>
+	
+	<select id="getBuchungenFiltered" resultType="BeitragBuchung"
+		resultMap="nami.beitrag.db.BeitragMapper.buchungResult">
+		SELECT *
+		FROM beitragBuchung AS b
+		WHERE mitgliedId = #{mitgliedId}
+			<include refid="buchungsFilter"/>
 	</select>
 
 	<select id="maxRechnungsnummer" parameterType="int" resultType="int">
