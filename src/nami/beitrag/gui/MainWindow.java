@@ -212,18 +212,32 @@ public class MainWindow extends JFrame {
         });
         JLabel label10 = new JLabel("def");
         buttons.add(label10, "grow,wrap");
-        
-        JButton button11 = new JButton("Rechnungen");
+
+        JButton button11 = new JButton("Rechnungen erstellen");
         buttons.add(button11, "grow");
         button11.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                RechnungWindow win = new RechnungWindow(namiBeitrag.getSessionFactory());
+                RechnungenErstellenWindow win = new RechnungenErstellenWindow(
+                        namiBeitrag.getSessionFactory());
                 win.setVisible(true);
             }
         });
         JLabel label11 = new JLabel("def");
         buttons.add(label11, "grow,wrap");
+
+        JButton button12 = new JButton("Rechnungen verwalten");
+        buttons.add(button12, "grow");
+        button12.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new RechnungenVerwaltenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+        JLabel label12 = new JLabel("def");
+        buttons.add(label12, "grow,wrap");
 
         JButton buttonClose = new JButton("Beenden");
         buttonClose.addActionListener(new ActionListener() {

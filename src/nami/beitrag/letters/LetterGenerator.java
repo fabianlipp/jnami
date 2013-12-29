@@ -10,9 +10,12 @@ import java.util.Map.Entry;
 
 import lombok.Getter;
 import nami.beitrag.db.BeitragBuchung;
+import nami.beitrag.db.BeitragMahnung;
 import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragMitglied;
+import nami.beitrag.db.BeitragRechnung;
 import nami.beitrag.db.DataMitgliederForderungen;
+import nami.beitrag.db.RechnungenMapper;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -25,6 +28,7 @@ import org.apache.velocity.tools.generic.MathTool;
 public class LetterGenerator {
 
     private static final String TEMPLATE_RECHNUNGEN = "rechnung.vm";
+    private static final String TEMPLATE_MAHNUNGEN = "mahnung.vm";
     private static final String PATH_TEMPLATES = LetterGenerator.class
             .getPackage().getName().replace(".", "/")
             + "/";
@@ -63,18 +67,21 @@ public class LetterGenerator {
 
         Collection<RechnungRecipient> recipients = new LinkedList<>();
         SqlSession session = sqlSessionFactory.openSession();
-        BeitragMapper mapper = session.getMapper(BeitragMapper.class);
-        for (Entry<Integer, Collection<BeitragBuchung>> rechnung : rechnungen
-                .entrySet()) {
-            int mitgliedId = rechnung.getKey();
-            BeitragMitglied mgl = mapper.getMitglied(mitgliedId);
-            RechnungRecipient rcpt = new RechnungRecipient();
-            rcpt.mgl = mgl;
-            rcpt.buchungen = rechnung.getValue();
-            rcpt.rechnungsNummer = rechnungsNummern.get(mitgliedId);
-            recipients.add(rcpt);
+        try {
+            BeitragMapper mapper = session.getMapper(BeitragMapper.class);
+            for (Entry<Integer, Collection<BeitragBuchung>> rechnung : rechnungen
+                    .entrySet()) {
+                int mitgliedId = rechnung.getKey();
+                BeitragMitglied mgl = mapper.getMitglied(mitgliedId);
+                RechnungRecipient rcpt = new RechnungRecipient();
+                rcpt.mgl = mgl;
+                rcpt.buchungen = rechnung.getValue();
+                rcpt.rechnungsNummer = rechnungsNummern.get(mitgliedId);
+                recipients.add(rcpt);
+            }
+        } finally {
+            session.close();
         }
-        session.close();
 
         VelocityContext context = new VelocityContext();
         context.put("date", new DateTool());
@@ -87,6 +94,42 @@ public class LetterGenerator {
         template.merge(context, w);
 
         System.out.println(w);
+
+        // TODO: richtige Rückgabe (überprüfe, ob Datei erzeugt wurde)
+        return false;
+    }
+
+    public boolean generateMahnung(BeitragMahnung mahnung) {
+
+        Template template = getTemplate(TEMPLATE_MAHNUNGEN);
+        VelocityContext context = new VelocityContext();
+        context.put("date", new DateTool());
+        context.put("math", new MathTool());
+        context.put("mahnung", mahnung);
+
+        SqlSession session = sqlSessionFactory.openSession();
+        try {
+            BeitragMapper beitragMapper = session
+                    .getMapper(BeitragMapper.class);
+            RechnungenMapper rechnungMapper = session
+                    .getMapper(RechnungenMapper.class);
+
+            BeitragRechnung rechnung = rechnungMapper.getRechnung(mahnung
+                    .getRechnungId());
+            BeitragMitglied mitglied = beitragMapper.getMitglied(rechnung
+                    .getMitgliedId());
+            context.put("rechnung", rechnung);
+            context.put("mgl", mitglied);
+        } finally {
+            session.close();
+        }
+
+        StringWriter w = new StringWriter();
+        template.merge(context, w);
+
+        System.out.println(w);
+
+        // TODO: zusätzlich Original-Rechnung auf zweiter Seite in PDF ausgeben
 
         // TODO: richtige Rückgabe (überprüfe, ob Datei erzeugt wurde)
         return false;

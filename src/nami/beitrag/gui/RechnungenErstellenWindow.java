@@ -41,6 +41,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreePath;
 
+import nami.beitrag.Rechnungsstatus;
 import nami.beitrag.Zahlungsart;
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragRechnung;
@@ -71,7 +72,7 @@ import com.toedter.calendar.JDateChooser;
  * @author Fabian Lipp
  * 
  */
-public class RechnungWindow extends JFrame {
+public class RechnungenErstellenWindow extends JFrame {
     private static final long serialVersionUID = 7409328875312329467L;
 
     private SqlSessionFactory sqlSessionFactory;
@@ -120,13 +121,13 @@ public class RechnungWindow extends JFrame {
         Image scaled;
 
         nativeIcon = new ImageIcon(
-                RechnungWindow.class.getResource("icons/edit-user.png"));
+                RechnungenErstellenWindow.class.getResource("icons/edit-user.png"));
         scaled = nativeIcon.getImage().getScaledInstance(16, 16,
                 Image.SCALE_SMOOTH);
         ICON_PERSON = new ImageIcon(scaled);
 
         nativeIcon = new ImageIcon(
-                RechnungWindow.class.getResource("icons/text-plain.png"));
+                RechnungenErstellenWindow.class.getResource("icons/text-plain.png"));
         scaled = nativeIcon.getImage().getScaledInstance(16, 16,
                 Image.SCALE_SMOOTH);
         ICON_BUCHUNG = new ImageIcon(scaled);
@@ -138,8 +139,8 @@ public class RechnungWindow extends JFrame {
      * @param sqlSessionFactory
      *            Zugriff auf die Datenbank
      */
-    public RechnungWindow(SqlSessionFactory sqlSessionFactory) {
-        super("Rechnungen");
+    public RechnungenErstellenWindow(SqlSessionFactory sqlSessionFactory) {
+        super("Rechnungen erstellen");
         this.sqlSessionFactory = sqlSessionFactory;
         buildFrame();
     }
@@ -484,7 +485,7 @@ public class RechnungWindow extends JFrame {
                     rechnung.setRechnungsNummer(rechnungsNummer);
                     rechnung.setDatum(rechnungsdatum.getDate());
                     rechnung.setFrist(frist.getDate());
-                    rechnung.setBeglichen(false);
+                    rechnung.setStatus(Rechnungsstatus.OFFEN);
                     mapper.insertRechnung(rechnung);
                     int rechnungId = rechnung.getRechnungId();
 

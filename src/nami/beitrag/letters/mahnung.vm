@@ -1,0 +1,49 @@
+\documentclass[foldmarks=true]{dpsgbrief}
+
+\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\LoadLetterOption{stamm}
+\setkomavar{signature}{Fabian Lipp}
+\setkomavar{date}{$date.format('dd.MM.yyyy', $mahnung.date)}
+
+\newkomavar{altesdatum}
+\newkomavar{altesdatum2}
+\newkomavar{jahr}
+\newkomavar{altefrist}
+\newkomavar{neuefrist}
+\newkomavar{abmeldung}
+
+\setkomavar{altesdatum}{09.12.2012}
+\setkomavar{altesdatum2}{20.06.2013}
+\setkomavar{altefrist}{28.06.2013}
+\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $mahnung.frist)}
+\setkomavar{abmeldung}{Ende des Jahres 2013}
+
+
+\parindent 0pt
+\parskip 6pt
+
+\renewcommand{\arraystretch}{1.5}
+
+
+\begin{document}
+
+
+\setkomavar{jahr}{2. Halbjahr 2012}
+#if( $mahnung.mahnungArt == 1 )
+\erstemahnung%
+#elseif( $mahnung.mahnungArt == 2 )
+\zweitemahnung%
+#elseif( $mahnung.mahnungArt == 3 )
+\drittemahnung%
+#end
+{$mgl.vorname $mgl.nachname}{$mgl.strasse\\$mgl.plz $mgl.ort}{$rechnung.betrag}
+
+
+
+
+
+
+\end{document}

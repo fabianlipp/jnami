@@ -1,11 +1,16 @@
 package nami.beitrag.db;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 import lombok.Data;
+import lombok.Getter;
 
 import org.apache.ibatis.annotations.Param;
 
+import nami.beitrag.Rechnungsstatus;
 import nami.beitrag.Zahlungsart;
 import nami.connector.Halbjahr;
 
@@ -130,6 +135,16 @@ public interface RechnungenMapper {
     BeitragRechnung getRechnung(int rechnungId);
 
     /**
+     * Aktualisiert eine Rechnung in der Datenbank. Dabei wird nur das
+     * Status-Feld geändert (die anderen Felder einer Rechnung sollten nach dem
+     * Anlegen nicht mehr verändert werden).
+     * 
+     * @param rechnung
+     *            Rechnungsdaten
+     */
+    void updateRechnung(BeitragRechnung rechnung);
+
+    /**
      * Fügt einen Posten zu einer Rechnung hinzu.
      * 
      * @param rechnungId
@@ -142,4 +157,138 @@ public interface RechnungenMapper {
     void insertPosten(@Param("rechnungId") int rechnungId,
             @Param("buchungId") int buchungId,
             @Param("buchungstext") String buchungstext);
+
+    /**
+     * Beschreibt die zurückgegebenen Objekte bei der Rechnungsabfrage mit
+     * Filterkriterien.
+     */
+    @Getter
+    public class DataFindRechnungen {
+        /**
+         * Datensatz der Rechnung.
+         */
+        private BeitragRechnung rechnung;
+
+        /**
+         * Anzahl erstellter Mahnungen.
+         */
+        private int mahnungen;
+
+        /**
+         * Frist der letzten Mahnung. Wird auf <tt>null</tt> gesetzt, falls noch
+         * keine Mahnungen erstellt wurden.
+         */
+        private Date letzteFrist;
+
+        /**
+         * Vorname des Mitglieds.
+         */
+        private String vorname;
+
+        /**
+         * Nachname des Mitglieds.
+         */
+        private String nachname;
+    }
+
+    /**
+     * Fragt alle Rechnungen aus der Datenbank ab, die den übergebenen Kriterien
+     * entsprechen.
+     * 
+     * @param erstellungsjahr
+     *            Legt fest, aus welchem Jahr die Rechnungen stammen sollen.
+     *            Falls der Wert <tt>-1</tt> ist, wird nicht nach dem
+     *            Erstellungsjahr der Rechnung gefiltert.
+     * @param status
+     *            Legt fest, welchen Status die Rechnung haben muss. Falls der
+     *            Wert <tt>null</tt> ist, wird nicht nach dem Status gefiltert.
+     * @param ueberfaellig
+     *            Falls dieser Parameter gesetzt ist, werden nur überfällige
+     *            Rechnungen geliefert. Dabei bedeutet überfällig, dass die
+     *            Frist der Rechnung selbst (und ggf. die der letzten erstellte
+     *            Mahnung) bereits verstrichen ist. Dieser Parameter macht nur
+     *            dann Sinn, wenn der Status auf <tt>OFFEN</tt> gesetzt wird
+     * @param mitgliedId
+     *            Es werden nur Rechnungen für dieses Mitglied gefunden. Falls
+     *            der Wert <tt>-1</tt> ist, wird nicht nach dem Mitglied
+     *            gefiltert.
+     * @return Rechnungen, die den Kriterien entsprechen
+     */
+    ArrayList<DataFindRechnungen> findRechnungen(
+            @Param("erstellungsjahr") int erstellungsjahr,
+            @Param("status") Rechnungsstatus status,
+            @Param("ueberfaellig") boolean ueberfaellig,
+            @Param("mitgliedId") int mitgliedId);
+
+    /**
+     * Beschreibt die zurückgegebenen Objekte bei der Abfrage der Posten einer
+     * Rechnung.
+     */
+    @Getter
+    public class DataListPosten {
+        /**
+         * Buchung, auf die sich der Posten bezieht.
+         */
+        private BeitragBuchung buchung;
+
+        /**
+         * Buchungstext auf der Rechnung.
+         */
+        private String buchungstext;
+    }
+
+    /**
+     * Liefert die Posten aus der Datenbank, die zu einer Rechnung gehören.
+     * 
+     * @param rechnungId
+     *            ID der Rechnung, deren Posten gesucht werden
+     * @return Posten der Rechnung
+     */
+    ArrayList<DataListPosten> getPosten(int rechnungId);
+
+    /**
+     * Liefert alle Mahnungen, die zu einer Rechnung erstellt wurden.
+     * 
+     * @param rechnungId
+     *            ID der Rechnung
+     * @return Mahnungen, die sich auf die Rechnung beziehen
+     */
+    ArrayList<BeitragMahnung> getMahnungen(int rechnungId);
+
+    /**
+     * Beschreibt die zurückgegebenen Objekte bei der Abfrage der Betragssummen
+     * für die Halbjahre.
+     */
+    @Getter
+    public class DataHalbjahrBetraege {
+        /**
+         * Halbjahr.
+         */
+        private Halbjahr halbjahr;
+
+        /**
+         * Summe der Beträge für das Halbjahr.
+         */
+        private BigDecimal betrag;
+    }
+
+    /**
+     * Liefert die Beträge der Posten einer Rechnung gruppiert nach dem
+     * Halbjahr, dem sie zugeordnet sind.
+     * 
+     * @param rechnungId
+     *            ID der Rechnung
+     * @return Paare von Halbjahren und deren Betragssummen
+     */
+    ArrayList<DataHalbjahrBetraege> getHalbjahrBetraege(int rechnungId);
+
+    /**
+     * Fügt eine Mahnung in die Datenbank ein. Die generierte <tt>mahnungId</tt>
+     * der neu eingefügten Rechnung ist anschließend im Objekt gespeichert, das
+     * als Parameter übergeben wurde.
+     * 
+     * @param mahnung
+     *            einzufügende Mahnung
+     */
+    void insertMahnung(BeitragMahnung mahnung);
 }
