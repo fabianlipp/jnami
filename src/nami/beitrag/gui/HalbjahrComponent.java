@@ -1,8 +1,5 @@
 package nami.beitrag.gui;
 
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -23,7 +20,7 @@ import nami.connector.Halbjahr;
  * @author Fabian Lipp
  * 
  */
-public class HalbjahrComponent extends JSpinner {
+public class HalbjahrComponent extends EnhancedJSpinner {
     private static final long serialVersionUID = -1067992548702882662L;
 
     /**
@@ -45,29 +42,6 @@ public class HalbjahrComponent extends JSpinner {
         setModel(new HalbjahrModel(halbjahr));
         setEditor(new HalbjahrEditor(this));
 
-        this.addMouseWheelListener(new MouseWheelSpinnerScroll());
-    }
-
-    /**
-     * Listener, der beim Benutzen des Mausrads das Drücken der DOWN/UP-Taste
-     * auf der Tastatur simuliert.
-     */
-    private class MouseWheelSpinnerScroll implements MouseWheelListener {
-        @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            if (e.getWheelRotation() > 0) {
-                // nach unten
-                dispatchEvent(new KeyEvent(HalbjahrComponent.this,
-                        KeyEvent.KEY_PRESSED, new Date().getTime(), 0,
-                        KeyEvent.VK_DOWN, KeyEvent.CHAR_UNDEFINED));
-            } else if (e.getWheelRotation() < 0) {
-                // nach oben
-                dispatchEvent(new KeyEvent(HalbjahrComponent.this,
-                        KeyEvent.KEY_PRESSED, new Date().getTime(), 0,
-                        KeyEvent.VK_UP, KeyEvent.CHAR_UNDEFINED));
-            }
-
-        }
     }
 
     /**
