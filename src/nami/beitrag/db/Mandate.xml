@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.MandateMapper">
+
+	<select id="getMandat" parameterType="int" resultType="BeitragSepaMandat">
+		SELECT *
+		FROM beitragMandat
+		WHERE mandatId = #{id}
+	</select>
+
+	<insert id="insertMandat" parameterType="BeitragSepaMandat" useGeneratedKeys="true"
+		keyProperty="mandatId">
+		INSERT INTO beitragSepaMandat
+			(iban,
+			bic,
+			datum,
+			kontoinhaber,
+			strasse,
+			plz,
+			ort,
+			email,
+			gueltig)
+		VALUES
+			(#{iban},
+			#{bic},
+			#{datum},
+			#{kontoinhaber},
+			#{strasse},
+			#{plz},
+			#{ort},
+			#{email},
+			#{gueltig})
+	</insert>
+
+	<update id="updateMandat" parameterType="BeitragSepaMandat">
+		UPDATE beitragSepaMandat
+		SET
+			strasse = #{strasse},
+			plz = #{plz},
+			ort = #{ort},
+			email = #{email},
+			gueltig = #{gueltig}
+		WHERE mandatId = #{mandatId}
+	</update>
+
+	<insert id="addMitgliedForMandat">
+		INSERT INTO beitragSepaMandatMitglieder
+			(mandatId,
+			mitgliedId)
+		VALUES
+			(#{mandatId},
+			#{mitgliedId})
+	</insert>
+
+	<update id="setAktivesMandat">
+		UPDATE beitragMitglied
+		SET aktivesMandat = #{mandatId}
+		WHERE mitgliedId = #{mitgliedId}
+	</update>
+
+	<select id="findMandateByMitglied" parameterType="int" resultType="BeitragSepaMandat">
+		SELECT DISTINCT m.*
+		FROM beitragSepaMandat m
+			JOIN beitragSepaMandatMitglieder mmgl
+				ON m.mandatId = mmgl.mandatId
+		WHERE mmgl.mitgliedId = #{mitgliedId}
+	</select>
+
+	<select id="findMitgliederByMandat" parameterType="int" resultType="BeitragMitglied">
+		SELECT mgl.*
+		FROM beitragMitglied mgl
+			JOIN beitragSepaMandatMitglieder mmgl
+				ON mgl.mitgliedId = mmgl.mitgliedId
+		WHERE mmgl.mandatId = #{mandatId}
+	</select>
+</mapper>

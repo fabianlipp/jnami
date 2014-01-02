@@ -4,7 +4,6 @@ import java.util.Date;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import nami.beitrag.Zahlungsart;
 import nami.connector.Beitragsart;
 import nami.connector.Mitgliedstyp;
 import nami.connector.namitypes.NamiMitglied;
@@ -31,15 +30,7 @@ public class BeitragMitglied {
     private String ort;
     private String email;
     private int version;
-    private Zahlungsart zahlungsart;
-    private String mandatIBAN;
-    private String mandatBIC;
-    private Date mandatDatum;
-    private String mandatKontoinhaber;
-    private String mandatStrasse;
-    private String mandatPlz;
-    private String mandatOrt;
-    private String mandatEmail;
+    private Integer aktivesMandat;
     private boolean deleted;
 
     /**

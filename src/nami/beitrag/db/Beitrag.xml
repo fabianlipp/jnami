@@ -38,15 +38,6 @@
 			ort,
 			email,
 			version,
-			zahlungsart,
-			mandatIBAN,
-			mandatBIC,
-			mandatDatum,
-			mandatKontoinhaber,
-			mandatStrasse,
-			mandatPlz,
-			mandatOrt,
-			mandatEmail,
 			deleted)
 		VALUES
 			(#{mitgliedId},
@@ -61,15 +52,6 @@
 			#{ort},
 			#{email},
 			#{version},
-			#{zahlungsart},
-			#{mandatIBAN},
-			#{mandatBIC},
-			#{mandatDatum},
-			#{mandatKontoinhaber},
-			#{mandatStrasse},
-			#{mandatPlz},
-			#{mandatOrt},
-			#{mandatEmail},
 			#{deleted})
 	</insert>
 	
@@ -87,15 +69,6 @@
 			ort = #{ort},
 			email = #{email},
 			version = #{version},
-			zahlungsart = #{zahlungsart},
-			mandatIBAN = #{mandatIBAN},
-			mandatBIC = #{mandatBIC},
-			mandatDatum = #{mandatDatum},
-			mandatKontoinhaber = #{mandatKontoinhaber},
-			mandatStrasse = #{mandatStrasse},
-			mandatPlz = #{mandatPlz},
-			mandatOrt = #{mandatOrt},
-			mandatEmail = #{mandatEmail},
 			deleted = #{deleted}
 		WHERE mitgliedId = #{mitgliedId}
 	</update>

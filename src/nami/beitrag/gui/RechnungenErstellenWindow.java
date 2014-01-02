@@ -42,13 +42,13 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreePath;
 
 import nami.beitrag.Rechnungsstatus;
-import nami.beitrag.Zahlungsart;
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragRechnung;
 import nami.beitrag.db.DataMitgliederForderungen;
 import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.RechnungenMapper.FilterSettings;
 import nami.beitrag.db.RechnungenMapper.VorausberechnungFilter;
+import nami.beitrag.db.RechnungenMapper.ZahlungsartFilter;
 import nami.beitrag.letters.LetterGenerator;
 import net.miginfocom.swing.MigLayout;
 
@@ -62,6 +62,7 @@ import org.jdesktop.swingx.decorator.Highlighter;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
 import com.toedter.calendar.JDateChooser;
+import javax.swing.border.LineBorder;
 
 /**
  * Stellt ein Fenster dar, in dem Rechnungen zusammengestellt werden können.
@@ -121,13 +122,15 @@ public class RechnungenErstellenWindow extends JFrame {
         Image scaled;
 
         nativeIcon = new ImageIcon(
-                RechnungenErstellenWindow.class.getResource("icons/edit-user.png"));
+                RechnungenErstellenWindow.class
+                        .getResource("icons/edit-user.png"));
         scaled = nativeIcon.getImage().getScaledInstance(16, 16,
                 Image.SCALE_SMOOTH);
         ICON_PERSON = new ImageIcon(scaled);
 
         nativeIcon = new ImageIcon(
-                RechnungenErstellenWindow.class.getResource("icons/text-plain.png"));
+                RechnungenErstellenWindow.class
+                        .getResource("icons/text-plain.png"));
         scaled = nativeIcon.getImage().getScaledInstance(16, 16,
                 Image.SCALE_SMOOTH);
         ICON_BUCHUNG = new ImageIcon(scaled);
@@ -309,7 +312,7 @@ public class RechnungenErstellenWindow extends JFrame {
 
         /*** Zahlungsart ***/
         JPanel zahlungsartPanel = new JPanel();
-        zahlungsartPanel.setBorder(new TitledBorder(null, "Zahlungsart",
+        zahlungsartPanel.setBorder(new TitledBorder(null, "SEPA-Mandat",
                 TitledBorder.LEADING, TitledBorder.TOP, null, null));
         zahlungsartPanel.setLayout(new BoxLayout(zahlungsartPanel,
                 BoxLayout.Y_AXIS));
@@ -317,9 +320,9 @@ public class RechnungenErstellenWindow extends JFrame {
 
         rdbtnAlle = new JRadioButton("Alle");
         zahlungsartPanel.add(rdbtnAlle);
-        rdbtnRechnung = new JRadioButton("Rechnung");
+        rdbtnRechnung = new JRadioButton("ohne Lastschrift-Mandat");
         zahlungsartPanel.add(rdbtnRechnung);
-        rdbtnLastschrift = new JRadioButton("Lastschrift");
+        rdbtnLastschrift = new JRadioButton("mit Lastschrift-Mandat");
         zahlungsartPanel.add(rdbtnLastschrift);
 
         ButtonGroup zahlungsartGrp = new ButtonGroup();
@@ -382,9 +385,12 @@ public class RechnungenErstellenWindow extends JFrame {
             }
 
             if (rdbtnRechnung.isSelected()) {
-                filterSettings.setZahlungsart(Zahlungsart.RECHNUNG);
+                filterSettings
+                        .setZahlungsart(ZahlungsartFilter.KEINE_LASTSCHRIFT);
             } else if (rdbtnLastschrift.isSelected()) {
-                filterSettings.setZahlungsart(Zahlungsart.LASTSCHRIFT);
+                filterSettings.setZahlungsart(ZahlungsartFilter.LASTSCHRIFT);
+            } else if (rdbtnAlle.isSelected()) {
+                filterSettings.setZahlungsart(ZahlungsartFilter.ALLE);
             }
 
             filterSettings.setBereitsBerechnet(chckbxBereitsBerechnet

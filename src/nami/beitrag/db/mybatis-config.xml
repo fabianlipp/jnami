@@ -13,6 +13,7 @@
 		<typeAlias type="nami.beitrag.db.BeitragMahnung" alias="BeitragMahnung" />
 		<typeAlias type="nami.beitrag.db.BeitragMitglied" alias="BeitragMitglied" />
 		<typeAlias type="nami.beitrag.db.BeitragRechnung" alias="BeitragRechnung" />
+		<typeAlias type="nami.beitrag.db.BeitragSepaMandat" alias="BeitragSepaMandat" />
 		<typeAlias type="nami.beitrag.db.BeitragZeitraum" alias="BeitragZeitraum" />
 
 		<typeAlias type="nami.beitrag.db.DataMitgliederForderungen" alias="DataMitgliederForderungen" />
@@ -45,8 +46,9 @@
 
 	<mappers>
 		<mapper resource="nami/beitrag/db/Beitrag.xml" />
-		<mapper resource="nami/beitrag/db/Reports.xml" />
+		<mapper resource="nami/beitrag/db/Mandate.xml" />
 		<mapper resource="nami/beitrag/db/Rechnungen.xml" />
+		<mapper resource="nami/beitrag/db/Reports.xml" />
 	</mappers>
 
 </configuration>

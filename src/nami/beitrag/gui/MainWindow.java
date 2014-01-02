@@ -239,6 +239,28 @@ public class MainWindow extends JFrame {
         JLabel label12 = new JLabel("def");
         buttons.add(label12, "grow,wrap");
 
+        JButton button13 = new JButton("Mandat erfassen");
+        buttons.add(button13, "grow,wrap");
+        button13.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new MandatErstellenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
+        JButton button14 = new JButton("Mandate verwalten");
+        buttons.add(button14, "grow");
+        button14.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new MandatVerwaltenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
         JButton buttonClose = new JButton("Beenden");
         buttonClose.addActionListener(new ActionListener() {
             @Override
@@ -253,7 +275,7 @@ public class MainWindow extends JFrame {
         getContentPane().add(buttons);
         getContentPane().add(control);
         pack();
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     /**

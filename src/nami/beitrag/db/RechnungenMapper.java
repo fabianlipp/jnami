@@ -7,12 +7,10 @@ import java.util.Date;
 
 import lombok.Data;
 import lombok.Getter;
+import nami.beitrag.Rechnungsstatus;
+import nami.connector.Halbjahr;
 
 import org.apache.ibatis.annotations.Param;
-
-import nami.beitrag.Rechnungsstatus;
-import nami.beitrag.Zahlungsart;
-import nami.connector.Halbjahr;
 
 /**
  * Stellt Datenbankabfragen zur Arbeit mit Rechnungen bereit.
@@ -42,6 +40,27 @@ public interface RechnungenMapper {
     }
 
     /**
+     * Filtert Mitglieder danach, ob ihnen ein gültiges, aktives
+     * Lastschrift-Mandat zugewiesen ist.
+     */
+    static enum ZahlungsartFilter {
+        /**
+         * Mitglied hat ein gültiges, aktives SEPA-Mandat.
+         */
+        LASTSCHRIFT,
+
+        /**
+         * Mitglied hat <i>kein</i> gültiges, aktives SEPA-Mandat.
+         */
+        KEINE_LASTSCHRIFT,
+
+        /**
+         * Filtere Mitglieder nicht nach diesem Kriterium.
+         */
+        ALLE
+    }
+
+    /**
      * Beschreibt Filterkriterien für die Suche nach Personen und Buchungen.
      */
     @Data
@@ -65,11 +84,10 @@ public interface RechnungenMapper {
         private VorausberechnungFilter vorausberechnung;
 
         /**
-         * Hiermit können nur Mitglieder selektiert werden, für die eine
-         * bestimmte Zahlungsart eingetragen ist. Falls der Wert <tt>null</tt>
-         * ist, wird nicht nach diesem Kriterium gefiltert.
+         * Hiermit können nur Mitglieder selektiert werden, für die ein aktives
+         * Lastschrift-Mandat vorhanden ist.
          */
-        private Zahlungsart zahlungsart = null;
+        private ZahlungsartFilter zahlungsart = null;
 
         /**
          * Gibt an, ob auch Buchungen selektiert werden, die bereits in einer

@@ -81,7 +81,12 @@
 		FROM beitragBuchung AS b, beitragMitglied AS m
 		WHERE b.mitgliedId = m.mitgliedId
 			<if test="filterSettings.zahlungsart != null">
-				AND m.zahlungsart = #{filterSettings.zahlungsart}
+				<if test="filterSettings.zahlungsart.toString() == 'LASTSCHRIFT'">
+					AND m.aktivesMandat IS NOT NULL
+				</if>
+				<if test="filterSettings.zahlungsart.toString() == 'KEINE_LASTSCHRIFT'">
+					AND m.aktivesMandat IS NULL
+				</if>
 			</if>
 			<include refid="buchungsFilter"/>
 		GROUP BY b.mitgliedId
