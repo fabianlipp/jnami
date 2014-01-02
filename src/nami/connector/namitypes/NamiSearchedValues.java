@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
+import nami.connector.MitgliedStatus;
 import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
@@ -29,7 +30,7 @@ public class NamiSearchedValues {
     private String alterBis = "";
     private String mglWohnort = "";
     private String mitgliedsNummber = ""; // Rechtschreibfehler in NaMi
-    private Integer mglStatusId = null;
+    private String mglStatusId = null;
     private String mglTypeId = null;
     private Integer tagId = null;
     private Integer bausteinIncludedId = null;
@@ -111,6 +112,16 @@ public class NamiSearchedValues {
     }
 
     /**
+     * Setzt den Status, nach dem gesucht werden soll.
+     * 
+     * @param status
+     *            .
+     */
+    public void setMitgliedStatus(MitgliedStatus status) {
+        this.mglStatusId = status.toString();
+    }
+
+    /**
      * Setzt den Mitgliedstyp, nach dem gesucht werden soll.
      * 
      * @param mgltype
@@ -177,6 +188,13 @@ public class NamiSearchedValues {
         el = namiSearchEl.getChild("mitgliedstyp");
         if (el != null) {
             res.setMitgliedstyp(Mitgliedstyp.fromString(el
+                    .getAttributeValue("id")));
+        }
+
+        // MitgliedStatus
+        el = namiSearchEl.getChild("mitgliedStatus");
+        if (el != null) {
+            res.setMitgliedStatus(MitgliedStatus.fromString(el
                     .getAttributeValue("id")));
         }
 
