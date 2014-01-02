@@ -79,13 +79,20 @@
 		SELECT b.mitgliedId AS mitgliedId, mitgliedsnummer, nachname,
 			vorname, SUM(betrag) AS saldo
 		FROM beitragBuchung AS b, beitragMitglied AS m
+			LEFT JOIN beitragSepaMandat mand
+				ON m.aktivesMandat = mand.mandatId
 		WHERE b.mitgliedId = m.mitgliedId
 			<if test="filterSettings.zahlungsart != null">
 				<if test="filterSettings.zahlungsart.toString() == 'LASTSCHRIFT'">
 					AND m.aktivesMandat IS NOT NULL
+					AND mand.gueltig = TRUE
 				</if>
 				<if test="filterSettings.zahlungsart.toString() == 'KEINE_LASTSCHRIFT'">
-					AND m.aktivesMandat IS NULL
+					AND (
+						m.aktivesMandat IS NULL
+						OR (m.aktivesMandat IS NOT NULL
+							AND mand.gueltig = FALSE)
+						)
 				</if>
 			</if>
 			<include refid="buchungsFilter"/>
