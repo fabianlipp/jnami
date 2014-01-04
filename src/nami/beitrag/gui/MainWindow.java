@@ -15,11 +15,16 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.apache.ibatis.session.SqlSession;
+
 import nami.beitrag.NamiBeitrag;
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragMitglied;
+import nami.beitrag.db.LastschriftenMapper;
+import nami.beitrag.db.LastschriftenMapper.FilterSettings;
 import nami.beitrag.db.ReportsMapper;
+import nami.beitrag.db.LastschriftenMapper.DataMandateRechnungen;
 import nami.beitrag.reports.DataAbrechnungHalbjahr;
 import nami.beitrag.reports.PDFReportGenerator;
 import nami.connector.exception.NamiApiException;
@@ -251,11 +256,43 @@ public class MainWindow extends JFrame {
         });
 
         JButton button14 = new JButton("Mandate verwalten");
-        buttons.add(button14, "grow");
+        buttons.add(button14, "grow,wrap");
         button14.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFrame win = new MandatVerwaltenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
+        JButton button15 = new JButton("Teste MyBatis Nested Results");
+        buttons.add(button15, "grow,wrap");
+        button15.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                SqlSession session = namiBeitrag.getSessionFactory()
+                        .openSession();
+                try {
+                    LastschriftenMapper mapper = session
+                            .getMapper(LastschriftenMapper.class);
+                    FilterSettings filterSettings = new FilterSettings();
+                    Collection<DataMandateRechnungen> result = mapper
+                            .mandateOffeneRechnungen(filterSettings);
+
+                    System.out.println("Fertig");
+                } finally {
+                    session.close();
+                }
+            }
+        });
+
+        JButton button16 = new JButton("Lastschriften erstellen");
+        buttons.add(button16, "grow,wrap");
+        button16.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new LastschriftErstellenWindow(namiBeitrag
                         .getSessionFactory());
                 win.setVisible(true);
             }
@@ -275,7 +312,7 @@ public class MainWindow extends JFrame {
         getContentPane().add(buttons);
         getContentPane().add(control);
         pack();
-        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     /**

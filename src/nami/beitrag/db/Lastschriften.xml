@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.LastschriftenMapper">
+
+	<!-- ****** Sammellastschrift vorbereiten ****** -->
+	<resultMap id="rechnungResult" type="BeitragRechnung">
+		<id property="rechnungId" column="rechnungId" />
+		<result property="mitgliedId" column="mitgliedId" />
+		<result property="rechnungsNummer" column="rechnungsNummer" />
+		<result property="datum" column="datum" />
+		<result property="frist" column="frist" />
+		<result property="status" column="status" />
+		<result property="betrag" column="betrag" />
+	</resultMap>
+	
+	<resultMap id="mitgliedResult" type="BeitragMitglied">
+		<id property="mitgliedId" column="mitgliedId" />
+		<result property="mitgliedsnummer" column="mitgliedsnummer" />
+		<result property="nachname" column="nachname" />
+		<result property="vorname" column="vorname" />
+		<result property="status" column="status" />
+	</resultMap>
+	
+	<resultMap id="mandatResult" type="BeitragSepaMandat" autoMapping="true">
+		<id property="mandatId" column="mandatId" />
+	</resultMap>
+	
+	<resultMap id="dataRechnungMitgliedResult" type="DataRechnungMitglied">
+		<association property="rechnung" resultMap="rechnungResult" columnPrefix="r_"/>
+		<association property="mitglied" resultMap="mitgliedResult" columnPrefix="mgl_"/>
+	</resultMap>
+
+	<resultMap id="mandateRechnungenResult" type="DataMandateRechnungen" autoMapping="true">
+		<id column="mandatId" />
+		<association property="mandat" resultMap="mandatResult" />
+		<collection property="rechnungen" ofType="DataRechnungMitglied" resultMap="dataRechnungMitgliedResult" />
+	</resultMap>
+
+	<select id="mandateOffeneRechnungen" resultMap="mandateRechnungenResult">
+		SELECT mand.*,
+			mgl.mitgliedId AS mgl_mitgliedId,
+			mgl.mitgliedsnummer AS mgl_mitgliedsnummer,
+			mgl.nachname AS mgl_nachname,
+			mgl.vorname AS mgl_vorname,
+			r.rechnungId AS r_rechnungId,
+			r.mitgliedId AS r_mitgliedId,
+			r.rechnungsNummer AS r_rechnungsNummer,
+			r.datum AS r_datum,
+			r.frist AS r_frist,
+			r.status AS r_status,
+			SUM(b.betrag) AS r_betrag
+		FROM beitragRechnung AS r
+			JOIN beitragMitglied AS mgl
+				ON r.mitgliedId = mgl.mitgliedId
+			JOIN beitragSepaMandat AS mand
+				ON mgl.aktivesMandat = mand.mandatId
+			JOIN beitragRechnungPosten p
+				ON r.rechnungId = p.rechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		WHERE r.status = 'OFFEN'
+			AND mand.gueltig = TRUE
+			<if test="filterSettings.rechnungsdatum != null">
+				AND r.datum = #{filterSettings.rechnungsdatum}
+			</if>
+			<if test="!filterSettings.bereitsErstellt">
+				AND NOT EXISTS (
+					SELECT lastschriftId
+					FROM beitragLastschriftRechnung AS lr
+					WHERE lr.rechnungId = r.rechnungId
+					)
+			</if>
+		GROUP BY r.rechnungId
+	</select>
+
+	<!-- ****** Lastschriften ****** -->
+	<insert id="insertLastschrift" parameterType="BeitragLastschrift"
+		useGeneratedKeys="true" keyProperty="lastschriftId">
+		INSERT INTO beitragLastschrift
+			(sammelLastschriftId,
+			mandatId,
+			verwendungszweck)
+		VALUES
+			(#{sammelLastschriftId},
+			#{mandatId},
+			#{verwendungszweck})
+	</insert>
+	
+	<insert id="addRechnungToLastschrift">
+		INSERT INTO beitragLastschriftRechnung
+			(lastschriftId,
+			rechnungId)
+		VALUES
+			(#{lastschriftId},
+			#{rechnungId})
+	</insert>
+
+	<!-- ****** Sammel-Lastschriften ****** -->
+	<insert id="insertSammelLastschrift" parameterType="BeitragSammelLastschrift"
+		useGeneratedKeys="true" keyProperty="sammelLastschriftId">
+		INSERT INTO beitragSammelLastschrift
+			(faelligkeit,
+			ausgefuehrt,
+			bezeichnung)
+		VALUES
+			(#{faelligkeit},
+			#{ausgefuehrt},
+			#{bezeichnung})
+	</insert>
+
+
+</mapper>

@@ -2,7 +2,6 @@ package nami.beitrag.gui;
 
 import jas.util.CheckBoxBorderPanel;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -30,15 +29,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.UIDefaults;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreePath;
 
 import nami.beitrag.Rechnungsstatus;
@@ -49,6 +44,8 @@ import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.RechnungenMapper.FilterSettings;
 import nami.beitrag.db.RechnungenMapper.VorausberechnungFilter;
 import nami.beitrag.db.RechnungenMapper.ZahlungsartFilter;
+import nami.beitrag.gui.utils.Colors;
+import nami.beitrag.gui.utils.DisabledCellRenderer;
 import nami.beitrag.letters.LetterGenerator;
 import net.miginfocom.swing.MigLayout;
 
@@ -62,7 +59,6 @@ import org.jdesktop.swingx.decorator.Highlighter;
 import org.jdesktop.swingx.treetable.AbstractTreeTableModel;
 
 import com.toedter.calendar.JDateChooser;
-import javax.swing.border.LineBorder;
 
 /**
  * Stellt ein Fenster dar, in dem Rechnungen zusammengestellt werden können.
@@ -101,16 +97,6 @@ public class RechnungenErstellenWindow extends JFrame {
     // Komponenten für "Rechnung erstellen"
     private JDateChooser rechnungsdatum;
     private JDateChooser frist;
-
-    // Farben für die Hervorhebung von Zeilen in der Tabelle
-    private static final UIDefaults UIDEFAULTS = javax.swing.UIManager
-            .getDefaults();
-    private static final Color COL_BUCHUNG_BG = UIDEFAULTS
-            .getColor("Label.background");
-    private static final Color COL_BUCHUNG_SELECTED_BG = UIDEFAULTS
-            .getColor("List.selectionBackground");
-    private static final Color COL_DEACTIVATED_FG = UIDEFAULTS
-            .getColor("Label.disabledForeground");
 
     // Icon, mit denen Personen in der Tabelle markiert werden
     private static final Icon ICON_PERSON;
@@ -184,16 +170,16 @@ public class RechnungenErstellenWindow extends JFrame {
         Highlighter high;
         // Färbt den Hintergrund aller Buchungen ein
         high = new ColorHighlighter(new BuchungHighlightPredicate(),
-                COL_BUCHUNG_BG, null);
+                Colors.TT_CHILD_BG, null);
         treeTable.addHighlighter(high);
         // Färbt den Hintergrund der Buchungen, die zur aktuell ausgewählten
         // Person gehören, ein
         high = new ColorHighlighter(new BuchungSelectedPredicate(),
-                COL_BUCHUNG_SELECTED_BG, null);
+                Colors.TT_SEL_BG, null);
         treeTable.addHighlighter(high);
         // Färbt den Text der abgewählten Personen und Buchungen ein
         high = new ColorHighlighter(new RowDeactivatedPredicate(), null,
-                COL_DEACTIVATED_FG, null, COL_DEACTIVATED_FG);
+                Colors.TT_DEACTIV_FG, null, Colors.TT_DEACTIV_FG);
         treeTable.addHighlighter(high);
 
         /*** Buttons unter der Tabelle ***/
@@ -604,32 +590,6 @@ public class RechnungenErstellenWindow extends JFrame {
             }
 
             return false;
-        }
-    }
-
-    /**
-     * Modifiziert den DefaultRenderer so, dass Steuerelemente disabled werden
-     * (enabled=false), wenn die entsprechende Zelle nicht editable ist.
-     */
-    private static class DisabledCellRenderer extends DefaultTableCellRenderer {
-        private static final long serialVersionUID = -1264933737399197781L;
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table,
-                Object value, boolean isSelected, boolean hasFocus, int row,
-                int column) {
-
-            TableCellRenderer renderer = table.getDefaultRenderer(table
-                    .getColumnClass(column));
-            Component c = renderer.getTableCellRendererComponent(table, value,
-                    isSelected, hasFocus, row, column);
-
-            // Deaktiviert die Komponente, falls das Feld nicht bearbeitbar ist
-            if (!table.isCellEditable(row, column)) {
-                c.setEnabled(false);
-            }
-
-            return c;
         }
     }
 
