@@ -277,6 +277,7 @@ public class MainWindow extends JFrame {
                     LastschriftenMapper mapper = session
                             .getMapper(LastschriftenMapper.class);
                     FilterSettings filterSettings = new FilterSettings();
+                    filterSettings.setBereitsErstellt(true);
                     Collection<DataMandateRechnungen> result = mapper
                             .mandateOffeneRechnungen(filterSettings);
 
@@ -293,6 +294,17 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFrame win = new LastschriftErstellenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
+        JButton button17 = new JButton("Lastschriften verwalten");
+        buttons.add(button17, "grow,wrap");
+        button17.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new LastschriftVerwaltenWindow(namiBeitrag
                         .getSessionFactory());
                 win.setVisible(true);
             }

@@ -76,4 +76,13 @@
 				ON mgl.mitgliedId = mmgl.mitgliedId
 		WHERE mmgl.mandatId = #{mandatId}
 	</select>
+
+	<select id="isMandatUsed" parameterType="int" resultType="boolean">
+		SELECT CASE WHEN count(*) > 0 THEN 1 ELSE 0 END
+		FROM beitragLastschrift l
+			JOIN beitragSammelLastschrift sl
+				ON l.sammelLastschriftId = sl.sammelLastschriftId
+		WHERE mandatId = #{mandatId}
+			AND ausgefuehrt = TRUE
+	</select>
 </mapper>

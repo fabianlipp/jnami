@@ -90,4 +90,17 @@ public interface MandateMapper {
      *         werden können
      */
     ArrayList<BeitragMitglied> findMitgliederByMandat(int mandatId);
+
+    /**
+     * Gibt an, ob ein bestimmtes Mandat schon einmal benutzt wurde. Benutzt
+     * bedeutet hierbei, dass es in einer Sammellastschrift verwendet wurde, die
+     * auch als ausgeführt markiert ist. Die Rückgabe kann also verwendet werden
+     * um den SEPA-Sequenztyp (FRST oder RCUR) zu bestimmen.
+     * 
+     * @param mandatId
+     *            ID des Mandats
+     * @return <tt>true</tt>, falls bereits eine Erstlastschrift von diesem
+     *         Mandat gezogen wurde
+     */
+    boolean isMandatUsed(int mandatId);
 }

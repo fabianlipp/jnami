@@ -1,5 +1,6 @@
 package nami.beitrag.db;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -77,14 +78,14 @@ public interface LastschriftenMapper {
     void insertLastschrift(BeitragLastschrift lastschrift);
 
     /**
-     * Fügt eine Sammellastschrift in die Datenbank ein. Die
-     * <tt>sammelLastschriftId</tt> der neu eingefügten Lastschrift ist
-     * anschließend im Objekt gespeichert, das als Parameter übergeben wurde.
+     * Löscht eine Lastschrift aus der Datenbank. Die enthaltenen Rechnungen
+     * sollten vorher schon gelöscht worden seien (siehe
+     * {@link #deleteAllRechnungenFromLastschrift(int)}).
      * 
-     * @param sammelLastschrift
-     *            Daten der einzufügenden Sammellastschrift
+     * @param lastschriftId
+     *            ID der Lastschrift, die gelöscht werden soll
      */
-    void insertSammelLastschrift(BeitragSammelLastschrift sammelLastschrift);
+    void deleteLastschrift(int lastschriftId);
 
     /**
      * Fügt eine Rechnung zu einer Lastschrift hinzu, d. h. diese Rechnung wird
@@ -97,4 +98,94 @@ public interface LastschriftenMapper {
      */
     void addRechnungToLastschrift(@Param("lastschriftId") int lastschriftId,
             @Param("rechnungId") int rechnungId);
+
+    /**
+     * Löscht alle Rechnungen aus einer Lastschrift. Die Rechnungen werden dabei
+     * in der Datenbank belassen, nur ihre Verbindungen zur Lastschrift werden
+     * entfernt.
+     * 
+     * @param lastschriftId
+     *            ID der Lastschrift
+     */
+    void deleteAllRechnungenFromLastschrift(int lastschriftId);
+
+    /**
+     * Fügt eine Sammellastschrift in die Datenbank ein. Die
+     * <tt>sammelLastschriftId</tt> der neu eingefügten Lastschrift ist
+     * anschließend im Objekt gespeichert, das als Parameter übergeben wurde.
+     * 
+     * @param sammelLastschrift
+     *            Daten der einzufügenden Sammellastschrift
+     */
+    void insertSammelLastschrift(BeitragSammelLastschrift sammelLastschrift);
+
+    /**
+     * Aktualisiert den Datensatz einer Sammellastschrift.
+     * 
+     * @param sammelLastschrift
+     *            Objekt, dessen geänderte Felder in die Datenbank gespeichert
+     *            werden sollen
+     */
+    void updateSammelLastschrift(BeitragSammelLastschrift sammelLastschrift);
+
+    /**
+     * Löscht eine Sammellastschrift aus der Datenbank. Die enthaltenen
+     * Lastschriften sollten vorher schon gelöscht worden seien.
+     * 
+     * @param sammelLastschriftId
+     *            ID der Sammellastschrift
+     */
+    void deleteSammelLastschrift(int sammelLastschriftId);
+
+    /**
+     * Fragt alle Sammellastschriften (inkl. der Anzahl der enthaltenen
+     * Einzellastschriften und des Gesamtbetrages) aus der Datenbank ab, die dem
+     * übergebenen Filterkriterium entsprechen.
+     * 
+     * @param ausgefuehrt
+     *            Gibt an, ob ausgeführte Sammellastschriften angezeigt werden
+     *            sollen.
+     *            <ul>
+     *            <li><tt>True</tt>: nur ausgeführte werden angezeigt</li>
+     *            <li><tt>False</tt>: nur <em>nicht</em> ausgeführte werden
+     *            angezeigt</li>
+     *            <li><tt>null</tt>: Filterkriterium wird ignoriert</li>
+     *            </ul>
+     * @return Sammellastschriften, die dem angegebenen Filterkriterium
+     *         entsprechen
+     */
+    ArrayList<BeitragSammelLastschrift> findSammelLastschriften(
+            @Param("ausgefuehrt") Boolean ausgefuehrt);
+
+    /**
+     * Ergebnis-Datentyp, der Kombinationen aus einer Lastschrift und dem
+     * zugehörigen Mandat aufnimmt.
+     */
+    @Getter
+    public static class DataLastschriftMandat {
+        private BeitragLastschrift lastschrift;
+        private BeitragSepaMandat mandat;
+    }
+
+    /**
+     * Liefert alle Lastschriften (inkl. der zugehörigen Mandate), die in einer
+     * Sammellastschrift enthalten sind.
+     * 
+     * @param sammelLastschriftId
+     *            ID der Sammellastschrift
+     * @return enthaltenen (Einzel-)Lastschriften
+     */
+    ArrayList<DataLastschriftMandat> getLastschriften(int sammelLastschriftId);
+
+    /**
+     * Liefert alle Rechnungen, die in einer Sammellastschrift enthalten sind.
+     * Das heißt es werden die zugeordneten Rechnungen aller enthaltenen
+     * Einzellastschriften vereinigt.
+     * 
+     * @param sammelLastschriftId
+     *            ID der Sammellastschrift
+     * @return zugeordnete Rechnungen
+     */
+    List<BeitragRechnung> getRechnungenInSammelLastschrift(
+            int sammelLastschriftId);
 }

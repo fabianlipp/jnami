@@ -15,7 +15,7 @@
 		<result property="status" column="status" />
 		<result property="betrag" column="betrag" />
 	</resultMap>
-	
+
 	<resultMap id="mitgliedResult" type="BeitragMitglied">
 		<id property="mitgliedId" column="mitgliedId" />
 		<result property="mitgliedsnummer" column="mitgliedsnummer" />
@@ -23,11 +23,11 @@
 		<result property="vorname" column="vorname" />
 		<result property="status" column="status" />
 	</resultMap>
-	
+
 	<resultMap id="mandatResult" type="BeitragSepaMandat" autoMapping="true">
 		<id property="mandatId" column="mandatId" />
 	</resultMap>
-	
+
 	<resultMap id="dataRechnungMitgliedResult" type="DataRechnungMitglied">
 		<association property="rechnung" resultMap="rechnungResult" columnPrefix="r_"/>
 		<association property="mitglied" resultMap="mitgliedResult" columnPrefix="mgl_"/>
@@ -76,6 +76,10 @@
 		GROUP BY r.rechnungId
 	</select>
 
+
+
+
+
 	<!-- ****** Lastschriften ****** -->
 	<insert id="insertLastschrift" parameterType="BeitragLastschrift"
 		useGeneratedKeys="true" keyProperty="lastschriftId">
@@ -88,7 +92,12 @@
 			#{mandatId},
 			#{verwendungszweck})
 	</insert>
-	
+
+	<delete id="deleteLastschrift" parameterType="int">
+		DELETE FROM beitragLastschrift
+		WHERE lastschriftId = #{lastschriftId}
+	</delete>
+
 	<insert id="addRechnungToLastschrift">
 		INSERT INTO beitragLastschriftRechnung
 			(lastschriftId,
@@ -97,6 +106,40 @@
 			(#{lastschriftId},
 			#{rechnungId})
 	</insert>
+
+	<delete id="deleteAllRechnungenFromLastschrift" parameterType="int">
+		DELETE FROM beitragLastschriftRechnung
+		WHERE lastschriftId = #{lastschriftId}
+	</delete>
+
+	<resultMap id="lastschriftResult" type="BeitragLastschrift" autoMapping="true">
+		<id property="lastschriftId" column="lastschriftId" />
+	</resultMap>
+
+	<resultMap id="lastschriftMandatResult" type="DataLastschriftMandat" autoMapping="true">
+		<id column="mandatId" />
+		<association property="lastschrift" resultMap="lastschriftResult" />
+		<association property="mandat" resultMap="mandatResult" />
+	</resultMap>
+
+	<select id="getLastschriften" parameterType="int" resultMap="lastschriftMandatResult">
+		SELECT l.*, s.*, SUM(b.betrag) AS betrag
+		FROM beitragLastschrift l
+			JOIN beitragSepaMandat s
+				ON l.mandatId = s.mandatId
+			JOIN beitragLastschriftRechnung lr
+				ON l.lastschriftId = lr.lastschriftId
+			JOIN beitragRechnungPosten p
+				ON lr.rechnungId = p.rechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		WHERE sammelLastschriftId = #{sammelLastschriftId}
+		GROUP BY l.lastschriftId
+	</select>
+
+
+
+
 
 	<!-- ****** Sammel-Lastschriften ****** -->
 	<insert id="insertSammelLastschrift" parameterType="BeitragSammelLastschrift"
@@ -111,5 +154,51 @@
 			#{bezeichnung})
 	</insert>
 
+	<update id="updateSammelLastschrift" parameterType="BeitragSammelLastschrift">
+		UPDATE beitragSammelLastschrift
+		SET
+			faelligkeit = #{faelligkeit},
+			ausgefuehrt = #{ausgefuehrt},
+			bezeichnung = #{bezeichnung}
+		WHERE sammelLastschriftId = #{sammelLastschriftId}
+	</update>
+
+	<delete id="deleteSammelLastschrift" parameterType="int">
+		DELETE FROM beitragSammelLastschrift
+		WHERE sammelLastschriftId = #{sammelLastschriftId}
+	</delete>
+
+	<select id="findSammelLastschriften" resultType="BeitragSammelLastschrift">
+		SELECT sl.*,
+			COUNT(DISTINCT l.lastschriftId) AS anzahlLastschriften,
+			SUM(b.betrag) AS betrag
+		FROM beitragSammelLastschrift sl
+			JOIN beitragLastschrift l
+				ON sl.sammelLastschriftId = l.sammelLastschriftId
+			JOIN beitragLastschriftRechnung lr
+				ON l.lastschriftId = lr.lastschriftId
+			JOIN beitragRechnung r
+				ON lr.rechnungId = r.rechnungId
+			JOIN beitragRechnungPosten p
+				ON r.rechnungId = p.RechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		<where>
+			<if test="ausgefuehrt != null">
+				ausgefuehrt = #{ausgefuehrt}
+			</if>
+		</where>
+		GROUP BY sl.sammelLastschriftId
+	</select>
+
+	<select id="getRechnungenInSammelLastschrift" resultType="BeitragRechnung" parameterType="int">
+		SELECT r.*
+		FROM beitragRechnung r
+			JOIN beitragLastschriftRechnung lr
+				ON r.rechnungId = lr.rechnungId
+			JOIN beitragLastschrift l
+				ON lr.lastschriftId = l.lastschriftId
+		WHERE l.sammelLastschriftId = #{sammelLastschriftId}
+	</select>
 
 </mapper>

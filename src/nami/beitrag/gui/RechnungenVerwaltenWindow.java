@@ -452,6 +452,7 @@ public class RechnungenVerwaltenWindow extends JFrame {
                     BeitragMapper beitragMapper = session
                             .getMapper(BeitragMapper.class);
 
+                    // Buchung für jedes Halbjahr der Rechnung erstellen
                     ArrayList<DataHalbjahrBetraege> betraege;
                     betraege = halbjahrBetraegeModel.betraege;
                     for (DataHalbjahrBetraege halbjahrBetrag : betraege) {
