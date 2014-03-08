@@ -201,4 +201,34 @@
 		WHERE l.sammelLastschriftId = #{sammelLastschriftId}
 	</select>
 
+
+
+
+
+	<!-- ****** Prenotifications ****** -->
+	<insert id="insertPrenotification" parameterType="BeitragPrenotification"
+		useGeneratedKeys="true" keyProperty="prenotificationId">
+		INSERT INTO beitragPrenotification
+			(mandatId,
+			datum,
+			betrag,
+			faelligkeit,
+			regelmaessig)
+		VALUES
+			(#{mandatId},
+			#{datum},
+			#{betrag},
+			#{faelligkeit},
+			#{regelmaessig})
+	</insert>
+
+	<select id="existsValidPrenotification" resultType="boolean">
+		SELECT CASE WHEN COUNT(*) > 0 AND res.betrag = #{betrag} THEN 1 ELSE 0 END
+		FROM (SELECT betrag
+			FROM beitragPrenotification
+			WHERE mandatId = #{mandatId}
+				AND regelmaessig = TRUE
+			ORDER BY datum DESC
+			LIMIT 1) AS res
+	</select>
 </mapper>

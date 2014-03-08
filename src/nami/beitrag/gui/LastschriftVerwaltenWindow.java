@@ -5,8 +5,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -34,6 +36,7 @@ import nami.beitrag.Rechnungsstatus;
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragLastschrift;
 import nami.beitrag.db.BeitragMapper;
+import nami.beitrag.db.BeitragPrenotification;
 import nami.beitrag.db.BeitragRechnung;
 import nami.beitrag.db.BeitragSammelLastschrift;
 import nami.beitrag.db.BeitragSepaMandat;
@@ -47,6 +50,8 @@ import net.miginfocom.swing.MigLayout;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+
+import com.toedter.calendar.JDateChooser;
 
 /**
  * Stellt ein Fenster dar, in dem Sammellastschriften verwaltet werden können.
@@ -76,12 +81,14 @@ public class LastschriftVerwaltenWindow extends JFrame {
 
     // Aktions-Tabs
     private JTabbedPane tabbedPane;
-
+    private JDateChooser notificationdatum;
     private JCheckBox chckbxBuchungenErstellen;
-    private static final int EXPORT_TAB_INDEX = 0;
-    private static final int DRUCKEN_TAB_INDEX = 1;
-    private static final int AUSGEFUEHRT_TAB_INDEX = 2;
-    private static final int LOESCHEN_TAB_INDEX = 3;
+
+    private static final int PRENOTIFICATION_TAB_INDEX = 0;
+    private static final int EXPORT_TAB_INDEX = 1;
+    private static final int DRUCKEN_TAB_INDEX = 2;
+    private static final int AUSGEFUEHRT_TAB_INDEX = 3;
+    private static final int LOESCHEN_TAB_INDEX = 4;
 
     private static Logger logger = Logger
             .getLogger(LastschriftVerwaltenWindow.class.getName());
@@ -146,6 +153,8 @@ public class LastschriftVerwaltenWindow extends JFrame {
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         contentPane.add(tabbedPane, "cell 0 5,growx");
 
+        tabbedPane.addTab("Prenotification", null,
+                createPrenotificationPanel(), null);
         tabbedPane.addTab("Export", null, createExportPanel(), null);
         tabbedPane.addTab("Drucken", null, createDruckenPanel(), null);
         tabbedPane.addTab("Ausgeführt", null, createAusgefuehrtPanel(), null);
@@ -214,17 +223,19 @@ public class LastschriftVerwaltenWindow extends JFrame {
                 tabbedPane.setVisible(true);
                 int defaultTabIndex = 0;
                 if (sammellast.isAusgefuehrt()) {
+                    tabbedPane.setEnabledAt(PRENOTIFICATION_TAB_INDEX, true);
                     tabbedPane.setEnabledAt(EXPORT_TAB_INDEX, true);
                     tabbedPane.setEnabledAt(DRUCKEN_TAB_INDEX, true);
                     tabbedPane.setEnabledAt(AUSGEFUEHRT_TAB_INDEX, false);
                     tabbedPane.setEnabledAt(LOESCHEN_TAB_INDEX, false);
                     defaultTabIndex = DRUCKEN_TAB_INDEX;
                 } else {
+                    tabbedPane.setEnabledAt(PRENOTIFICATION_TAB_INDEX, true);
                     tabbedPane.setEnabledAt(EXPORT_TAB_INDEX, true);
                     tabbedPane.setEnabledAt(DRUCKEN_TAB_INDEX, true);
                     tabbedPane.setEnabledAt(AUSGEFUEHRT_TAB_INDEX, true);
                     tabbedPane.setEnabledAt(LOESCHEN_TAB_INDEX, true);
-                    defaultTabIndex = EXPORT_TAB_INDEX;
+                    defaultTabIndex = PRENOTIFICATION_TAB_INDEX;
                 }
 
                 if (!tabbedPane.isEnabledAt(tabbedPane.getSelectedIndex())) {
@@ -287,6 +298,160 @@ public class LastschriftVerwaltenWindow extends JFrame {
         @Override
         public void stateChanged(ChangeEvent e) {
             refreshSammellastModelFromComponents();
+        }
+    }
+
+    private JPanel createPrenotificationPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new MigLayout("", "[][grow]", "[][][][]"));
+
+        JLabel lblRechnungsdatum = new JLabel("Datum der Prenotification:");
+        panel.add(lblRechnungsdatum, "cell 0 0");
+
+        notificationdatum = new JDateChooser();
+        notificationdatum.setDate(new Date());
+        panel.add(notificationdatum, "cell 1 0,growx");
+
+        JButton btnDauerhaftePrenotification = new JButton(
+                "Dauerhafte Prenotification erzeugen für Mandate, "
+                        + "wo noch keine existiert");
+        btnDauerhaftePrenotification
+                .addActionListener(new PrenotificationAction(
+                        PrenotificationType.DAUERHAFT));
+        panel.add(btnDauerhaftePrenotification, "cell 0 1,span");
+
+        JButton btnEinzelDauerhaftPrenotification = new JButton(
+                "Dauerhafte Prenotification für das markierte Mandat erzeugen");
+        btnEinzelDauerhaftPrenotification
+                .addActionListener(new PrenotificationAction(
+                        PrenotificationType.EINZELN_DAUERHAFT));
+        panel.add(btnEinzelDauerhaftPrenotification, "cell 0 2,span");
+
+        JButton btnEinmaligePrenotification = new JButton(
+                "Einmalige Prenotification für alle Mandate erzeugen");
+        btnEinmaligePrenotification
+                .addActionListener(new PrenotificationAction(
+                        PrenotificationType.EINMALIG));
+        panel.add(btnEinmaligePrenotification, "cell 0 3,span");
+
+        JButton btnEinzelPrenotification = new JButton(
+                "Einmalige Prenotification für das markierte Mandat erzeugen");
+        btnEinzelPrenotification.addActionListener(new PrenotificationAction(
+                PrenotificationType.EINZELN_EINMALIG));
+        panel.add(btnEinzelPrenotification, "cell 0 4,span");
+
+        return panel;
+    }
+
+    /**
+     * Die verschiedenen Möglichkeiten eine Prenotification zu erzeugen.
+     */
+    private enum PrenotificationType {
+        /**
+         * Erstellt eine dauerhaft gültige Prenotification für alle
+         * Lastschriften, für die bisher keine gültige existiert.
+         */
+        DAUERHAFT,
+
+        /**
+         * Erstellt eine einmalig gültige Prenotification für alle
+         * Lastschriften.
+         */
+        EINMALIG,
+
+        /**
+         * Erstellt eine dauerhaft gültige Prenotification für die markierte
+         * Lastschrift.
+         */
+        EINZELN_DAUERHAFT,
+
+        /**
+         * Erstellt eine einmalig gültige Prenotification für die markierte
+         * Lastschrift.
+         */
+        EINZELN_EINMALIG
+    }
+
+    /**
+     * Erzeugt eine oder mehrere Prenotifications bei Auswahl der entsprechenden
+     * Buttons.
+     */
+    private final class PrenotificationAction implements ActionListener {
+        private PrenotificationType type;
+
+        private PrenotificationAction(PrenotificationType type) {
+            this.type = type;
+        }
+
+        private BeitragPrenotification createPrenotification(
+                BeitragSammelLastschrift sl, DataLastschriftMandat row) {
+            BeitragPrenotification pre = new BeitragPrenotification();
+            pre.setMandatId(row.getMandat().getMandatId());
+            pre.setDatum(notificationdatum.getDate());
+            pre.setBetrag(row.getLastschrift().getBetrag());
+            pre.setFaelligkeit(sl.getFaelligkeit());
+            pre.setRegelmaessig(true);
+            return pre;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            BeitragSammelLastschrift sl = getSelectedSammellast();
+            BeitragPrenotification pre;
+
+            SqlSession session = sqlSessionFactory.openSession();
+            try {
+                LastschriftenMapper mapper = session
+                        .getMapper(LastschriftenMapper.class);
+
+                if (type == PrenotificationType.DAUERHAFT) {
+                    ArrayList<DataLastschriftMandat> rows = mapper
+                            .getLastschriften(sl.getSammelLastschriftId());
+
+                    for (DataLastschriftMandat row : rows) {
+                        // Prüfe, ob es bereits eine Prenotification gibt
+                        int mandatId = row.getMandat().getMandatId();
+                        BigDecimal betrag = row.getLastschrift().getBetrag();
+                        if (!mapper
+                                .existsValidPrenotification(mandatId, betrag)) {
+                            pre = createPrenotification(sl, row);
+                            pre.setRegelmaessig(true);
+                            mapper.insertPrenotification(pre);
+                        }
+                    }
+                    session.commit();
+                } else if (type == PrenotificationType.EINMALIG) {
+                    ArrayList<DataLastschriftMandat> rows = mapper
+                            .getLastschriften(sl.getSammelLastschriftId());
+
+                    for (DataLastschriftMandat row : rows) {
+                        pre = createPrenotification(sl, row);
+                        pre.setRegelmaessig(false);
+                        mapper.insertPrenotification(pre);
+                    }
+                    session.commit();
+                } else if (type == PrenotificationType.EINZELN_EINMALIG
+                        || type == PrenotificationType.EINZELN_DAUERHAFT) {
+                    DataLastschriftMandat selected = getSelectedEinzellast();
+
+                    if (selected != null) {
+                        pre = createPrenotification(sl, selected);
+                        if (type == PrenotificationType.EINZELN_DAUERHAFT) {
+                            pre.setRegelmaessig(true);
+                        } else {
+                            pre.setRegelmaessig(false);
+                        }
+                        mapper.insertPrenotification(pre);
+                        session.commit();
+                    } else {
+                        logger.severe("Keine Einzellastschrift für "
+                                + "Prenotification ausgewählt.");
+                    }
+                }
+            } finally {
+                session.close();
+            }
+            // TODO: Briefe erzeugen
         }
     }
 

@@ -13,6 +13,7 @@
 		<typeAlias type="nami.beitrag.db.BeitragLastschrift" alias="BeitragLastschrift" />
 		<typeAlias type="nami.beitrag.db.BeitragMahnung" alias="BeitragMahnung" />
 		<typeAlias type="nami.beitrag.db.BeitragMitglied" alias="BeitragMitglied" />
+		<typeAlias type="nami.beitrag.db.BeitragPrenotification" alias="BeitragPrenotification" />
 		<typeAlias type="nami.beitrag.db.BeitragRechnung" alias="BeitragRechnung" />
 		<typeAlias type="nami.beitrag.db.BeitragSammelLastschrift" alias="BeitragSammelLastschrift" />
 		<typeAlias type="nami.beitrag.db.BeitragSepaMandat" alias="BeitragSepaMandat" />

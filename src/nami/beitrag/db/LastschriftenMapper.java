@@ -1,5 +1,6 @@
 package nami.beitrag.db;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -188,4 +189,29 @@ public interface LastschriftenMapper {
      */
     List<BeitragRechnung> getRechnungenInSammelLastschrift(
             int sammelLastschriftId);
+
+    /**
+     * Fügt eine Prenotification in die Datenbank ein. Die
+     * <tt>prenotificationId</tt> der neu eingefügten Prenotification ist
+     * anschließend im Objekt gespeichert, das als Parameter übergeben wurde.
+     * 
+     * @param pre
+     *            Daten der einzufügenden Prenotification
+     */
+    void insertPrenotification(BeitragPrenotification pre);
+
+    /**
+     * Überprüft, ob die aktuellste (nach Ausstellungsdatum), als regelmäßig
+     * gekennzeichnete Prenotification im Betrag mit den Parametern
+     * übereinstimmt. In diesem Fall muss also keine neue erstellt werden.
+     * 
+     * @param mandatId
+     *            ID des Mandats
+     * @param betrag
+     *            benötigter Lastschriftbetrag
+     * @return <tt>true</tt>, falls die aktuellste Prenotification den passenden
+     *         Betrag enthält
+     */
+    boolean existsValidPrenotification(@Param("mandatId") int mandatId,
+            @Param("betrag") BigDecimal betrag);
 }
