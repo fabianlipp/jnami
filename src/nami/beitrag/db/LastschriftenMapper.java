@@ -159,16 +159,6 @@ public interface LastschriftenMapper {
             @Param("ausgefuehrt") Boolean ausgefuehrt);
 
     /**
-     * Ergebnis-Datentyp, der Kombinationen aus einer Lastschrift und dem
-     * zugehörigen Mandat aufnimmt.
-     */
-    @Getter
-    public static class DataLastschriftMandat {
-        private BeitragLastschrift lastschrift;
-        private BeitragSepaMandat mandat;
-    }
-
-    /**
      * Liefert alle Lastschriften (inkl. der zugehörigen Mandate), die in einer
      * Sammellastschrift enthalten sind.
      * 

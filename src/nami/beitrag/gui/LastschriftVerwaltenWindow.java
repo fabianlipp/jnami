@@ -40,8 +40,8 @@ import nami.beitrag.db.BeitragPrenotification;
 import nami.beitrag.db.BeitragRechnung;
 import nami.beitrag.db.BeitragSammelLastschrift;
 import nami.beitrag.db.BeitragSepaMandat;
+import nami.beitrag.db.DataLastschriftMandat;
 import nami.beitrag.db.LastschriftenMapper;
-import nami.beitrag.db.LastschriftenMapper.DataLastschriftMandat;
 import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.RechnungenMapper.DataHalbjahrBetraege;
 import nami.beitrag.gui.utils.DisabledCellRenderer;
@@ -521,14 +521,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (type == HibiscusExportType.SAMMEL) {
-                logger.severe("SEPA-Sammellastschrift not implemented in Hibiscus yet. "
-                        + "Doing nothing.");
-                return;
-            }
-
             BeitragSammelLastschrift sl = getSelectedSammellast();
-
             HibiscusExporter exporter = new HibiscusExporter(sqlSessionFactory);
 
             if (type == HibiscusExportType.ALLE_EINZEL) {
@@ -540,8 +533,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
                             .getLastschriften(sl.getSammelLastschriftId());
 
                     for (DataLastschriftMandat row : rows) {
-                        exporter.exportLastschrift(row.getLastschrift(),
-                                row.getMandat(), sl.getFaelligkeit());
+                        exporter.exportLastschrift(row, sl.getFaelligkeit());
                     }
                 } finally {
                     session.close();
@@ -549,10 +541,21 @@ public class LastschriftVerwaltenWindow extends JFrame {
             } else if (type == HibiscusExportType.MARKIERT_EINZEL) {
                 DataLastschriftMandat selected = getSelectedEinzellast();
                 if (selected != null) {
-                    exporter.exportLastschrift(selected.getLastschrift(),
-                            selected.getMandat(), sl.getFaelligkeit());
+                    exporter.exportLastschrift(selected, sl.getFaelligkeit());
                 } else {
                     logger.severe("Keine Einzellastschrift für Export ausgewählt.");
+                }
+            } else if (type == HibiscusExportType.SAMMEL) {
+                SqlSession session = sqlSessionFactory.openSession();
+                try {
+                    LastschriftenMapper mapper = session
+                            .getMapper(LastschriftenMapper.class);
+                    ArrayList<DataLastschriftMandat> rows = mapper
+                            .getLastschriften(sl.getSammelLastschriftId());
+
+                    exporter.exportSammellastschrift(rows, sl);
+                } finally {
+                    session.close();
                 }
             }
 
