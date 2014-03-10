@@ -391,6 +391,7 @@ public class LastschriftErstellenWindow extends JFrame {
                     }
                     String verwendungszweck = "DPSG-Beitrag "
                             + StringUtils.join(vzweckStrings, ", ");
+                    verwendungszweck = replaceUmlaute(verwendungszweck);
 
                     // Lastschrift in Datenbank einfügen
                     BeitragLastschrift lastschrift = new BeitragLastschrift();
@@ -893,5 +894,17 @@ public class LastschriftErstellenWindow extends JFrame {
             throw new IllegalArgumentException(
                     "RechnungNode never has any children");
         }
+    }
+
+    private static final String[] REPLACE_UML_FROM = { "ä", "ö", "ü", "Ä", "Ö",
+            "Ü", "ß" };
+    private static final String[] REPLACE_UML_TO = { "ae", "oe", "ue", "Ae",
+            "Oe", "Ue", "ss" };
+
+    /**
+     * Ersetzt alle Umlaute im übergebenen String durch ihre Umschreibung.
+     */
+    private static String replaceUmlaute(String text) {
+        return StringUtils.replaceEach(text, REPLACE_UML_FROM, REPLACE_UML_TO);
     }
 }
