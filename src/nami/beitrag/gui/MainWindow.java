@@ -15,20 +15,21 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.apache.ibatis.session.SqlSession;
-
 import nami.beitrag.NamiBeitrag;
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragMitglied;
-import nami.beitrag.db.LastschriftenMapper;
 import nami.beitrag.db.LastschriftenMapper.FilterSettings;
+import nami.beitrag.db.RechnungenMapper;
+import nami.beitrag.db.RechnungenMapper.DataRechnungMitBuchungen;
 import nami.beitrag.db.ReportsMapper;
-import nami.beitrag.db.LastschriftenMapper.DataMandateRechnungen;
+import nami.beitrag.letters.LetterGenerator;
 import nami.beitrag.reports.DataAbrechnungHalbjahr;
 import nami.beitrag.reports.PDFReportGenerator;
 import nami.connector.exception.NamiApiException;
 import net.miginfocom.swing.MigLayout;
+
+import org.apache.ibatis.session.SqlSession;
 
 /**
  * Stellt das Hauptfenster der GUI dar.
@@ -40,6 +41,8 @@ import net.miginfocom.swing.MigLayout;
 public class MainWindow extends JFrame {
     private static final long serialVersionUID = 7477838944466651902L;
 
+    private LetterGenerator letterGenerator;
+
     /**
      * Erzeugt das Hauptfenster.
      * 
@@ -47,7 +50,10 @@ public class MainWindow extends JFrame {
      *            Objekt für die Beitragslogik (enthält Zugriff auf Datenbank
      *            und NaMi)
      */
-    public MainWindow(final NamiBeitrag namiBeitrag) {
+    public MainWindow(final NamiBeitrag namiBeitrag,
+            final LetterGenerator letterGenerator) {
+        this.letterGenerator = letterGenerator;
+
         setTitle("NamiBeitrag");
 
         final BeitragMapper mapper = namiBeitrag.getSessionFactory()
@@ -224,7 +230,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 RechnungenErstellenWindow win = new RechnungenErstellenWindow(
-                        namiBeitrag.getSessionFactory());
+                        namiBeitrag.getSessionFactory(), letterGenerator);
                 win.setVisible(true);
             }
         });
@@ -237,7 +243,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFrame win = new RechnungenVerwaltenWindow(namiBeitrag
-                        .getSessionFactory());
+                        .getSessionFactory(), letterGenerator);
                 win.setVisible(true);
             }
         });
@@ -274,12 +280,12 @@ public class MainWindow extends JFrame {
                 SqlSession session = namiBeitrag.getSessionFactory()
                         .openSession();
                 try {
-                    LastschriftenMapper mapper = session
-                            .getMapper(LastschriftenMapper.class);
+                    RechnungenMapper mapper = session
+                            .getMapper(RechnungenMapper.class);
                     FilterSettings filterSettings = new FilterSettings();
                     filterSettings.setBereitsErstellt(true);
-                    Collection<DataMandateRechnungen> result = mapper
-                            .mandateOffeneRechnungen(filterSettings);
+                    DataRechnungMitBuchungen result = mapper
+                            .getRechnungMitBuchungen(36);
 
                     System.out.println("Fertig");
                 } finally {
@@ -310,6 +316,15 @@ public class MainWindow extends JFrame {
             }
         });
 
+        JButton button18 = new JButton("ohne Funktion");
+        buttons.add(button18, "grow,wrap");
+        button18.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
         JButton buttonClose = new JButton("Beenden");
         buttonClose.addActionListener(new ActionListener() {
             @Override
@@ -324,7 +339,7 @@ public class MainWindow extends JFrame {
         getContentPane().add(buttons);
         getContentPane().add(control);
         pack();
-        // setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     /**
@@ -335,6 +350,6 @@ public class MainWindow extends JFrame {
      */
     // TODO: Debug
     public static void main(String[] args) {
-        new MainWindow(null).setVisible(true);
+        new MainWindow(null, null).setVisible(true);
     }
 }

@@ -9,6 +9,7 @@
 	</settings>
 
 	<typeAliases>
+		<typeAlias type="nami.beitrag.db.BeitragBrief" alias="BeitragBrief" />
 		<typeAlias type="nami.beitrag.db.BeitragBuchung" alias="BeitragBuchung" />
 		<typeAlias type="nami.beitrag.db.BeitragLastschrift" alias="BeitragLastschrift" />
 		<typeAlias type="nami.beitrag.db.BeitragMahnung" alias="BeitragMahnung" />
@@ -25,10 +26,11 @@
 
 		<typeAlias type="nami.beitrag.db.LastschriftenMapper$DataMandateRechnungen" alias="DataMandateRechnungen" />
 		<typeAlias type="nami.beitrag.db.LastschriftenMapper$DataRechnungMitglied" alias="DataRechnungMitglied" />
-		
+
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataFindRechnungen" alias="DataFindRechnungen" />
-		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataListPosten" alias="DataListPosten" />
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataHalbjahrBetraege" alias="DataHalbjahrBetraege" />
+		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataListPosten" alias="DataListPosten" />
+		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataRechnungMitBuchungen" alias="DataRechnungMitBuchungen" />
 
 		<typeAlias type="nami.beitrag.reports.DataAbrechnungHalbjahr" alias="DataAbrechnungHalbjahr" />
 		<typeAlias type="nami.connector.Halbjahr" alias="Halbjahr" />
@@ -53,6 +55,7 @@
 
 	<mappers>
 		<mapper resource="nami/beitrag/db/Beitrag.xml" />
+		<mapper resource="nami/beitrag/db/Briefe.xml" />
 		<mapper resource="nami/beitrag/db/Lastschriften.xml" />
 		<mapper resource="nami/beitrag/db/Mandate.xml" />
 		<mapper resource="nami/beitrag/db/Rechnungen.xml" />

@@ -1,5 +1,6 @@
 package nami.beitrag;
 
+import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -11,6 +12,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nami.beitrag.gui.MainWindow;
+import nami.beitrag.letters.LetterDirectory;
+import nami.beitrag.letters.LetterGenerator;
 import nami.configuration.Configuration;
 import nami.connector.Beitragsart;
 import nami.connector.NamiConnector;
@@ -90,36 +93,36 @@ public final class NamiBeitragGui {
                 "6.90"));
         beitragssaetze.put(Beitragsart.KEIN_BEITRAG, new BigDecimal("0.0"));
 
+        // TODO: Aus Konfigurationsdatei lesen
+        LetterDirectory dir = new LetterDirectory(new File(
+                "/home/fabian/eclipse/nami/letterOutput"));
+        LetterGenerator letterGenerator = new LetterGenerator(
+                sqlSessionFactory, dir);
+
         // TODO: Logger-Konfiguration
         Handler handler = new ConsoleHandler();
         handler.setLevel(Level.ALL);
         Logger.getLogger("org.apache.ibatis").addHandler(handler);
         Logger.getLogger("org.apache.ibatis").setLevel(Level.ALL);
-        Logger.getLogger("nami.beitrag.db.BeitragMapper")
-                .addHandler(handler);
-        Logger.getLogger("nami.beitrag.db.BeitragMapper")
-                .setLevel(Level.ALL);
+        Logger.getLogger("nami.beitrag.db.BeitragMapper").addHandler(handler);
+        Logger.getLogger("nami.beitrag.db.BeitragMapper").setLevel(Level.ALL);
         Logger.getLogger("nami.beitrag.db.RechnungenMapper")
                 .addHandler(handler);
         Logger.getLogger("nami.beitrag.db.RechnungenMapper")
                 .setLevel(Level.ALL);
-        Logger.getLogger("nami.beitrag.db.ReportsMapper")
-                .addHandler(handler);
-        Logger.getLogger("nami.beitrag.db.ReportsMapper")
-                .setLevel(Level.ALL);
-        Logger.getLogger("nami.beitrag.db.LastschriftenMapper")
-                .addHandler(handler);
-        Logger.getLogger("nami.beitrag.db.LastschriftenMapper")
-                .setLevel(Level.ALL);
-        Logger.getLogger("nami.beitrag.db.MandateMapper")
-                .addHandler(handler);
-        Logger.getLogger("nami.beitrag.db.MandateMapper")
-                .setLevel(Level.ALL);
+        Logger.getLogger("nami.beitrag.db.ReportsMapper").addHandler(handler);
+        Logger.getLogger("nami.beitrag.db.ReportsMapper").setLevel(Level.ALL);
+        Logger.getLogger("nami.beitrag.db.LastschriftenMapper").addHandler(
+                handler);
+        Logger.getLogger("nami.beitrag.db.LastschriftenMapper").setLevel(
+                Level.ALL);
+        Logger.getLogger("nami.beitrag.db.MandateMapper").addHandler(handler);
+        Logger.getLogger("nami.beitrag.db.MandateMapper").setLevel(Level.ALL);
 
         // Aufruf der GUI
         NamiBeitrag namiBeitrag = new NamiBeitrag(sqlSessionFactory,
                 GRUPPIERUNGS_NUMMER, beitragssaetze, con);
-        MainWindow mainWindow = new MainWindow(namiBeitrag);
+        MainWindow mainWindow = new MainWindow(namiBeitrag, letterGenerator);
         mainWindow.setVisible(true);
     }
 }

@@ -5,6 +5,16 @@
 
 <mapper namespace="nami.beitrag.db.RechnungenMapper">
 
+	<resultMap id="rechnungResult" type="BeitragRechnung">
+		<id property="rechnungId" column="rechnungId" />
+		<result property="mitgliedId" column="mitgliedId" />
+		<result property="rechnungsNummer" column="rechnungsNummer" />
+		<result property="datum" column="datum" />
+		<result property="frist" column="frist" />
+		<result property="status" column="status" />
+		<result property="betrag" column="betrag" />
+	</resultMap>
+
 <!-- ****** Rechnungen ****** -->
 	<insert id="insertRechnung" parameterType="BeitragRechnung" useGeneratedKeys="true"
 		keyProperty="rechnungId">
@@ -41,7 +51,43 @@
 		WHERE rechnungId = #{rechnungId}
 	</update>
 
+	<resultMap id="rechnungMitBuchungenResult" type="DataRechnungMitBuchungen" autoMapping="true">
+		<id column="rechnungId" />
+		<association property="rechnung" resultMap="rechnungResult" columnPrefix="r_" />
+		<association property="mitglied" resultMap="nami.beitrag.db.BeitragMapper.mitgliedResult" columnPrefix="mgl_" />
+		<collection property="buchungen" ofType="BeitragBuchung" resultMap="nami.beitrag.db.BeitragMapper.buchungResult"/>
+	</resultMap>
 
+	<select id="getRechnungMitBuchungen" parameterType="int" resultMap="rechnungMitBuchungenResult">
+		SELECT mgl.mitgliedId AS mgl_mitgliedId,
+			mgl.mitgliedsnummer AS mgl_mitgliedsnummer,
+			mgl.nachname AS mgl_nachname,
+			mgl.vorname AS mgl_vorname,
+			mgl.status AS mgl_status,
+			mgl.beitragsart AS mgl_beitragsart,
+			mgl.eintrittsdatum AS mgl_eintrittsdatum,
+			mgl.strasse AS mgl_strasse,
+			mgl.plz AS mgl_plz,
+			mgl.ort AS mgl_ort,
+			mgl.email AS mgl_email,
+			mgl.version AS mgl_version,
+			mgl.deleted AS mgl_deleted,
+			r.rechnungId AS r_rechnungId,
+			r.mitgliedId AS r_mitgliedId,
+			r.rechnungsNummer AS r_rechnungsNummer,
+			r.datum AS r_datum,
+			r.frist AS r_frist,
+			r.status AS r_status,
+			b.*
+		FROM beitragRechnung r
+			JOIN beitragMitglied mgl
+				ON r.mitgliedId = mgl.mitgliedId
+			JOIN beitragRechnungPosten rp
+				ON r.rechnungId = rp.rechnungId
+			JOIN beitragBuchung b
+				ON rp.buchungId = b.buchungId
+		WHERE r.rechnungId = #{rechnungId}
+	</select>
 
 
 
@@ -149,9 +195,6 @@
 
 
 <!-- ****** Rechnungen verwalten ****** -->
-	<resultMap id="rechnungResult" type="BeitragRechnung" autoMapping="true">
-	</resultMap>
-
 	<resultMap id="findRechnungenResult" type="DataFindRechnungen" autoMapping="true">
 		<id column="rechnungId" />
 		<!-- die ResultMap muss hier verwendet werden (auch wenn sie leer ist und 

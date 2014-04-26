@@ -6,25 +6,29 @@
 
 \LoadLetterOption{stamm}
 \setkomavar{signature}{Fabian Lipp}
-\setkomavar{date}{$date.format('dd.MM.yyyy', $rechnungsdatum)}
 
 \newkomavar{neuefrist}
-\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $frist)}
 
 \renewcommand{\arraystretch}{1.5}
 
 \begin{document}
 
-#foreach( $recipient in $recipientList )
-	#set( $betragsum = 0 )
-	#foreach( $buchung in $recipient.buchungen )
-		#set( $betragsum = $math.add($betragsum, $buchung.betrag) )
+#foreach( $rechnung in $rechnungen )
+	#set( $betragsum = false )
+	#foreach( $buchung in $rechnung.buchungen )
+		#if ( $betragsum )
+			#set( $betragsum = $betragsum.add($buchung.betrag) )
+		#else
+			#set( $betragsum = $buchung.betrag )
+		#end
 	#end
 	
-	\begin{rechnung}{$recipient.mgl.vorname $recipient.mgl.nachname}{$recipient.mgl.strasse\\##
-	$recipient.mgl.plz $recipient.mgl.ort}{$recipient.rechnungsNummer}{$betragsum}
-	#foreach( $buchung in $recipient.buchungen )
-		\rechnungposten{$buchung.kommentar}{$buchung.betrag}
+	\setkomavar{date}{$date.format('dd.MM.yyyy', $rechnung.rechnung.datum)}
+	\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $rechnung.rechnung.frist)}
+	\begin{rechnung}{$rechnung.mitglied.vorname $rechnung.mitglied.nachname}{$rechnung.mitglied.strasse\\##
+	$rechnung.mitglied.plz $rechnung.mitglied.ort}{$rechnung.rechnung.rechnungsNummer}{$betragsum}
+	#foreach( $buchung in $rechnung.buchungen )
+		\rechnungposten{$!buchung.kommentar}{$buchung.betrag}
 	#end
 	\end{rechnung}
 

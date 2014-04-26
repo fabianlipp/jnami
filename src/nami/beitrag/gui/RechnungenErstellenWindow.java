@@ -13,10 +13,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -26,6 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -41,12 +39,14 @@ import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragRechnung;
 import nami.beitrag.db.DataMitgliederForderungen;
 import nami.beitrag.db.RechnungenMapper;
+import nami.beitrag.db.RechnungenMapper.DataRechnungMitBuchungen;
 import nami.beitrag.db.RechnungenMapper.FilterSettings;
 import nami.beitrag.db.RechnungenMapper.VorausberechnungFilter;
 import nami.beitrag.db.RechnungenMapper.ZahlungsartFilter;
 import nami.beitrag.gui.utils.Colors;
 import nami.beitrag.gui.utils.DisabledCellRenderer;
 import nami.beitrag.letters.LetterGenerator;
+import nami.beitrag.letters.LetterType;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.ibatis.session.SqlSession;
@@ -73,6 +73,7 @@ public class RechnungenErstellenWindow extends JFrame {
     private static final long serialVersionUID = 7409328875312329467L;
 
     private SqlSessionFactory sqlSessionFactory;
+    private LetterGenerator letterGenerator;
 
     // Komponenten für Suche
     private JCheckBox chckbxHalbjahrFilter;
@@ -127,10 +128,14 @@ public class RechnungenErstellenWindow extends JFrame {
      * 
      * @param sqlSessionFactory
      *            Zugriff auf die Datenbank
+     * @param letterGenerator
+     *            Generator für Briefe
      */
-    public RechnungenErstellenWindow(SqlSessionFactory sqlSessionFactory) {
+    public RechnungenErstellenWindow(SqlSessionFactory sqlSessionFactory,
+            LetterGenerator letterGenerator) {
         super("Rechnungen erstellen");
         this.sqlSessionFactory = sqlSessionFactory;
+        this.letterGenerator = letterGenerator;
         buildFrame();
     }
 
@@ -453,13 +458,14 @@ public class RechnungenErstellenWindow extends JFrame {
                 return;
             }
 
-            // Objekte, die später in den Brief eingefügt werden
-            LinkedHashMap<Integer, Collection<BeitragBuchung>> buchungen;
-            buchungen = new LinkedHashMap<>();
-            Map<Integer, String> rechnungsNummern = new HashMap<>();
+            // Rechnungen, die später in den Brief eingefügt werden
+            LinkedList<Integer> rechnungIds = new LinkedList<>();
 
             SqlSession session = sqlSessionFactory.openSession();
             try {
+                RechnungenMapper mapper = session
+                        .getMapper(RechnungenMapper.class);
+
                 for (PersonNode pNode : treeTableModel.root.persons) {
                     if (!pNode.checked || pNode.buchungen == null
                             || pNode.buchungen.isEmpty()) {
@@ -467,9 +473,21 @@ public class RechnungenErstellenWindow extends JFrame {
                         continue;
                     }
 
+                    // Buchungen auslesen, die ausgewählt sind
+                    LinkedList<BeitragBuchung> aktiveBuchungen = new LinkedList<>();
+                    for (BuchungNode bNode : pNode.buchungen) {
+                        if (bNode.checked) {
+                            aktiveBuchungen.add(bNode.buchung);
+                        }
+                    }
+
+                    if (aktiveBuchungen.isEmpty()) {
+                        // zu dieser Person ist keine Buchung ausgewählt
+                        // => keine Rechnung erzeugen
+                        continue;
+                    }
+
                     // Rechnung in Datenbank einfügen
-                    RechnungenMapper mapper = session
-                            .getMapper(RechnungenMapper.class);
                     BeitragRechnung rechnung = new BeitragRechnung();
                     rechnung.setMitgliedId(pNode.person.getMitgliedId());
                     int jahr = Calendar.getInstance().get(Calendar.YEAR);
@@ -482,26 +500,39 @@ public class RechnungenErstellenWindow extends JFrame {
                     int rechnungId = rechnung.getRechnungId();
 
                     // Posten in Datenbank einfügen
-                    Collection<BeitragBuchung> personBuchungen = new LinkedList<>();
-                    for (BuchungNode bNode : pNode.buchungen) {
-                        if (bNode.checked) {
-                            personBuchungen.add(bNode.buchung);
-                            mapper.insertPosten(rechnungId,
-                                    bNode.buchung.getBuchungId(),
-                                    bNode.buchung.getKommentar());
+                    for (BeitragBuchung buchung : aktiveBuchungen) {
+                        String kommentar = buchung.getKommentar();
+                        if (kommentar == null) {
+                            kommentar = "";
                         }
+                        mapper.insertPosten(rechnungId, buchung.getBuchungId(),
+                                kommentar);
                     }
 
-                    buchungen
-                            .put(pNode.person.getMitgliedId(), personBuchungen);
-                    rechnungsNummern.put(pNode.person.getMitgliedId(),
-                            rechnung.getCompleteRechnungsNummer());
+                    rechnungIds.add(rechnung.getRechnungId());
                     session.commit();
                 }
 
-                LetterGenerator gen = new LetterGenerator(sqlSessionFactory);
-                gen.generateRechnungen(buchungen, rechnungsNummern,
-                        rechnungsdatum.getDate(), frist.getDate());
+                if (rechnungIds.size() == 0) {
+                    JOptionPane.showMessageDialog(
+                            RechnungenErstellenWindow.this,
+                            "Keine Personen/Buchungen ausgewählt", "Fehler",
+                            JOptionPane.WARNING_MESSAGE);
+                } else if (rechnungIds.size() == 1) {
+                    int rechnungId = rechnungIds.getFirst();
+                    DataRechnungMitBuchungen rechnung = mapper
+                            .getRechnungMitBuchungen(rechnungId);
+                    String nachname = rechnung.getMitglied().getNachname();
+                    String vorname = rechnung.getMitglied().getVorname();
+                    letterGenerator.generateLetter(LetterType.RECHNUNG,
+                            rechnungId, rechnungsdatum.getDate(), nachname,
+                            vorname);
+                    dispose();
+                } else {
+                    letterGenerator.generateLetters(LetterType.RECHNUNG,
+                            rechnungIds, rechnungsdatum.getDate());
+                    dispose();
+                }
             } finally {
                 session.close();
             }

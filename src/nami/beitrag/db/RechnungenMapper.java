@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import lombok.Data;
 import lombok.Getter;
@@ -161,6 +162,30 @@ public interface RechnungenMapper {
      *            Rechnungsdaten
      */
     void updateRechnung(BeitragRechnung rechnung);
+
+    /**
+     * Ergebnis-Datentyp, der verwendet wird, wenn eine Rechnung mit allen
+     * Informationen aus der Datenbank geholt wird. Dabei wird der entsprechende
+     * Mitgliedsdatensatz (Name, Anschrift, usw.) mit ausgelesen und außerdem
+     * eine Liste der Posten, die in der Rechnung enthalten sind.
+     */
+    @Getter
+    public static class DataRechnungMitBuchungen {
+        private BeitragRechnung rechnung;
+        private BeitragMitglied mitglied;
+        private List<BeitragBuchung> buchungen;
+    }
+
+    /**
+     * Liefert eine Rechnung mit allen Informationen aus der Datenbank. Dabei
+     * wird neben den Daten der Rechnung noch der entsprechende
+     * Mitgliedsdatensatz und die Liste der enthaltenen Posten aus der Datenbank
+     * ausgelesen.
+     * 
+     * @param rechnungId ID der angefragten Rechnung
+     * @return Rechnung mit verknüpften Informationen
+     */
+    DataRechnungMitBuchungen getRechnungMitBuchungen(int rechnungId);
 
     /**
      * Fügt einen Posten zu einer Rechnung hinzu.

@@ -6,31 +6,15 @@
 <mapper namespace="nami.beitrag.db.LastschriftenMapper">
 
 	<!-- ****** Sammellastschrift vorbereiten ****** -->
-	<resultMap id="rechnungResult" type="BeitragRechnung">
-		<id property="rechnungId" column="rechnungId" />
-		<result property="mitgliedId" column="mitgliedId" />
-		<result property="rechnungsNummer" column="rechnungsNummer" />
-		<result property="datum" column="datum" />
-		<result property="frist" column="frist" />
-		<result property="status" column="status" />
-		<result property="betrag" column="betrag" />
-	</resultMap>
 
-	<resultMap id="mitgliedResult" type="BeitragMitglied">
-		<id property="mitgliedId" column="mitgliedId" />
-		<result property="mitgliedsnummer" column="mitgliedsnummer" />
-		<result property="nachname" column="nachname" />
-		<result property="vorname" column="vorname" />
-		<result property="status" column="status" />
-	</resultMap>
 
 	<resultMap id="mandatResult" type="BeitragSepaMandat" autoMapping="true">
 		<id property="mandatId" column="mandatId" />
 	</resultMap>
 
 	<resultMap id="dataRechnungMitgliedResult" type="DataRechnungMitglied">
-		<association property="rechnung" resultMap="rechnungResult" columnPrefix="r_"/>
-		<association property="mitglied" resultMap="mitgliedResult" columnPrefix="mgl_"/>
+		<association property="rechnung" resultMap="nami.beitrag.db.RechnungenMapper.rechnungResult" columnPrefix="r_"/>
+		<association property="mitglied" resultMap="nami.beitrag.db.BeitragMapper.mitgliedResult" columnPrefix="mgl_"/>
 	</resultMap>
 
 	<resultMap id="mandateRechnungenResult" type="DataMandateRechnungen" autoMapping="true">

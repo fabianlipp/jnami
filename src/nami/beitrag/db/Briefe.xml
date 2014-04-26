@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.BriefeMapper">
+
+	<insert id="insertBrief" parameterType="BeitragBrief" useGeneratedKeys="true"
+		keyProperty="briefId">
+		INSERT INTO beitragBrief
+			(dateiname,
+			kompiliert)
+		VALUES
+			(#{dateiname},
+			#{kompiliert})
+	</insert>
+
+	<select id="getBrief" parameterType="int" resultType="BeitragBrief">
+		SELECT *
+		FROM beitragBrief
+		WHERE briefId = #{id}
+	</select>
+
+	<update id="updateBrief" parameterType="BeitragBrief">
+		UPDATE beitragRechnung
+		SET
+			dateiname = #{dateiname},
+			kompiliert = #{kompiliert}
+		WHERE briefId = #{briefId}
+	</update>
+</mapper>

@@ -65,6 +65,7 @@ public class RechnungenVerwaltenWindow extends JFrame {
     private static final long serialVersionUID = 7409328875312329467L;
 
     private SqlSessionFactory sqlSessionFactory;
+    private LetterGenerator letterGenerator;
 
     // Komponenten für Filter
     private JCheckBox chckbxErstellungsjahr;
@@ -114,10 +115,14 @@ public class RechnungenVerwaltenWindow extends JFrame {
      * 
      * @param sqlSessionFactory
      *            Zugriff auf die Datenbank
+     * @param letterGenerator
+     *            Generator für Briefe
      */
-    public RechnungenVerwaltenWindow(SqlSessionFactory sqlSessionFactory) {
+    public RechnungenVerwaltenWindow(SqlSessionFactory sqlSessionFactory,
+            LetterGenerator letterGenerator) {
         super("Rechnungen verwalten");
         this.sqlSessionFactory = sqlSessionFactory;
+        this.letterGenerator = letterGenerator;
         buildFrame();
     }
 
@@ -534,8 +539,7 @@ public class RechnungenVerwaltenWindow extends JFrame {
                 rechnungenMapper.insertMahnung(mahnung);
                 session.commit();
 
-                LetterGenerator gen = new LetterGenerator(sqlSessionFactory);
-                gen.generateMahnung(mahnung);
+                letterGenerator.generateMahnung(mahnung);
             } finally {
                 session.close();
             }

@@ -4,6 +4,22 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="nami.beitrag.db.BeitragMapper">
+	<resultMap id="mitgliedResult" type="BeitragMitglied">
+		<id property="mitgliedId" column="mitgliedId" />
+		<result property="mitgliedsnummer" column="mitgliedsnummer" />
+		<result property="nachname" column="nachname" />
+		<result property="vorname" column="vorname" />
+		<result property="status" column="status" />
+		<result property="beitragsart" column="beitragsart" />
+		<result property="eintrittsdatum" column="eintrittsdatum" />
+		<result property="strasse" column="strasse" />
+		<result property="plz" column="plz" />
+		<result property="ort" column="ort" />
+		<result property="email" column="email" />
+		<result property="version" column="version" />
+		<result property="deleted" column="deleted" />
+	</resultMap>
+
 	<!-- *** Allgemeine ResultMaps *** -->
 	<resultMap id="halbjahrResult" type="Halbjahr">
 		<constructor>
