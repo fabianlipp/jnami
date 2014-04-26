@@ -46,6 +46,7 @@ import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.RechnungenMapper.DataHalbjahrBetraege;
 import nami.beitrag.gui.utils.DisabledCellRenderer;
 import nami.beitrag.hibiscus.HibiscusExporter;
+import nami.configuration.Configuration;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.ibatis.session.SqlSession;
@@ -522,7 +523,8 @@ public class LastschriftVerwaltenWindow extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             BeitragSammelLastschrift sl = getSelectedSammellast();
-            HibiscusExporter exporter = new HibiscusExporter(sqlSessionFactory);
+            HibiscusExporter exporter = new HibiscusExporter(
+                    Configuration.getGeneralProperties(), sqlSessionFactory);
 
             if (type == HibiscusExportType.ALLE_EINZEL) {
                 SqlSession session = sqlSessionFactory.openSession();

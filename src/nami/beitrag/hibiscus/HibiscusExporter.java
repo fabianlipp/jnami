@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,11 +43,11 @@ public class HibiscusExporter {
     // werden
     private String kontoId = "1";
     // Gläubiger-ID des Zahlungsempfängers
-    private String creditorId = "CREDID";
+    private String creditorId;
     // Verwendeter Lastschrifttyp (CORE oder COR1)
-    private String sepatype = "CORE";
+    private String sepatype;
     // Präfix, das in jeder Mandatsreferenz vor der Mandats-ID eingefügt wird
-    private String mrefPrefix = "M";
+    private String mrefPrefix;
 
     private SqlSessionFactory sqlSessionFactory;
 
@@ -69,10 +70,24 @@ public class HibiscusExporter {
     /**
      * Erzeugt einen neuen Exporter.
      * 
+     * @param p
+     *            Properties-Objekt, das die SEPA-Konfiguration enthält (wird
+     *            normalerweise aus der Konfigurationsdatei eingelesen)
      * @param sqlSessionFactory
      *            Verbindung zur SQL-Datenbank.
      */
-    public HibiscusExporter(SqlSessionFactory sqlSessionFactory) {
+    public HibiscusExporter(Properties p, SqlSessionFactory sqlSessionFactory) {
+        creditorId = p.getProperty("jnami.beitrag.sepa.creditorId");
+        if (creditorId == null) {
+            throw new IllegalArgumentException(
+                    "No creditor ID defined in properties file.");
+        }
+        sepatype = p.getProperty("jnami.beitrag.sepa.sepatype");
+        mrefPrefix = p.getProperty("jnami.beitrag.sepa.mrefPrefix");
+        if (mrefPrefix == null) {
+            mrefPrefix = "";
+        }
+
         this.sqlSessionFactory = sqlSessionFactory;
     }
 
