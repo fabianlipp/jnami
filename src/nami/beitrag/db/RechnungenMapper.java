@@ -182,7 +182,8 @@ public interface RechnungenMapper {
      * Mitgliedsdatensatz und die Liste der enthaltenen Posten aus der Datenbank
      * ausgelesen.
      * 
-     * @param rechnungId ID der angefragten Rechnung
+     * @param rechnungId
+     *            ID der angefragten Rechnung
      * @return Rechnung mit verknüpften Informationen
      */
     DataRechnungMitBuchungen getRechnungMitBuchungen(int rechnungId);
@@ -334,4 +335,30 @@ public interface RechnungenMapper {
      *            einzufügende Mahnung
      */
     void insertMahnung(BeitragMahnung mahnung);
+
+    /**
+     * Ergebnis-Datentyp, der verwendet wird, wenn eine Mahnung mit allen
+     * Informationen aus der Datenbank geholt wird. Dabei wird die entsprechende
+     * Rechnung und der Mitgliedsdatensatz (Name, Anschrift, usw.) mit
+     * ausgelesen und außerdem eine Liste der vorherigen Mahnungen.
+     */
+    @Getter
+    public class DataMahnungKomplett {
+        private BeitragMahnung mahnung;
+        private BeitragRechnung rechnung;
+        private BeitragMitglied mitglied;
+        private BeitragMahnung vorherigeMahnung;
+    }
+
+    /**
+     * Holt eine Mahnung mit allen Informationen aus der Datenbank. Diese
+     * enthalten die entsprechende Rechnung und den Mitgliedsdatensatz. Außerdem
+     * werden alle vorherigen Mahnungen geliefert, d.h. diejenigen, bei denen
+     * die mahnungArt geringer ist.
+     * 
+     * @param mahnungId
+     *            ID der Mahnung
+     * @return aller Informationen aus der Datenbank, die zur Mahnung gehören
+     */
+    DataMahnungKomplett getMahnungKomplett(int mahnungId);
 }

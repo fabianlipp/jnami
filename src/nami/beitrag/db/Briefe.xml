@@ -9,9 +9,13 @@
 		keyProperty="briefId">
 		INSERT INTO beitragBrief
 			(dateiname,
+			datum,
+			typ,
 			kompiliert)
 		VALUES
 			(#{dateiname},
+			#{datum},
+			#{typ},
 			#{kompiliert})
 	</insert>
 
@@ -25,6 +29,8 @@
 		UPDATE beitragRechnung
 		SET
 			dateiname = #{dateiname},
+			datum = #{datum},
+			typ = #{typ},
 			kompiliert = #{kompiliert}
 		WHERE briefId = #{briefId}
 	</update>

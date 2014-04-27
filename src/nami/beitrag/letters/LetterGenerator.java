@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Date;
@@ -13,12 +12,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nami.beitrag.db.BeitragBrief;
-import nami.beitrag.db.BeitragMahnung;
-import nami.beitrag.db.BeitragMapper;
-import nami.beitrag.db.BeitragMitglied;
-import nami.beitrag.db.BeitragRechnung;
 import nami.beitrag.db.BriefeMapper;
 import nami.beitrag.db.RechnungenMapper;
+import nami.beitrag.db.RechnungenMapper.DataMahnungKomplett;
 import nami.beitrag.db.RechnungenMapper.DataRechnungMitBuchungen;
 
 import org.apache.ibatis.session.SqlSession;
@@ -27,7 +23,6 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.tools.generic.DateTool;
-import org.apache.velocity.tools.generic.MathTool;
 
 /**
  * Erstellt Briefe als LaTeX-Quelltexte. Dazu werden die Daten für die Briefe
@@ -102,7 +97,7 @@ public class LetterGenerator {
         LinkedList<Integer> ids = new LinkedList<Integer>();
         ids.add(id);
         File f = dir.createFilenameSingle(type, datum, nachname, vorname);
-        return generateLetters(type, ids, f);
+        return generateLetters(type, ids, datum, f);
     }
 
     /**
@@ -122,7 +117,7 @@ public class LetterGenerator {
     public BeitragBrief generateLetters(LetterType type,
             Collection<Integer> ids, Date datum) {
         File f = dir.createFilenameMultiple(type, datum);
-        return generateLetters(type, ids, f);
+        return generateLetters(type, ids, datum, f);
     }
 
     /**
@@ -133,7 +128,7 @@ public class LetterGenerator {
      * @return erstelltes Brief-Objekt (enthält briefId und Dateiname)
      */
     private BeitragBrief generateLetters(LetterType type,
-            Collection<Integer> ids, File file) {
+            Collection<Integer> ids, Date datum, File file) {
         if (ids.size() < 1) {
             throw new IllegalArgumentException(
                     "Did not get any ids to generate letters");
@@ -149,6 +144,9 @@ public class LetterGenerator {
             case RECHNUNG:
                 generateRechnungen(ids, w);
                 break;
+            case MAHNUNG:
+                generateMahnungen(ids, w);
+                break;
             default:
                 throw new IllegalArgumentException(
                         "Letter type not implemented: " + type);
@@ -158,6 +156,8 @@ public class LetterGenerator {
             if (file.exists() && file.length() > 0) {
                 BeitragBrief brief = new BeitragBrief();
                 brief.setDateiname(file.getName());
+                brief.setDatum(datum);
+                brief.setTyp(type);
                 brief.setKompiliert(null);
 
                 BriefeMapper mapper = session.getMapper(BriefeMapper.class);
@@ -203,53 +203,34 @@ public class LetterGenerator {
         }
     }
 
-    private boolean generateMahnungen(Collection<Integer> mahnungIds, Writer w) {
-
-        // TODO
-        return false;
-    }
-
-    private boolean generatePrenotifications(
-            Collection<Integer> prenotificationIds, Writer w) {
-
-        // TODO
-        return false;
-    }
-
-    // deprecated
-    public boolean generateMahnung(BeitragMahnung mahnung) {
-
-        Template template = getTemplate(TEMPLATE_MAHNUNGEN);
-        VelocityContext context = new VelocityContext();
-        context.put("date", new DateTool());
-        context.put("math", new MathTool());
-        context.put("mahnung", mahnung);
-
+    private void generateMahnungen(Collection<Integer> mahnungIds, Writer w) {
         SqlSession session = sqlSessionFactory.openSession();
         try {
-            BeitragMapper beitragMapper = session
-                    .getMapper(BeitragMapper.class);
-            RechnungenMapper rechnungMapper = session
-                    .getMapper(RechnungenMapper.class);
+            RechnungenMapper mapper = session.getMapper(RechnungenMapper.class);
 
-            BeitragRechnung rechnung = rechnungMapper.getRechnung(mahnung
-                    .getRechnungId());
-            BeitragMitglied mitglied = beitragMapper.getMitglied(rechnung
-                    .getMitgliedId());
-            context.put("rechnung", rechnung);
-            context.put("mgl", mitglied);
+            // Lade Rechnungen und zugehörige Buchungen aus Datenbank
+            LinkedList<DataMahnungKomplett> mahnungen = new LinkedList<>();
+            for (int mahnungId : mahnungIds) {
+                mahnungen.add(mapper.getMahnungKomplett(mahnungId));
+            }
+
+            // Übergebe Daten an Velocity
+            VelocityContext context = new VelocityContext();
+            context.put("date", new DateTool());
+            context.put("mahnungen", mahnungen);
+
+            // Template füllen
+            Template template = getTemplate(TEMPLATE_MAHNUNGEN);
+            template.merge(context, w);
+
         } finally {
             session.close();
         }
+    }
 
-        StringWriter w = new StringWriter();
-        template.merge(context, w);
+    private void generatePrenotifications(
+            Collection<Integer> prenotificationIds, Writer w) {
 
-        System.out.println(w);
-
-        // TODO: zusätzlich Original-Rechnung auf zweiter Seite in PDF ausgeben
-
-        // TODO: richtige Rückgabe (überprüfe, ob Datei erzeugt wurde)
-        return false;
+        // TODO
     }
 }

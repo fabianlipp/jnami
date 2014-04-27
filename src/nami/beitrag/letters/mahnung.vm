@@ -6,20 +6,13 @@
 
 \LoadLetterOption{stamm}
 \setkomavar{signature}{Fabian Lipp}
-\setkomavar{date}{$date.format('dd.MM.yyyy', $mahnung.date)}
 
+\newkomavar{rechnungsdatum}
+\newkomavar{rechnungsfrist}
 \newkomavar{altesdatum}
-\newkomavar{altesdatum2}
-\newkomavar{jahr}
 \newkomavar{altefrist}
-\newkomavar{neuefrist}
-\newkomavar{abmeldung}
 
-\setkomavar{altesdatum}{09.12.2012}
-\setkomavar{altesdatum2}{20.06.2013}
-\setkomavar{altefrist}{28.06.2013}
-\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $mahnung.frist)}
-\setkomavar{abmeldung}{Ende des Jahres 2013}
+
 
 
 \parindent 0pt
@@ -31,18 +24,27 @@
 \begin{document}
 
 
-\setkomavar{jahr}{2. Halbjahr 2012}
-#if( $mahnung.mahnungArt == 1 )
-\erstemahnung%
-#elseif( $mahnung.mahnungArt == 2 )
-\zweitemahnung%
-#elseif( $mahnung.mahnungArt == 3 )
-\drittemahnung%
+#foreach( $mahnung in $mahnungen )
+	\setkomavar{date}{$date.format('dd.MM.yyyy', $mahnung.mahnung.datum)}
+	\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $mahnung.mahnung.frist)}
+	\setkomavar{rechnungsdatum}{$date.format('dd.MM.yyyy', $mahnung.rechnung.datum)}
+	\setkomavar{rechnungsfrist}{$date.format('dd.MM.yyyy', $mahnung.rechnung.frist)}
+	\setkomavar{altesdatum}{$date.format('dd.MM.yyyy', $mahnung.vorherigeMahnung.datum)}
+	\setkomavar{altefrist}{$date.format('dd.MM.yyyy', $mahnung.vorherigeMahnung.frist)}
+
+
+	#if( $mahnung.mahnung.mahnungArt == 1 )
+	\erstemahnung%
+	#elseif( $mahnung.mahnung.mahnungArt == 2 )
+	\zweitemahnung%
+	#elseif( $mahnung.mahnung.mahnungArt == 3 )
+	\drittemahnung%
+	#end
+	{$mahnung.mitglied.vorname $mahnung.mitglied.nachname}##
+	{$mahnung.mitglied.strasse\\$mahnung.mitglied.plz $mahnung.mitglied.ort}{$mahnung.rechnung.betrag}
+
+
 #end
-{$mgl.vorname $mgl.nachname}{$mgl.strasse\\$mgl.plz $mgl.ort}{$rechnung.betrag}
-
-
-
 
 
 

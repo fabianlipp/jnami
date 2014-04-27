@@ -45,6 +45,7 @@ import nami.beitrag.db.RechnungenMapper.DataFindRechnungen;
 import nami.beitrag.db.RechnungenMapper.DataHalbjahrBetraege;
 import nami.beitrag.db.RechnungenMapper.DataListPosten;
 import nami.beitrag.letters.LetterGenerator;
+import nami.beitrag.letters.LetterType;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.ibatis.session.SqlSession;
@@ -525,6 +526,9 @@ public class RechnungenVerwaltenWindow extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             BeitragRechnung rechnung = getSelectedRechnung();
+            if (rechnung == null) {
+                return;
+            }
 
             BeitragMahnung mahnung = new BeitragMahnung();
             mahnung.setRechnungId(rechnung.getRechnungId());
@@ -539,7 +543,13 @@ public class RechnungenVerwaltenWindow extends JFrame {
                 rechnungenMapper.insertMahnung(mahnung);
                 session.commit();
 
-                letterGenerator.generateMahnung(mahnung);
+                String nachname = rechnungenModel.getNachnameAt(rechnungenTable
+                        .getSelectedRow());
+                String vorname = rechnungenModel.getVornameAt(rechnungenTable
+                        .getSelectedRow());
+                letterGenerator.generateLetter(LetterType.MAHNUNG,
+                        mahnung.getMahnungId(), mahnung.getDatum(), nachname,
+                        vorname);
             } finally {
                 session.close();
             }
@@ -870,6 +880,36 @@ public class RechnungenVerwaltenWindow extends JFrame {
                 return -1;
             }
             return rechnungen.get(rowIndex).getMahnungen();
+        }
+
+        /**
+         * Liefert den Nachnamen des Empfängers, die in einer bestimmten Zeile
+         * angezeigt wird.
+         * 
+         * @param rowIndex
+         *            gesuchte Zeile
+         * @return Nachname in der Zeile
+         */
+        public String getNachnameAt(int rowIndex) {
+            if (rechnungen == null || rowIndex >= rechnungen.size()) {
+                return null;
+            }
+            return rechnungen.get(rowIndex).getNachname();
+        }
+
+        /**
+         * Liefert den Vornamen des Empfängers, die in einer bestimmten Zeile
+         * angezeigt wird.
+         * 
+         * @param rowIndex
+         *            gesuchte Zeile
+         * @return Vorname in der Zeile
+         */
+        public String getVornameAt(int rowIndex) {
+            if (rechnungen == null || rowIndex >= rechnungen.size()) {
+                return null;
+            }
+            return rechnungen.get(rowIndex).getVorname();
         }
     }
 

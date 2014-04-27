@@ -6,7 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -21,9 +23,10 @@ import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragMitglied;
 import nami.beitrag.db.LastschriftenMapper.FilterSettings;
 import nami.beitrag.db.RechnungenMapper;
-import nami.beitrag.db.RechnungenMapper.DataRechnungMitBuchungen;
+import nami.beitrag.db.RechnungenMapper.DataMahnungKomplett;
 import nami.beitrag.db.ReportsMapper;
 import nami.beitrag.letters.LetterGenerator;
+import nami.beitrag.letters.LetterType;
 import nami.beitrag.reports.DataAbrechnungHalbjahr;
 import nami.beitrag.reports.PDFReportGenerator;
 import nami.connector.exception.NamiApiException;
@@ -284,8 +287,7 @@ public class MainWindow extends JFrame {
                             .getMapper(RechnungenMapper.class);
                     FilterSettings filterSettings = new FilterSettings();
                     filterSettings.setBereitsErstellt(true);
-                    DataRechnungMitBuchungen result = mapper
-                            .getRechnungMitBuchungen(36);
+                    DataMahnungKomplett result = mapper.getMahnungKomplett(3);
 
                     System.out.println("Fertig");
                 } finally {
@@ -316,12 +318,17 @@ public class MainWindow extends JFrame {
             }
         });
 
-        JButton button18 = new JButton("ohne Funktion");
+        JButton button18 = new JButton("Mahnungen 1-4 mit LetterGenerator erzeugen");
         buttons.add(button18, "grow,wrap");
         button18.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                LinkedList<Integer> ids = new LinkedList<>();
+                ids.add(1);
+                ids.add(2);
+                ids.add(3);
+                ids.add(4);
+                letterGenerator.generateLetters(LetterType.MAHNUNG, ids, new Date());
             }
         });
 

@@ -30,6 +30,7 @@
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataFindRechnungen" alias="DataFindRechnungen" />
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataHalbjahrBetraege" alias="DataHalbjahrBetraege" />
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataListPosten" alias="DataListPosten" />
+		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataMahnungKomplett" alias="DataMahnungKomplett" />
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataRechnungMitBuchungen" alias="DataRechnungMitBuchungen" />
 
 		<typeAlias type="nami.beitrag.reports.DataAbrechnungHalbjahr" alias="DataAbrechnungHalbjahr" />
