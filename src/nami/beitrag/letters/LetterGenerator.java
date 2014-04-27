@@ -8,14 +8,18 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nami.beitrag.db.BeitragBrief;
 import nami.beitrag.db.BriefeMapper;
+import nami.beitrag.db.LastschriftenMapper;
 import nami.beitrag.db.RechnungenMapper;
+import nami.beitrag.db.LastschriftenMapper.DataPrenotificationMandat;
 import nami.beitrag.db.RechnungenMapper.DataMahnungKomplett;
 import nami.beitrag.db.RechnungenMapper.DataRechnungMitBuchungen;
+import nami.configuration.Configuration;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -36,6 +40,7 @@ public class LetterGenerator {
     // Namen und Pfad zu den Template-Dateien
     private static final String TEMPLATE_RECHNUNGEN = "rechnung.vm";
     private static final String TEMPLATE_MAHNUNGEN = "mahnung.vm";
+    private static final String TEMPLATE_PRENOTIFICATIONS = "prenotification.vm";
     private static final String PATH_TEMPLATES = LetterGenerator.class
             .getPackage().getName().replace(".", "/")
             + "/";
@@ -43,6 +48,7 @@ public class LetterGenerator {
     private SqlSessionFactory sqlSessionFactory;
     private LetterDirectory dir;
 
+    private static Properties p = Configuration.getGeneralProperties();
     private static Logger logger = Logger.getLogger(LetterGenerator.class
             .getName());
 
@@ -101,8 +107,8 @@ public class LetterGenerator {
     }
 
     /**
-     * Erzeugt eine Sammlung von Briefen. Die übergebenen Parameter werden teilweise
-     * zur Erstellung des Dateinamens benötigt.
+     * Erzeugt eine Sammlung von Briefen. Die übergebenen Parameter werden
+     * teilweise zur Erstellung des Dateinamens benötigt.
      * 
      * @param type
      *            Typ der Briefe (bestimmt u. a. die verwendete Vorlage und die
@@ -111,7 +117,8 @@ public class LetterGenerator {
      *            IDs in der jeweiligen Datenbank-Tabelle (z. B. rechnungId,
      *            mahnungId)
      * @param datum
-     *            Datum, an dem die Briefe versandt werden (nur für den Dateinamen)
+     *            Datum, an dem die Briefe versandt werden (nur für den
+     *            Dateinamen)
      * @return erstelltes Brief-Objekt (enthält briefId und Dateiname)
      */
     public BeitragBrief generateLetters(LetterType type,
@@ -122,9 +129,13 @@ public class LetterGenerator {
 
     /**
      * Erstellt den/die übergebenen Brief(e) in der angegebenen Datei.
-     * @param type Typ der Briefe
-     * @param ids IDs in der Datenbank
-     * @param file Dateiname, unter dem die Briefe geschrieben werden
+     * 
+     * @param type
+     *            Typ der Briefe
+     * @param ids
+     *            IDs in der Datenbank
+     * @param file
+     *            Dateiname, unter dem die Briefe geschrieben werden
      * @return erstelltes Brief-Objekt (enthält briefId und Dateiname)
      */
     private BeitragBrief generateLetters(LetterType type,
@@ -146,6 +157,9 @@ public class LetterGenerator {
                 break;
             case MAHNUNG:
                 generateMahnungen(ids, w);
+                break;
+            case PRENOTIFICATION:
+                generatePrenotifications(ids, w);
                 break;
             default:
                 throw new IllegalArgumentException(
@@ -197,7 +211,6 @@ public class LetterGenerator {
             // Template füllen
             Template template = getTemplate(TEMPLATE_RECHNUNGEN);
             template.merge(context, w);
-
         } finally {
             session.close();
         }
@@ -222,7 +235,6 @@ public class LetterGenerator {
             // Template füllen
             Template template = getTemplate(TEMPLATE_MAHNUNGEN);
             template.merge(context, w);
-
         } finally {
             session.close();
         }
@@ -230,7 +242,40 @@ public class LetterGenerator {
 
     private void generatePrenotifications(
             Collection<Integer> prenotificationIds, Writer w) {
+        // Variablen aus Konfigurationsdatei lesen
+        String creditorId = p.getProperty("jnami.beitrag.sepa.creditorId");
+        if (creditorId == null) {
+            throw new IllegalArgumentException(
+                    "No creditor ID defined in properties file.");
+        }
+        String mrefPrefix = p.getProperty("jnami.beitrag.sepa.mrefPrefix");
+        if (mrefPrefix == null) {
+            mrefPrefix = "";
+        }
 
-        // TODO
+        SqlSession session = sqlSessionFactory.openSession();
+        try {
+            LastschriftenMapper mapper = session
+                    .getMapper(LastschriftenMapper.class);
+
+            // Lade Rechnungen und zugehörige Buchungen aus Datenbank
+            LinkedList<DataPrenotificationMandat> prenots = new LinkedList<>();
+            for (int prenotId : prenotificationIds) {
+                prenots.add(mapper.getPrenotificationMitMandat(prenotId));
+            }
+
+            // Übergebe Daten an Velocity
+            VelocityContext context = new VelocityContext();
+            context.put("date", new DateTool());
+            context.put("prenots", prenots);
+            context.put("creditorId", creditorId);
+            context.put("mrefPrefix", mrefPrefix);
+
+            // Template füllen
+            Template template = getTemplate(TEMPLATE_PRENOTIFICATIONS);
+            template.merge(context, w);
+        } finally {
+            session.close();
+        }
     }
 }

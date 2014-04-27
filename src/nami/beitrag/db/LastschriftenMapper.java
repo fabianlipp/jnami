@@ -204,4 +204,22 @@ public interface LastschriftenMapper {
      */
     boolean existsValidPrenotification(@Param("mandatId") int mandatId,
             @Param("betrag") BigDecimal betrag);
+
+    /**
+     * Fasst eine Prenotification und das dazugehörige Mandat zusammen.
+     */
+    @Getter
+    public class DataPrenotificationMandat {
+        private BeitragPrenotification prenotification;
+        private BeitragSepaMandat mandat;
+    }
+
+    /**
+     * Liefert eine Prenotification und das dazugehörige Mandat.
+     * 
+     * @param prenotificationId
+     *            ID der Prenotification
+     * @return Prenotification mit Mandat
+     */
+    DataPrenotificationMandat getPrenotificationMitMandat(int prenotificationId);
 }

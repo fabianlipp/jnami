@@ -25,6 +25,7 @@
 		<typeAlias type="nami.beitrag.db.ZeitraumSaldo" alias="ZeitraumSaldo" />
 
 		<typeAlias type="nami.beitrag.db.LastschriftenMapper$DataMandateRechnungen" alias="DataMandateRechnungen" />
+		<typeAlias type="nami.beitrag.db.LastschriftenMapper$DataPrenotificationMandat" alias="DataPrenotificationMandat" />
 		<typeAlias type="nami.beitrag.db.LastschriftenMapper$DataRechnungMitglied" alias="DataRechnungMitglied" />
 
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataFindRechnungen" alias="DataFindRechnungen" />

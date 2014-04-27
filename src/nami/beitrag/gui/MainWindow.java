@@ -315,7 +315,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFrame win = new LastschriftVerwaltenWindow(namiBeitrag
-                        .getSessionFactory());
+                        .getSessionFactory(), letterGenerator);
                 win.setVisible(true);
             }
         });

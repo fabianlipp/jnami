@@ -95,6 +95,13 @@ public class LetterDirectory {
     }
 
     /**
+     * Bereitet einen String so auf, dass er für Dateinamen verwendet werden kann.
+     */
+    private String sanitizeString(String text) {
+        return text.replace(" ", "_");
+    }
+
+    /**
      * Liefert einen Dateinamen für einen Brief, der an einzelne Person
      * adressiert ist.
      * 
@@ -113,8 +120,12 @@ public class LetterDirectory {
         StringBuilder filename = new StringBuilder();
         filename.append(formatter.format(date));
         filename.append(SEPARATOR);
-        filename.append(nachname).append(SEPARATOR);
-        filename.append(vorname).append(SEPARATOR);
+        if (nachname != null) {
+            filename.append(sanitizeString(nachname)).append(SEPARATOR);
+        }
+        if (vorname != null) {
+            filename.append(sanitizeString(vorname)).append(SEPARATOR);
+        }
         filename.append(type.getFilenamePart());
 
         return findNewFilename(filename.toString());

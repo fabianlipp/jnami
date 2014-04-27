@@ -1,15 +1,10 @@
 package nami.beitrag.db;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 
 import lombok.Data;
-import nami.beitrag.db.RechnungenMapper.FilterSettings;
-import nami.beitrag.db.RechnungenMapper.VorausberechnungFilter;
-import nami.beitrag.db.RechnungenMapper.ZahlungsartFilter;
 import nami.beitrag.letters.LetterType;
-import nami.connector.Halbjahr;
 
 import org.apache.ibatis.annotations.Param;
 

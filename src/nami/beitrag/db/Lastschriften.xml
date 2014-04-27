@@ -5,13 +5,27 @@
 
 <mapper namespace="nami.beitrag.db.LastschriftenMapper">
 
-	<!-- ****** Sammellastschrift vorbereiten ****** -->
-
-
-	<resultMap id="mandatResult" type="BeitragSepaMandat" autoMapping="true">
+	<resultMap id="mandatResult" type="BeitragSepaMandat">
 		<id property="mandatId" column="mandatId" />
+		<result property="iban" column="iban" />
+		<result property="bic" column="bic" />
+		<result property="datum" column="datum" />
+		<result property="kontoinhaber" column="kontoinhaber" />
+		<result property="strasse" column="strasse" />
+		<result property="plz" column="plz" />
+		<result property="ort" column="ort" />
+		<result property="email" column="email" />
+		<result property="gueltig" column="gueltig" />
+	</resultMap>
+	<resultMap id="prenotificationResult" type="BeitragPrenotification">
+		<id property="prenotificationId" column="mandatId" />
+		<result property="datum" column="datum" />
+		<result property="betrag" column="betrag" />
+		<result property="faelligkeit" column="faelligkeit" />
+		<result property="regelmaessig" column="regelmaessig" />
 	</resultMap>
 
+	<!-- ****** Sammellastschrift vorbereiten ****** -->
 	<resultMap id="dataRechnungMitgliedResult" type="DataRechnungMitglied">
 		<association property="rechnung" resultMap="nami.beitrag.db.RechnungenMapper.rechnungResult" columnPrefix="r_"/>
 		<association property="mitglied" resultMap="nami.beitrag.db.BeitragMapper.mitgliedResult" columnPrefix="mgl_"/>
@@ -214,5 +228,32 @@
 				AND regelmaessig = TRUE
 			ORDER BY datum DESC
 			LIMIT 1) AS res
+	</select>
+
+	<resultMap type="DataPrenotificationMandat" id="prenotificationMandatResult">
+		<id column="p_prenotificationId"/>
+		<association property="prenotification" resultMap="prenotificationResult" columnPrefix="p_" />
+		<association property="mandat" resultMap="mandatResult" columnPrefix="m_" />
+	</resultMap>
+	<select id="getPrenotificationMitMandat" resultMap="prenotificationMandatResult">
+		SELECT p.prenotificationId AS p_prenotificationId,
+			p.datum AS p_datum,
+			p.betrag AS p_betrag,
+			p.faelligkeit AS p_faelligkeit,
+			p.regelmaessig AS p_regelmaessig,
+			m.mandatId AS m_mandatId,
+			m.iban AS m_iban,
+			m.bic AS m_bic,
+			m.datum AS m_datum,
+			m.kontoinhaber AS m_kontoinhaber,
+			m.strasse AS m_strasse,
+			m.plz AS m_plz,
+			m.ort AS m_ort,
+			m.email AS m_email,
+			m.gueltig AS m_gueltig
+		FROM beitragPrenotification p
+			JOIN beitragSepaMandat m
+				ON p.mandatId = m.mandatId
+		WHERE p.prenotificationId = #{prenotificationId}
 	</select>
 </mapper>

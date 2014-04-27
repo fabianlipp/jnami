@@ -9,7 +9,9 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.ButtonGroup;
@@ -46,6 +48,8 @@ import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.RechnungenMapper.DataHalbjahrBetraege;
 import nami.beitrag.gui.utils.DisabledCellRenderer;
 import nami.beitrag.hibiscus.HibiscusExporter;
+import nami.beitrag.letters.LetterGenerator;
+import nami.beitrag.letters.LetterType;
 import nami.configuration.Configuration;
 import net.miginfocom.swing.MigLayout;
 
@@ -67,6 +71,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
     private static final long serialVersionUID = 7409328875312329467L;
 
     private SqlSessionFactory sqlSessionFactory;
+    private LetterGenerator letterGenerator;
 
     // Filter-Kriterien
     private JRadioButton rdbtnStatusOffen;
@@ -99,10 +104,14 @@ public class LastschriftVerwaltenWindow extends JFrame {
      * 
      * @param sqlSessionFactory
      *            Zugriff auf die Datenbank
+     * @param letterGenerator
+     *            Brief-Erzeuger
      */
-    public LastschriftVerwaltenWindow(SqlSessionFactory sqlSessionFactory) {
+    public LastschriftVerwaltenWindow(SqlSessionFactory sqlSessionFactory,
+            LetterGenerator letterGenerator) {
         super("Sammellastschriften verwalten");
         this.sqlSessionFactory = sqlSessionFactory;
+        this.letterGenerator = letterGenerator;
         buildFrame();
     }
 
@@ -400,6 +409,15 @@ public class LastschriftVerwaltenWindow extends JFrame {
             BeitragSammelLastschrift sl = getSelectedSammellast();
             BeitragPrenotification pre;
 
+            // IDs der erzeugten Prenotifications (um später die Briefe zu
+            // erzeugen)
+            LinkedList<Integer> prenotIds = new LinkedList<>();
+            // Nimmt jeweils das letzte Mandat auf, für das eine
+            // Prenotification erzeugt wurde.
+            // Wenn also nur eine Prenotification erzeugt wird, sind hierin
+            // die entsprechenden Mandats-Daten gespeichert
+            BeitragSepaMandat lastMandat = null;
+
             SqlSession session = sqlSessionFactory.openSession();
             try {
                 LastschriftenMapper mapper = session
@@ -418,6 +436,9 @@ public class LastschriftVerwaltenWindow extends JFrame {
                             pre = createPrenotification(sl, row);
                             pre.setRegelmaessig(true);
                             mapper.insertPrenotification(pre);
+
+                            prenotIds.add(pre.getPrenotificationId());
+                            lastMandat = row.getMandat();
                         }
                     }
                     session.commit();
@@ -429,6 +450,9 @@ public class LastschriftVerwaltenWindow extends JFrame {
                         pre = createPrenotification(sl, row);
                         pre.setRegelmaessig(false);
                         mapper.insertPrenotification(pre);
+
+                        prenotIds.add(pre.getPrenotificationId());
+                        lastMandat = row.getMandat();
                     }
                     session.commit();
                 } else if (type == PrenotificationType.EINZELN_EINMALIG
@@ -444,6 +468,9 @@ public class LastschriftVerwaltenWindow extends JFrame {
                         }
                         mapper.insertPrenotification(pre);
                         session.commit();
+
+                        prenotIds.add(pre.getPrenotificationId());
+                        lastMandat = selected.getMandat();
                     } else {
                         logger.severe("Keine Einzellastschrift für "
                                 + "Prenotification ausgewählt.");
@@ -452,7 +479,17 @@ public class LastschriftVerwaltenWindow extends JFrame {
             } finally {
                 session.close();
             }
-            // TODO: Briefe erzeugen
+
+            if (prenotIds.isEmpty()) {
+                logger.log(Level.INFO, "Keine Prenotifications erzeugt");
+            } else if (prenotIds.size() == 1) {
+                letterGenerator.generateLetter(LetterType.PRENOTIFICATION,
+                        prenotIds.getFirst(), notificationdatum.getDate(),
+                        lastMandat.getKontoinhaber(), null);
+            } else {
+                letterGenerator.generateLetters(LetterType.PRENOTIFICATION,
+                        prenotIds, notificationdatum.getDate());
+            }
         }
     }
 
