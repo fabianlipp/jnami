@@ -20,8 +20,9 @@ public class LetterDirectory {
 
     // Trenner zwischen den einzelnen Bestandteilen im Dateinamen
     private static final char SEPARATOR = '_';
-    // Verwendete Dateiendung
-    private static final String FILE_ENDING = ".tex";
+    // Verwendete Dateiendungen
+    private static final String FILE_ENDING_SRC = ".tex";
+    private static final String FILE_ENDING_RES = ".pdf";
 
     /**
      * Erzeugt eine neue Instanz der Klasse die Briefe in einem vorgegebenen
@@ -39,6 +40,41 @@ public class LetterDirectory {
     }
 
     /**
+     * Liefert das Arbeitsverzeichnis, in dem Dateien abgelegt werden.
+     * 
+     * @return Arbeitsverzeichnis
+     */
+    public File getWorkdir() {
+        return workdir;
+    }
+
+    /**
+     * Liefert die Datei (inkl. absoluten Pfad) zum übergebenen Dateinamen (es
+     * wird angenommen, dass die Datei im Arbeitsverzeichnis liegt).
+     * 
+     * @param filename
+     *            Dateiname (ohne Pfad). Die Datei wird im Arbeitsverzeichnis
+     *            gesucht.
+     * @return Datei
+     */
+    public File getFile(String filename) {
+        return new File(workdir, filename);
+    }
+
+    /**
+     * Liefert die aus dem angegebenen Dateinamen erzeugte Datei.
+     * 
+     * @param filename
+     *            Dateiname (ohne Pfad). Die Datei wird im Arbeitsverzeichnis
+     *            gesucht.
+     * @return Datei
+     */
+    public File getGeneratedFile(String filename) {
+        filename = filename.replace(FILE_ENDING_SRC, FILE_ENDING_RES);
+        return new File(workdir, filename);
+    }
+
+    /**
      * Überprüft, ob die vorgegebene Datei bereits existiert und liefert ggf.
      * eine alternative (daraus abgeleiteten) Datei, die noch nicht existiert.
      * 
@@ -47,11 +83,12 @@ public class LetterDirectory {
      * @return Datei, die noch nicht existiert
      */
     private synchronized File findNewFilename(String filename) {
-        File f = new File(workdir, filename + FILE_ENDING);
+        File f = new File(workdir, filename + FILE_ENDING_SRC);
         int suffix = 0;
         while (f.exists()) {
             suffix++;
-            f = new File(workdir, filename + SEPARATOR + suffix + FILE_ENDING);
+            f = new File(workdir, filename + SEPARATOR + suffix
+                    + FILE_ENDING_SRC);
         }
 
         return f;

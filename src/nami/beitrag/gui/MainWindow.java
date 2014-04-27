@@ -25,6 +25,7 @@ import nami.beitrag.db.LastschriftenMapper.FilterSettings;
 import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.RechnungenMapper.DataMahnungKomplett;
 import nami.beitrag.db.ReportsMapper;
+import nami.beitrag.letters.LetterDirectory;
 import nami.beitrag.letters.LetterGenerator;
 import nami.beitrag.letters.LetterType;
 import nami.beitrag.reports.DataAbrechnungHalbjahr;
@@ -54,8 +55,9 @@ public class MainWindow extends JFrame {
      *            und NaMi)
      */
     public MainWindow(final NamiBeitrag namiBeitrag,
-            final LetterGenerator letterGenerator) {
-        this.letterGenerator = letterGenerator;
+            final LetterDirectory letterDirectory) {
+        letterGenerator = new LetterGenerator(namiBeitrag.getSessionFactory(),
+                letterDirectory);
 
         setTitle("NamiBeitrag");
 
@@ -318,7 +320,8 @@ public class MainWindow extends JFrame {
             }
         });
 
-        JButton button18 = new JButton("Mahnungen 1-4 mit LetterGenerator erzeugen");
+        JButton button18 = new JButton(
+                "Mahnungen 1-4 mit LetterGenerator erzeugen");
         buttons.add(button18, "grow,wrap");
         button18.addActionListener(new ActionListener() {
             @Override
@@ -328,7 +331,19 @@ public class MainWindow extends JFrame {
                 ids.add(2);
                 ids.add(3);
                 ids.add(4);
-                letterGenerator.generateLetters(LetterType.MAHNUNG, ids, new Date());
+                letterGenerator.generateLetters(LetterType.MAHNUNG, ids,
+                        new Date());
+            }
+        });
+
+        JButton button19 = new JButton("Briefe verwalten");
+        buttons.add(button19, "grow,wrap");
+        button19.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new BriefeWindow(namiBeitrag.getSessionFactory(),
+                        letterDirectory);
+                win.setVisible(true);
             }
         });
 

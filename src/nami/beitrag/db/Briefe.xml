@@ -26,7 +26,7 @@
 	</select>
 
 	<update id="updateBrief" parameterType="BeitragBrief">
-		UPDATE beitragRechnung
+		UPDATE beitragBrief
 		SET
 			dateiname = #{dateiname},
 			datum = #{datum},
@@ -34,4 +34,21 @@
 			kompiliert = #{kompiliert}
 		WHERE briefId = #{briefId}
 	</update>
+
+	<select id="findBriefe" resultType="BeitragBrief">
+		SELECT *
+		FROM beitragBrief
+		<where>
+			<if test="filterSettings.datumVon != null">
+				datum &gt;= DATE(#{filterSettings.datumVon})
+			</if>
+			<if test="filterSettings.datumBis != null">
+				AND datum &lt;= DATE(#{filterSettings.datumBis})
+			</if>
+			<if test="filterSettings.typ != null">
+				AND typ = #{filterSettings.typ}
+			</if>
+		</where>
+		ORDER BY datum
+	</select>
 </mapper>

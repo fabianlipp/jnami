@@ -1,5 +1,18 @@
 package nami.beitrag.db;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+
+import lombok.Data;
+import nami.beitrag.db.RechnungenMapper.FilterSettings;
+import nami.beitrag.db.RechnungenMapper.VorausberechnungFilter;
+import nami.beitrag.db.RechnungenMapper.ZahlungsartFilter;
+import nami.beitrag.letters.LetterType;
+import nami.connector.Halbjahr;
+
+import org.apache.ibatis.annotations.Param;
+
 /**
  * Stellt Datenbankabfragen zur Arbeit mit der Brief-Tabelle bereit.
  * 
@@ -33,4 +46,38 @@ public interface BriefeMapper {
      *            Daten des Briefs
      */
     void updateBrief(BeitragBrief brief);
+
+    /**
+     * Beschreibt Filterkriterien für die Suche nach Briefen.
+     */
+    @Data
+    static class FilterSettings {
+        /**
+         * Frühestes Datum, dessen Briefe gewählt werden. Falls der Wert
+         * <tt>null</tt> ist, wird nicht nach diesem Kriterium gefiltert.
+         */
+        private Date datumVon = null;
+
+        /**
+         * Spätestes Datum, dessen Briefe gewählt werden. Falls der Wert
+         * <tt>null</tt> ist, wird nicht nach diesem Kriterium gefiltert.
+         */
+        private Date datumBis = null;
+
+        /**
+         * Filtert die Briefe nach einem bestimmten Typ. Falls der Wert
+         * <tt>null</tt> ist, werden alle Brieftypen angezeigt.
+         */
+        private LetterType typ = null;
+    }
+
+    /**
+     * Liefert alle Briefe, die den übergebenen Filterkriterien entsprechen.
+     * 
+     * @param filterSettings
+     *            Kriterien, nach denen die Briefe gefiltert werden
+     * @return Briefe, die den vorgegebenen Bedingungen entsprechen
+     */
+    ArrayList<BeitragBrief> findBriefe(
+            @Param("filterSettings") FilterSettings filterSettings);
 }

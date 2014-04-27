@@ -667,8 +667,8 @@ public class RechnungenErstellenWindow extends JFrame {
         /**
          * Ersetzt die momentan angezeigten Personen durch eine neue Liste.
          * 
-         * @param personsDb
-         *            Ergebnis einer Datenbankabfrage nach Personen
+         * @param filterSettings
+         *            Filterkriterien, nach denen gesucht wird
          */
         private void reloadPersons(FilterSettings filterSettings) {
             root = new RootNode(filterSettings);

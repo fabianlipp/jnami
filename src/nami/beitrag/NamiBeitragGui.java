@@ -106,6 +106,8 @@ public final class NamiBeitragGui {
         Logger.getLogger("org.apache.ibatis").setLevel(Level.ALL);
         Logger.getLogger("nami.beitrag.db.BeitragMapper").addHandler(handler);
         Logger.getLogger("nami.beitrag.db.BeitragMapper").setLevel(Level.ALL);
+        Logger.getLogger("nami.beitrag.db.BriefeMapper").addHandler(handler);
+        Logger.getLogger("nami.beitrag.db.BriefeMapper").setLevel(Level.ALL);
         Logger.getLogger("nami.beitrag.db.RechnungenMapper")
                 .addHandler(handler);
         Logger.getLogger("nami.beitrag.db.RechnungenMapper")
@@ -122,7 +124,7 @@ public final class NamiBeitragGui {
         // Aufruf der GUI
         NamiBeitrag namiBeitrag = new NamiBeitrag(sqlSessionFactory,
                 GRUPPIERUNGS_NUMMER, beitragssaetze, con);
-        MainWindow mainWindow = new MainWindow(namiBeitrag, letterGenerator);
+        MainWindow mainWindow = new MainWindow(namiBeitrag, dir);
         mainWindow.setVisible(true);
     }
 }
