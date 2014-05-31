@@ -117,7 +117,7 @@ public class AbmeldungErstellenWindow extends JFrame {
     private class SaveActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (validateForm()) {
+            if (!validateForm()) {
                 return;
             }
 
@@ -161,7 +161,7 @@ public class AbmeldungErstellenWindow extends JFrame {
             hasError = true;
         }
 
-        return hasError;
+        return !hasError;
     }
 
     /**
