@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.RechnungenMapper">
+<!-- ****** ResultMaps für die hier definierten Datentypen ****** -->
+	<resultMap id="rechnungResult" type="BeitragRechnung">
+		<id property="rechnungId" column="rechnungId" />
+		<result property="mitgliedId" column="mitgliedId" />
+		<result property="rechnungsNummer" column="rechnungsNummer" />
+		<result property="datum" column="datum" />
+		<result property="frist" column="frist" />
+		<result property="status" column="status" />
+		<result property="betrag" column="betrag" />
+	</resultMap>
+
+	<resultMap id="mahnungResult" type="BeitragMahnung">
+		<id property="mahnungId" column="mahnungId" />
+		<result property="rechnungId" column="rechnungId" />
+		<result property="mitgliedId" column="mitgliedId" />
+		<result property="datum" column="datum" />
+		<result property="frist" column="frist" />
+		<result property="mahnungArt" column="mahnungArt" />
+	</resultMap>
+
+<!-- ****** Rechnungen ****** -->
+	<insert id="insertRechnung" parameterType="BeitragRechnung" useGeneratedKeys="true"
+		keyProperty="rechnungId">
+		INSERT INTO beitragRechnung
+			(mitgliedId,
+			rechnungsNummer,
+			datum,
+			frist,
+			status)
+		VALUES
+			(#{mitgliedId},
+			#{rechnungsNummer},
+			#{datum},
+			#{frist},
+			#{status})
+	</insert>
+
+	<select id="getRechnung" parameterType="int" resultType="BeitragRechnung">
+		SELECT r.*, SUM(b.betrag) AS betrag
+		FROM beitragRechnung r
+			JOIN beitragRechnungPosten p
+				ON r.rechnungId = p.rechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		WHERE r.rechnungId = #{id}
+		GROUP BY r.rechnungId
+	</select>
+
+	<!-- nur Status sollte veränderbar sein -->
+	<update id="updateRechnung" parameterType="BeitragRechnung">
+		UPDATE beitragRechnung
+		SET
+			status = #{status}
+		WHERE rechnungId = #{rechnungId}
+	</update>
+
+	<resultMap id="rechnungMitBuchungenResult" type="DataRechnungMitBuchungen" autoMapping="true">
+		<id column="rechnungId" />
+		<association property="rechnung" resultMap="rechnungResult" columnPrefix="r_" />
+		<association property="mitglied" resultMap="nami.beitrag.db.BeitragMapper.mitgliedResult" columnPrefix="mgl_" />
+		<collection property="buchungen" ofType="BeitragBuchung" resultMap="nami.beitrag.db.BeitragMapper.buchungResult"/>
+	</resultMap>
+	<select id="getRechnungMitBuchungen" parameterType="int" resultMap="rechnungMitBuchungenResult">
+		SELECT mgl.mitgliedId AS mgl_mitgliedId,
+			mgl.mitgliedsnummer AS mgl_mitgliedsnummer,
+			mgl.nachname AS mgl_nachname,
+			mgl.vorname AS mgl_vorname,
+			mgl.status AS mgl_status,
+			mgl.beitragsart AS mgl_beitragsart,
+			mgl.eintrittsdatum AS mgl_eintrittsdatum,
+			mgl.strasse AS mgl_strasse,
+			mgl.plz AS mgl_plz,
+			mgl.ort AS mgl_ort,
+			mgl.email AS mgl_email,
+			mgl.version AS mgl_version,
+			mgl.deleted AS mgl_deleted,
+			r.rechnungId AS r_rechnungId,
+			r.mitgliedId AS r_mitgliedId,
+			r.rechnungsNummer AS r_rechnungsNummer,
+			r.datum AS r_datum,
+			r.frist AS r_frist,
+			r.status AS r_status,
+			b.*
+		FROM beitragRechnung r
+			JOIN beitragMitglied mgl
+				ON r.mitgliedId = mgl.mitgliedId
+			JOIN beitragRechnungPosten rp
+				ON r.rechnungId = rp.rechnungId
+			JOIN beitragBuchung b
+				ON rp.buchungId = b.buchungId
+		WHERE r.rechnungId = #{rechnungId}
+	</select>
+
+
+
+<!-- ****** Rechnungen vorbereiten ****** -->
+	<!-- Bedingungen für die WHERE-Klausel, die die Buchungen nach den filterSettings filtern. -->
+	<sql id="buchungsFilter">
+		<if test="filterSettings.halbjahrVon != null">
+			AND (b.jahr &gt; #{filterSettings.halbjahrVon.jahr}
+				OR (b.jahr = #{filterSettings.halbjahrVon.jahr}
+					AND b.halbjahr &gt;= #{filterSettings.halbjahrVon.halbjahr})
+				)
+		</if>
+		<if test="filterSettings.halbjahrBis != null">
+			AND (b.jahr &lt; #{filterSettings.halbjahrBis.jahr}
+				OR (b.jahr = #{filterSettings.halbjahrBis.jahr}
+					AND b.halbjahr &lt;= #{filterSettings.halbjahrBis.halbjahr})
+				)
+		</if>
+		<if test="filterSettings.vorausberechnung.toString() == 'KEINE'">
+			AND b.vorausberechnung = FALSE
+		</if>
+		<if test="filterSettings.vorausberechnung.toString() == 'NUR'">
+			AND b.vorausberechnung = TRUE
+		</if>
+		<if test="!filterSettings.bereitsBerechnet">
+			AND NOT EXISTS (
+				SELECT rechnungId
+				FROM beitragRechnungPosten AS p
+				WHERE p.buchungId = b.buchungId
+				)
+		</if>
+	</sql>
+
+	<select id="mitgliederOffeneForderungen" resultType="DataMitgliederForderungen">
+		SELECT b.mitgliedId AS mitgliedId, mitgliedsnummer, nachname,
+			vorname, SUM(betrag) AS saldo
+		FROM beitragBuchung AS b, beitragMitglied AS m
+			LEFT JOIN beitragSepaMandat mand
+				ON m.aktivesMandat = mand.mandatId
+		WHERE b.mitgliedId = m.mitgliedId
+			<if test="filterSettings.zahlungsart != null">
+				<if test="filterSettings.zahlungsart.toString() == 'LASTSCHRIFT'">
+					AND m.aktivesMandat IS NOT NULL
+					AND mand.gueltig = TRUE
+				</if>
+				<if test="filterSettings.zahlungsart.toString() == 'KEINE_LASTSCHRIFT'">
+					AND (
+						m.aktivesMandat IS NULL
+						OR (m.aktivesMandat IS NOT NULL
+							AND mand.gueltig = FALSE)
+						)
+				</if>
+			</if>
+			<include refid="buchungsFilter"/>
+		GROUP BY b.mitgliedId
+		HAVING SUM(betrag) &lt;&gt; 0
+	</select>
+
+	<select id="getBuchungenFiltered" resultType="BeitragBuchung"
+		resultMap="nami.beitrag.db.BeitragMapper.buchungResult">
+		SELECT *
+		FROM beitragBuchung AS b
+		WHERE mitgliedId = #{mitgliedId}
+			<include refid="buchungsFilter"/>
+	</select>
+
+	<select id="maxRechnungsnummer" parameterType="int" resultType="int">
+		SELECT CASE WHEN MAX(rechnungsNummer) IS NULL THEN 0 ELSE MAX(rechnungsNummer) END
+		FROM beitragRechnung
+		WHERE YEAR(datum) = #{jahr}
+	</select>
+
+
+
+
+
+<!-- ****** Posten ****** -->
+	<insert id="insertPosten">
+		INSERT INTO beitragRechnungPosten
+			(rechnungId,
+			buchungId,
+			buchungstext)
+		VALUES
+			(#{rechnungId},
+			#{buchungId},
+			#{buchungstext})
+	</insert>
+
+	<resultMap id="postenResult" type="DataListPosten" autoMapping="true">
+		<id column="rechnungId" />
+		<id column="buchungId" />
+		<association property="buchung" resultMap="nami.beitrag.db.BeitragMapper.buchungResult"/>
+	</resultMap>
+
+	<select id="getPosten" parameterType="int" resultMap="postenResult">
+		SELECT p.*, b.*
+		FROM beitragRechnungPosten AS p
+			JOIN beitragBuchung AS b
+				ON p.buchungId = b.buchungId
+		WHERE p.rechnungId = #{rechnungId}
+	</select>
+
+
+
+
+
+<!-- ****** Rechnungen verwalten ****** -->
+	<resultMap id="findRechnungenResult" type="DataFindRechnungen" autoMapping="true">
+		<id column="rechnungId" />
+		<!-- die ResultMap muss hier verwendet werden (auch wenn sie leer ist und 
+			scheinbar nichts tut) -->
+		<association property="rechnung" resultMap="rechnungResult"/>
+	</resultMap>
+
+	<select id="findRechnungen" resultMap="findRechnungenResult">
+		SELECT r.*, m.vorname, m.nachname, ma.mahnungen, ma.frist AS letzteFrist,
+			SUM(b.betrag) AS betrag
+		FROM beitragRechnung AS r
+			JOIN beitragMitglied AS m
+				ON r.mitgliedID = m.mitgliedID
+			LEFT JOIN (
+				SELECT rechnungId, MAX(mahnungArt) AS mahnungen, MAX(frist) AS frist
+				FROM beitragMahnung
+				GROUP BY rechnungId
+				) AS ma
+				ON r.rechnungId = ma.rechnungId
+			JOIN beitragRechnungPosten p
+				ON r.rechnungId = p.rechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		<where>
+			<if test="erstellungsjahr != -1">
+				YEAR(r.datum) = #{erstellungsjahr}
+			</if>
+			<if test="status != null">
+				AND r.status = #{status}
+			</if>
+			<if test="ueberfaellig">
+				AND (
+					(ma.frist IS NULL AND r.frist &lt; CURDATE())
+					OR
+					(ma.frist &lt; CURDATE())
+					)
+			</if>
+			<if test="mitgliedId != -1">
+				AND r.mitgliedId = #{mitgliedId}
+			</if>
+		</where>
+		GROUP BY r.rechnungId
+	</select>
+
+	<resultMap id="halbjahrBetraegeResult" type="DataHalbjahrBetraege" autoMapping="true">
+		<!-- ID ist hier notwendig, da sonst Buchungen mit gleichem Halbjahr als
+		     Duplikat aussortiert werden -->
+		<id column="halbjahr" />
+		<id column="jahr" />
+		<association property="halbjahr" resultMap="nami.beitrag.db.BeitragMapper.halbjahrResult" />
+	</resultMap>
+
+	<select id="getHalbjahrBetraege" parameterType="int" resultMap="halbjahrBetraegeResult">
+		SELECT halbjahr, jahr, SUM(betrag) AS betrag
+		FROM beitragRechnungPosten p
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		WHERE p.rechnungId = #{rechnungId}
+		GROUP BY jahr, halbjahr
+	</select>
+
+
+
+
+
+	<!-- ****** Mahnungen ****** -->
+	<select id="getMahnungen" parameterType="int" resultType="BeitragMahnung">
+		SELECT *
+		FROM beitragMahnung m
+		WHERE rechnungId = #{rechnungId}
+	</select>
+
+	<insert id="insertMahnung" parameterType="BeitragMahnung" useGeneratedKeys="true"
+		keyProperty="mahnungId">
+		INSERT INTO beitragMahnung
+			(rechnungId,
+			datum,
+			frist,
+			mahnungArt)
+		VALUES
+			(#{rechnungId},
+			#{datum},
+			#{frist},
+			#{mahnungArt})
+	</insert>
+
+	<resultMap id="mahnungKomplettResult" type="DataMahnungKomplett" autoMapping="true">
+		<id column="mahnungId" />
+		<association property="mahnung" resultMap="mahnungResult" columnPrefix="m1_" />
+		<association property="rechnung" resultMap="rechnungResult" columnPrefix="r_" />
+		<association property="mitglied" resultMap="nami.beitrag.db.BeitragMapper.mitgliedResult" columnPrefix="mgl_" />
+		<association property="vorherigeMahnung" resultMap="mahnungResult" columnPrefix="m2_" />
+	</resultMap>
+	<select id="getMahnungKomplett" parameterType="int" resultMap="mahnungKomplettResult">
+		SELECT
+			m1.mahnungId AS m1_mahnungId,
+			m1.rechnungId AS m1_rechnungId,
+			m1.datum AS m1_datum,
+			m1.frist AS m1_frist,
+			m1.mahnungArt AS m1_mahnungArt,
+ 			mgl.mitgliedId AS mgl_mitgliedId,
+			mgl.mitgliedsnummer AS mgl_mitgliedsnummer,
+			mgl.nachname AS mgl_nachname,
+			mgl.vorname AS mgl_vorname,
+			mgl.status AS mgl_status,
+			mgl.beitragsart AS mgl_beitragsart,
+			mgl.eintrittsdatum AS mgl_eintrittsdatum,
+			mgl.strasse AS mgl_strasse,
+			mgl.plz AS mgl_plz,
+			mgl.ort AS mgl_ort,
+			mgl.email AS mgl_email,
+			mgl.version AS mgl_version,
+			mgl.deleted AS mgl_deleted,
+			r.rechnungId AS r_rechnungId,
+			r.mitgliedId AS r_mitgliedId,
+			r.rechnungsNummer AS r_rechnungsNummer,
+			r.datum AS r_datum,
+			r.frist AS r_frist,
+			r.status AS r_status,
+			CASE m2.mahnungId WHEN m1.mahnungId THEN NULL ELSE m2.mahnungId END AS m2_mahnungId,
+			CASE m2.mahnungId WHEN m1.mahnungId THEN NULL ELSE m2.rechnungId END AS m2_rechnungId,
+			CASE m2.mahnungId WHEN m1.mahnungId THEN NULL ELSE m2.datum END AS m2_datum,
+			CASE m2.mahnungId WHEN m1.mahnungId THEN NULL ELSE m2.frist END AS m2_frist,
+			CASE m2.mahnungId WHEN m1.mahnungId THEN NULL ELSE m2.mahnungArt END AS m2_mahnungArt,
+			SUM(b.betrag) AS r_betrag
+		FROM beitragMahnung m1
+			JOIN beitragRechnung r
+				ON m1.rechnungId = r.rechnungId
+			JOIN beitragMitglied mgl
+				ON r.mitgliedId = mgl.mitgliedId
+			RIGHT JOIN beitragMahnung m2
+				ON  m1.rechnungId = m2.rechnungId
+			JOIN beitragRechnungPosten rp
+				ON r.rechnungId = rp.rechnungId
+			JOIN beitragBuchung b
+				ON rp.buchungId = b.buchungId
+		WHERE m1.mahnungId = #{mahnungId}
+			AND (m2.mahnungArt = m1.mahnungArt - 1
+				OR (m1.mahnungArt = 1
+					AND
+					m2.mahnungArt = 1))
+		GROUP BY m1.mahnungId, m2.mahnungId
+	</select>
+</mapper>

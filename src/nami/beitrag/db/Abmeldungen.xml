@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.AbmeldungenMapper">
+	<resultMap id="abmeldungResult" type="BeitragAbmeldung">
+		<id property="abmeldungId" column="abmeldungId" />
+		<result property="mitgliedId" column="mitgliedId" />
+		<result property="datum" column="datum" />
+		<result property="faelligkeit" column="faelligkeit" />
+		<result property="typ" column="typ" />
+		<result property="namiEingetragen" column="namiEingetragen" />
+	</resultMap>
+
+	<insert id="insertAbmeldung" parameterType="BeitragAbmeldung" useGeneratedKeys="true"
+		keyProperty="abmeldungId">
+		INSERT INTO beitragAbmeldung
+			(mitgliedId,
+			datum,
+			faelligkeit,
+			typ,
+			namiEingetragen)
+		VALUES
+			(#{mitgliedId},
+			#{datum},
+			#{faelligkeit},
+			#{typ},
+			#{namiEingetragen})
+	</insert>
+
+	<select id="getAbmeldung" parameterType="int" resultType="BeitragAbmeldung">
+		SELECT *
+		FROM beitragAbmeldung
+		WHERE abmeldungId = #{id}
+	</select>
+
+	<update id="updateAbmeldung" parameterType="BeitragAbmeldung">
+		UPDATE beitragAbmeldung
+		SET
+			datum = #{datum},
+			faelligkeit = #{faelligkeit},
+			typ = #{typ},
+			namiEingetragen = #{namiEingetragen}
+		WHERE abmeldungId = #{abmeldungId}
+	</update>
+
+	<resultMap type="DataAbmeldungMitglied" id="abmeldungMitgliedResult">
+		<id column="a_abmeldungId"/>
+		<association property="abmeldung" resultMap="abmeldungResult" columnPrefix="a_" />
+		<association property="mitglied" resultMap="nami.beitrag.db.BeitragMapper.mitgliedResult" columnPrefix="m_"/>
+	</resultMap>
+	<select id="findAbmeldungen" resultMap="abmeldungMitgliedResult" parameterType="boolean">
+		SELECT a.abmeldungId AS a_abmeldungId,
+			a.mitgliedId AS a_mitgliedId,
+			a.datum AS a_datum,
+			a.faelligkeit AS a_faelligkeit,
+			a.typ AS a_typ,
+			a.namiEingetragen AS a_namiEingetragen,
+			m.mitgliedId AS m_mitgliedId,
+			m.mitgliedsnummer AS m_mitgliedsnummer,
+			m.nachname AS m_nachname,
+			m.vorname AS m_vorname
+		FROM beitragAbmeldung a
+			JOIN beitragMitglied m
+				ON a.mitgliedId = m.mitgliedId
+		<if test="unbearbeitetOnly">
+			WHERE namiEingetragen IS NULL
+		</if>
+		ORDER BY faelligkeit
+	</select>
+</mapper>

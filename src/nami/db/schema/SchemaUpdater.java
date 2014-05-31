@@ -56,8 +56,11 @@ public class SchemaUpdater {
 
     /**
      * Bringt das Datenbank-Schema auf den aktuellen Stand.
+     * 
+     * @param context
+     *            Kontext, der an Liquibase übergeben wird
      */
-    public void update() {
+    public void update(String context) {
         Connection con = null;
         try {
             con = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
@@ -71,7 +74,7 @@ public class SchemaUpdater {
 
             Liquibase liquibase = new Liquibase(changelog,
                     new ClassLoaderResourceAccessor(), db);
-            liquibase.update(null);
+            liquibase.update(context);
 
         } catch (SQLException | LiquibaseException e) {
             log.log(Level.WARNING, "Error updating database schema", e);
@@ -84,5 +87,13 @@ public class SchemaUpdater {
                 }
             }
         }
+    }
+
+    /**
+     * Bringt das Datenbank-Schema auf den aktuellen Stand. Dabei wird ein
+     * leerer Kontext an Liquibase übergeben.
+     */
+    public void update() {
+        update(null);
     }
 }

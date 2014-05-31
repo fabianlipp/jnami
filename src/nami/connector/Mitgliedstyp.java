@@ -30,8 +30,8 @@ public enum Mitgliedstyp {
      * 
      * @param str
      *            String-Repräsentation des Mitgliedstyps
-     * @return entsprechender Mitgliedstyp; <code>null</code>, wenn der String
-     *         nicht umgesetzt werden kann
+     * @return entsprechender Mitgliedstyp; <code>null</code>, wenn kein
+     *         Mitgliedstyp angegeben ist
      */
     public static Mitgliedstyp fromString(String str) {
         switch (str) {

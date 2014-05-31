@@ -1,0 +1,39 @@
+\documentclass[foldmarks=true]{dpsgbrief}
+
+\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\LoadLetterOption{stamm}
+\setkomavar{signature}{Fabian Lipp}
+
+\newkomavar{neuefrist}
+
+\renewcommand{\arraystretch}{1.5}
+
+\begin{document}
+
+#foreach( $rechnung in $rechnungen )
+	#set( $betragsum = false )
+	#foreach( $buchung in $rechnung.buchungen )
+		#if ( $betragsum )
+			#set( $betragsum = $betragsum.add($buchung.betrag) )
+		#else
+			#set( $betragsum = $buchung.betrag )
+		#end
+	#end
+	
+	\setkomavar{date}{$date.format('dd.MM.yyyy', $rechnung.rechnung.datum)}
+	\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $rechnung.rechnung.frist)}
+	\begin{rechnung}{$rechnung.mitglied.vorname $rechnung.mitglied.nachname}{$rechnung.mitglied.strasse\\##
+	$rechnung.mitglied.plz $rechnung.mitglied.ort}{$rechnung.rechnung.rechnungsNummer}{$betragsum}
+	#foreach( $buchung in $rechnung.buchungen )
+		\rechnungposten{$!buchung.kommentar}{$buchung.betrag}
+	#end
+	\end{rechnung}
+
+#end
+
+
+
+\end{document}

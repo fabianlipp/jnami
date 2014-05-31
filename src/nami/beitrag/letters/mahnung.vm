@@ -1,0 +1,51 @@
+\documentclass[foldmarks=true]{dpsgbrief}
+
+\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\LoadLetterOption{stamm}
+\setkomavar{signature}{Fabian Lipp}
+
+\newkomavar{rechnungsdatum}
+\newkomavar{rechnungsfrist}
+\newkomavar{altesdatum}
+\newkomavar{altefrist}
+
+
+
+
+\parindent 0pt
+\parskip 6pt
+
+\renewcommand{\arraystretch}{1.5}
+
+
+\begin{document}
+
+
+#foreach( $mahnung in $mahnungen )
+	\setkomavar{date}{$date.format('dd.MM.yyyy', $mahnung.mahnung.datum)}
+	\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $mahnung.mahnung.frist)}
+	\setkomavar{rechnungsdatum}{$date.format('dd.MM.yyyy', $mahnung.rechnung.datum)}
+	\setkomavar{rechnungsfrist}{$date.format('dd.MM.yyyy', $mahnung.rechnung.frist)}
+	\setkomavar{altesdatum}{$date.format('dd.MM.yyyy', $mahnung.vorherigeMahnung.datum)}
+	\setkomavar{altefrist}{$date.format('dd.MM.yyyy', $mahnung.vorherigeMahnung.frist)}
+
+
+	#if( $mahnung.mahnung.mahnungArt == 1 )
+	\erstemahnung%
+	#elseif( $mahnung.mahnung.mahnungArt == 2 )
+	\zweitemahnung%
+	#elseif( $mahnung.mahnung.mahnungArt == 3 )
+	\drittemahnung%
+	#end
+	{$mahnung.mitglied.vorname $mahnung.mitglied.nachname}##
+	{$mahnung.mitglied.strasse\\$mahnung.mitglied.plz $mahnung.mitglied.ort}{$mahnung.rechnung.betrag}
+
+
+#end
+
+
+
+\end{document}

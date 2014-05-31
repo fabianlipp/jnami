@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.LastschriftenMapper">
+
+	<resultMap id="mandatResult" type="BeitragSepaMandat">
+		<id property="mandatId" column="mandatId" />
+		<result property="iban" column="iban" />
+		<result property="bic" column="bic" />
+		<result property="datum" column="datum" />
+		<result property="kontoinhaber" column="kontoinhaber" />
+		<result property="strasse" column="strasse" />
+		<result property="plz" column="plz" />
+		<result property="ort" column="ort" />
+		<result property="email" column="email" />
+		<result property="gueltig" column="gueltig" />
+	</resultMap>
+	<resultMap id="prenotificationResult" type="BeitragPrenotification">
+		<id property="prenotificationId" column="mandatId" />
+		<result property="datum" column="datum" />
+		<result property="betrag" column="betrag" />
+		<result property="faelligkeit" column="faelligkeit" />
+		<result property="regelmaessig" column="regelmaessig" />
+	</resultMap>
+
+	<!-- ****** Sammellastschrift vorbereiten ****** -->
+	<resultMap id="dataRechnungMitgliedResult" type="DataRechnungMitglied">
+		<association property="rechnung" resultMap="nami.beitrag.db.RechnungenMapper.rechnungResult" columnPrefix="r_"/>
+		<association property="mitglied" resultMap="nami.beitrag.db.BeitragMapper.mitgliedResult" columnPrefix="mgl_"/>
+	</resultMap>
+
+	<resultMap id="mandateRechnungenResult" type="DataMandateRechnungen" autoMapping="true">
+		<id column="mandatId" />
+		<association property="mandat" resultMap="mandatResult" />
+		<collection property="rechnungen" ofType="DataRechnungMitglied" resultMap="dataRechnungMitgliedResult" />
+	</resultMap>
+
+	<select id="mandateOffeneRechnungen" resultMap="mandateRechnungenResult">
+		SELECT mand.*,
+			mgl.mitgliedId AS mgl_mitgliedId,
+			mgl.mitgliedsnummer AS mgl_mitgliedsnummer,
+			mgl.nachname AS mgl_nachname,
+			mgl.vorname AS mgl_vorname,
+			r.rechnungId AS r_rechnungId,
+			r.mitgliedId AS r_mitgliedId,
+			r.rechnungsNummer AS r_rechnungsNummer,
+			r.datum AS r_datum,
+			r.frist AS r_frist,
+			r.status AS r_status,
+			SUM(b.betrag) AS r_betrag
+		FROM beitragRechnung AS r
+			JOIN beitragMitglied AS mgl
+				ON r.mitgliedId = mgl.mitgliedId
+			JOIN beitragSepaMandat AS mand
+				ON mgl.aktivesMandat = mand.mandatId
+			JOIN beitragRechnungPosten p
+				ON r.rechnungId = p.rechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		WHERE r.status = 'OFFEN'
+			AND mand.gueltig = TRUE
+			<if test="filterSettings.rechnungsdatum != null">
+				AND r.datum = #{filterSettings.rechnungsdatum}
+			</if>
+			<if test="!filterSettings.bereitsErstellt">
+				AND NOT EXISTS (
+					SELECT lastschriftId
+					FROM beitragLastschriftRechnung AS lr
+					WHERE lr.rechnungId = r.rechnungId
+					)
+			</if>
+		GROUP BY r.rechnungId
+	</select>
+
+
+
+
+
+	<!-- ****** Lastschriften ****** -->
+	<insert id="insertLastschrift" parameterType="BeitragLastschrift"
+		useGeneratedKeys="true" keyProperty="lastschriftId">
+		INSERT INTO beitragLastschrift
+			(sammelLastschriftId,
+			mandatId,
+			verwendungszweck)
+		VALUES
+			(#{sammelLastschriftId},
+			#{mandatId},
+			#{verwendungszweck})
+	</insert>
+
+	<delete id="deleteLastschrift" parameterType="int">
+		DELETE FROM beitragLastschrift
+		WHERE lastschriftId = #{lastschriftId}
+	</delete>
+
+	<insert id="addRechnungToLastschrift">
+		INSERT INTO beitragLastschriftRechnung
+			(lastschriftId,
+			rechnungId)
+		VALUES
+			(#{lastschriftId},
+			#{rechnungId})
+	</insert>
+
+	<delete id="deleteAllRechnungenFromLastschrift" parameterType="int">
+		DELETE FROM beitragLastschriftRechnung
+		WHERE lastschriftId = #{lastschriftId}
+	</delete>
+
+	<resultMap id="lastschriftResult" type="BeitragLastschrift" autoMapping="true">
+		<id property="lastschriftId" column="lastschriftId" />
+	</resultMap>
+
+	<resultMap id="lastschriftMandatResult" type="DataLastschriftMandat" autoMapping="true">
+		<id column="mandatId" />
+		<association property="lastschrift" resultMap="lastschriftResult" />
+		<association property="mandat" resultMap="mandatResult" />
+	</resultMap>
+
+	<select id="getLastschriften" parameterType="int" resultMap="lastschriftMandatResult">
+		SELECT l.*, s.*, SUM(b.betrag) AS betrag
+		FROM beitragLastschrift l
+			JOIN beitragSepaMandat s
+				ON l.mandatId = s.mandatId
+			JOIN beitragLastschriftRechnung lr
+				ON l.lastschriftId = lr.lastschriftId
+			JOIN beitragRechnungPosten p
+				ON lr.rechnungId = p.rechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		WHERE sammelLastschriftId = #{sammelLastschriftId}
+		GROUP BY l.lastschriftId
+	</select>
+
+
+
+
+
+	<!-- ****** Sammel-Lastschriften ****** -->
+	<insert id="insertSammelLastschrift" parameterType="BeitragSammelLastschrift"
+		useGeneratedKeys="true" keyProperty="sammelLastschriftId">
+		INSERT INTO beitragSammelLastschrift
+			(faelligkeit,
+			ausgefuehrt,
+			bezeichnung)
+		VALUES
+			(#{faelligkeit},
+			#{ausgefuehrt},
+			#{bezeichnung})
+	</insert>
+
+	<update id="updateSammelLastschrift" parameterType="BeitragSammelLastschrift">
+		UPDATE beitragSammelLastschrift
+		SET
+			faelligkeit = #{faelligkeit},
+			ausgefuehrt = #{ausgefuehrt},
+			bezeichnung = #{bezeichnung}
+		WHERE sammelLastschriftId = #{sammelLastschriftId}
+	</update>
+
+	<delete id="deleteSammelLastschrift" parameterType="int">
+		DELETE FROM beitragSammelLastschrift
+		WHERE sammelLastschriftId = #{sammelLastschriftId}
+	</delete>
+
+	<select id="findSammelLastschriften" resultType="BeitragSammelLastschrift">
+		SELECT sl.*,
+			COUNT(DISTINCT l.lastschriftId) AS anzahlLastschriften,
+			SUM(b.betrag) AS betrag
+		FROM beitragSammelLastschrift sl
+			JOIN beitragLastschrift l
+				ON sl.sammelLastschriftId = l.sammelLastschriftId
+			JOIN beitragLastschriftRechnung lr
+				ON l.lastschriftId = lr.lastschriftId
+			JOIN beitragRechnung r
+				ON lr.rechnungId = r.rechnungId
+			JOIN beitragRechnungPosten p
+				ON r.rechnungId = p.RechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		<where>
+			<if test="ausgefuehrt != null">
+				ausgefuehrt = #{ausgefuehrt}
+			</if>
+		</where>
+		GROUP BY sl.sammelLastschriftId
+	</select>
+
+	<select id="getRechnungenInSammelLastschrift" resultType="BeitragRechnung" parameterType="int">
+		SELECT r.*
+		FROM beitragRechnung r
+			JOIN beitragLastschriftRechnung lr
+				ON r.rechnungId = lr.rechnungId
+			JOIN beitragLastschrift l
+				ON lr.lastschriftId = l.lastschriftId
+		WHERE l.sammelLastschriftId = #{sammelLastschriftId}
+	</select>
+
+
+
+
+
+	<!-- ****** Prenotifications ****** -->
+	<insert id="insertPrenotification" parameterType="BeitragPrenotification"
+		useGeneratedKeys="true" keyProperty="prenotificationId">
+		INSERT INTO beitragPrenotification
+			(mandatId,
+			datum,
+			betrag,
+			faelligkeit,
+			regelmaessig)
+		VALUES
+			(#{mandatId},
+			#{datum},
+			#{betrag},
+			#{faelligkeit},
+			#{regelmaessig})
+	</insert>
+
+	<select id="existsValidPrenotification" resultType="boolean">
+		SELECT CASE WHEN COUNT(*) > 0 AND res.betrag = #{betrag} THEN 1 ELSE 0 END
+		FROM (SELECT betrag
+			FROM beitragPrenotification
+			WHERE mandatId = #{mandatId}
+				AND regelmaessig = TRUE
+			ORDER BY datum DESC
+			LIMIT 1) AS res
+	</select>
+
+	<resultMap type="DataPrenotificationMandat" id="prenotificationMandatResult">
+		<id column="p_prenotificationId"/>
+		<association property="prenotification" resultMap="prenotificationResult" columnPrefix="p_" />
+		<association property="mandat" resultMap="mandatResult" columnPrefix="m_" />
+	</resultMap>
+	<select id="getPrenotificationMitMandat" resultMap="prenotificationMandatResult">
+		SELECT p.prenotificationId AS p_prenotificationId,
+			p.datum AS p_datum,
+			p.betrag AS p_betrag,
+			p.faelligkeit AS p_faelligkeit,
+			p.regelmaessig AS p_regelmaessig,
+			m.mandatId AS m_mandatId,
+			m.iban AS m_iban,
+			m.bic AS m_bic,
+			m.datum AS m_datum,
+			m.kontoinhaber AS m_kontoinhaber,
+			m.strasse AS m_strasse,
+			m.plz AS m_plz,
+			m.ort AS m_ort,
+			m.email AS m_email,
+			m.gueltig AS m_gueltig
+		FROM beitragPrenotification p
+			JOIN beitragSepaMandat m
+				ON p.mandatId = m.mandatId
+		WHERE p.prenotificationId = #{prenotificationId}
+	</select>
+</mapper>

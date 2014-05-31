@@ -2,10 +2,16 @@ package nami.connector.namitypes;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import nami.connector.Beitragsart;
 import nami.connector.Geschlecht;
 import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
@@ -24,6 +30,7 @@ import com.google.gson.reflect.TypeToken;
  * @author Fabian Lipp
  * 
  */
+@SuppressWarnings("unused")
 public class NamiMitglied extends NamiAbstractMitglied {
     /**
      * Beschreibt die Bankverbindung eines Mitglieds.
@@ -147,6 +154,63 @@ public class NamiMitglied extends NamiAbstractMitglied {
     }
 
     @Override
+    public int getVersion() {
+        return version;
+    }
+
+    /**
+     * Liefert die Beitragsart des Mitglieds.
+     * 
+     * @return Beitragsart
+     */
+    public Beitragsart getBeitragsart() {
+        return Beitragsart.fromString(beitragsarten);
+    }
+
+    /**
+     * Liefert das Eintrittsdatum des Mitglieds.
+     * 
+     * @return Eintrittsdatum
+     */
+    public Date getEintrittsdatum() {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        try {
+            cal.setTime(df.parse(eintrittsdatum));
+            return cal.getTime();
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Liefert die Straße der Wohnung des Mitglieds.
+     * 
+     * @return Straße
+     */
+    public String getStrasse() {
+        return strasse;
+    }
+
+    /**
+     * Liefert die PLZ der Wohnung des Mitglieds.
+     * 
+     * @return PLZ
+     */
+    public String getPlz() {
+        return plz;
+    }
+
+    /**
+     * Liefert den Ort der Wohnung des Mitglieds.
+     * 
+     * @return Ort
+     */
+    public String getOrt() {
+        return ort;
+    }
+
+    @Override
     public NamiMitglied getFullData(NamiConnector con) throws NamiApiException,
             IOException {
         // do nothing (this object already contains the full data)
@@ -227,7 +291,8 @@ public class NamiMitglied extends NamiAbstractMitglied {
 
         HttpGet httpGet = new HttpGet(builder.build());
 
-        Type type = new TypeToken<NamiResponse<NamiMitglied>>() { }.getType();
+        Type type = new TypeToken<NamiResponse<NamiMitglied>>() {
+        }.getType();
         NamiResponse<NamiMitglied> resp = con.executeApiRequest(httpGet, type);
 
         if (resp.isSuccess()) {
@@ -271,6 +336,5 @@ public class NamiMitglied extends NamiAbstractMitglied {
             NamiMitgliedListElement result = resp.getData().iterator().next();
             return result.getId();
         }
-
     }
 }

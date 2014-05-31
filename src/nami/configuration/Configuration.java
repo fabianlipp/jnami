@@ -19,6 +19,7 @@ public final class Configuration {
     }
 
     private static Logger log = Logger.getLogger(Configuration.class.getName());
+    private static Properties generalProperties = null;
 
     /**
      * Liefert das Verzeichnis, in dem alle veränderlichen Dateien gespeichert
@@ -32,7 +33,8 @@ public final class Configuration {
      *             nicht erzeugt werden kann oder wenn bereits eine Datei mit
      *             dem Namen existiert
      */
-    public static File getApplicationDirectory() throws ApplicationDirectoryException {
+    public static File getApplicationDirectory()
+            throws ApplicationDirectoryException {
         File f = new File(System.getProperty("user.home"), ".jnami");
         if (!f.exists()) {
             f.mkdir();
@@ -75,7 +77,8 @@ public final class Configuration {
      *             nicht erzeugt werden kann oder wenn bereits eine Datei mit
      *             dem Namen existiert
      */
-    public static File getGeneralConfigfile() throws ApplicationDirectoryException {
+    public static File getGeneralConfigfile()
+            throws ApplicationDirectoryException {
         File f = new File(getApplicationDirectory(), "jnami.properties");
 
         return f;
@@ -91,6 +94,10 @@ public final class Configuration {
      *         eingelesen ist.
      */
     public static Properties getGeneralProperties() {
+        if (generalProperties != null) {
+            return generalProperties;
+        }
+
         InputStream defPropStr = Configuration.class
                 .getResourceAsStream("defaultJnami.properties");
         Properties defProp = new Properties();
@@ -115,6 +122,7 @@ public final class Configuration {
             log.log(Level.WARNING, "Could not read configuration from file", e);
         }
 
+        generalProperties = prop;
         return prop;
     }
 }

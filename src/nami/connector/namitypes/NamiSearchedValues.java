@@ -202,6 +202,21 @@ public class NamiSearchedValues {
     }
 
     /**
+     * Liefert ein Suchobjekt, das alle Mitglieder findet, die eine gegebene
+     * Gruppierung als Stammgruppierung besitzen.
+     * 
+     * @param gruppierungsnummer
+     *            Nummer der Gruppierung, deren Mitglieder gesucht werden
+     * @return ein Suchobjekt, das die gewünschte Anfrage in NaMi ausführt
+     */
+    public static NamiSearchedValues withStammgruppierung(
+            String gruppierungsnummer) {
+        NamiSearchedValues search = new NamiSearchedValues();
+        search.setGruppierungsnummer(gruppierungsnummer);
+        return search;
+    }
+
+    /**
      * Liefert einen Teil der Mitglieder, die der Suchanfrage entsprechen.
      * 
      * @param con

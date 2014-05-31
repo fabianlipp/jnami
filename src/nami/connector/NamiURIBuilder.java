@@ -17,7 +17,7 @@ public class NamiURIBuilder extends URIBuilder {
     /**
      * URL, die zum Login in NaMi verwendet wird.
      */
-    private static final String URL_NAMI_STARTUP = "/nami/auth/manual/sessionStartup";
+    private static final String URL_NAMI_STARTUP = "/rest/nami/auth/manual/sessionStartup";
 
     /**
      * URL, mit der die Root-Gruppierung und die Kinder für jede Gruppierung
@@ -38,6 +38,19 @@ public class NamiURIBuilder extends URIBuilder {
      * URL, mit der eine Tätigkeitszuordnung eines Mitglieds abgefragt wird.
      */
     public static final String URL_NAMI_TAETIGKEIT = "/nami/zugeordnete-taetigkeiten/filtered-for-navigation/gruppierung-mitglied/mitglied";
+
+    /**
+     * URL, mit der die Mitglieder ausgelesen werden können, die einer
+     * bestimmten Gruppierung angehören (entweder als Stammgruppierung oder sie
+     * üben dort eine Tätigkeit aus).
+     */
+    public static final String URL_MITGLIEDER_FROM_GRUPPIERUNG = "/nami/mitglied/filtered-for-navigation/gruppierung/gruppierung/%s/flist";
+
+    /**
+     * URL, mit der die Beitragszahlungen eines Mitglieds abgefragt werden
+     * können.
+     */
+    public static final String URL_BEITRAGSZAHLUNGEN = "/mgl-verwaltungS/beitrKonto-anzeigen";
 
     /**
      * URL, um eine Suchanfrage an NaMi zu senden.
@@ -64,8 +77,11 @@ public class NamiURIBuilder extends URIBuilder {
      *            Pfad, der an die URI angefügt wird. Das NamiDeploy-Verzeichnis
      *            (z.B. ica) aus der Server-Konfiguration wird automatisch vorne
      *            angefügt.
+     * @param restUrl
+     *            gibt an, ob vor dem übergebenen Pfad noch die Pfadkomponente
+     *            "rest/" und ggf. die API-Version eingefügt werden soll
      */
-    public NamiURIBuilder(NamiServer server, String path) {
+    public NamiURIBuilder(NamiServer server, String path, boolean restUrl) {
         super();
 
         if (server.getUseSsl()) {
@@ -76,10 +92,13 @@ public class NamiURIBuilder extends URIBuilder {
         setHost(server.getNamiServer());
 
         setPath("/" + server.getNamiDeploy());
-        appendPath("rest");
-        if (server.useApiAccess()) {
-            appendPath("api/1/2/service");
+        if (restUrl) {
+            appendPath("rest");
+            if (server.useApiAccess()) {
+                appendPath("api/1/2/service");
+            }
         }
+
         appendPath(path);
     }
 
@@ -124,6 +143,6 @@ public class NamiURIBuilder extends URIBuilder {
      * @return NamiURIBuilder für den NaMi-Login
      */
     public static NamiURIBuilder getLoginURIBuilder(NamiServer server) {
-        return new NamiURIBuilder(server, URL_NAMI_STARTUP);
+        return new NamiURIBuilder(server, URL_NAMI_STARTUP, false);
     }
 }

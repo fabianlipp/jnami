@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.BriefeMapper">
+
+	<insert id="insertBrief" parameterType="BeitragBrief" useGeneratedKeys="true"
+		keyProperty="briefId">
+		INSERT INTO beitragBrief
+			(dateiname,
+			datum,
+			typ,
+			kompiliert)
+		VALUES
+			(#{dateiname},
+			#{datum},
+			#{typ},
+			#{kompiliert})
+	</insert>
+
+	<select id="getBrief" parameterType="int" resultType="BeitragBrief">
+		SELECT *
+		FROM beitragBrief
+		WHERE briefId = #{id}
+	</select>
+
+	<update id="updateBrief" parameterType="BeitragBrief">
+		UPDATE beitragBrief
+		SET
+			dateiname = #{dateiname},
+			datum = #{datum},
+			typ = #{typ},
+			kompiliert = #{kompiliert}
+		WHERE briefId = #{briefId}
+	</update>
+
+	<select id="findBriefe" resultType="BeitragBrief">
+		SELECT *
+		FROM beitragBrief
+		<where>
+			<if test="filterSettings.datumVon != null">
+				datum &gt;= DATE(#{filterSettings.datumVon})
+			</if>
+			<if test="filterSettings.datumBis != null">
+				AND datum &lt;= DATE(#{filterSettings.datumBis})
+			</if>
+			<if test="filterSettings.typ != null">
+				AND typ = #{filterSettings.typ}
+			</if>
+		</where>
+		ORDER BY datum
+	</select>
+</mapper>

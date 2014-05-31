@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="nami.beitrag.db.BeitragMapper">
+	<resultMap id="mitgliedResult" type="BeitragMitglied">
+		<id property="mitgliedId" column="mitgliedId" />
+		<result property="mitgliedsnummer" column="mitgliedsnummer" />
+		<result property="nachname" column="nachname" />
+		<result property="vorname" column="vorname" />
+		<result property="status" column="status" />
+		<result property="beitragsart" column="beitragsart" />
+		<result property="eintrittsdatum" column="eintrittsdatum" />
+		<result property="strasse" column="strasse" />
+		<result property="plz" column="plz" />
+		<result property="ort" column="ort" />
+		<result property="email" column="email" />
+		<result property="version" column="version" />
+		<result property="deleted" column="deleted" />
+	</resultMap>
+
+	<!-- *** Allgemeine ResultMaps *** -->
+	<resultMap id="halbjahrResult" type="Halbjahr">
+		<constructor>
+			<arg column="halbjahr" javaType="_int"/>
+			<arg column="jahr" javaType="_int"/>
+		</constructor>
+	</resultMap>
+
+	<!-- *** Mitglieder *** -->
+	<select id="getMitglied" parameterType="int" resultType="BeitragMitglied">
+		SELECT *
+		FROM beitragMitglied
+		WHERE mitgliedId = #{id}
+	</select>
+
+	<select id="getMitgliedByNummer" parameterType="int" resultType="BeitragMitglied">
+		SELECT *
+		FROM beitragMitglied
+		WHERE mitgliedsnummer = #{mitgliedsnummer}
+	</select>
+
+	<select id="getMitgliedIds" resultType="int">
+		SELECT mitgliedId
+		FROM beitragMitglied
+	</select>
+
+	<insert id="insertMitglied" parameterType="BeitragMitglied">
+		INSERT INTO beitragMitglied
+			(mitgliedId,
+			mitgliedsnummer,
+			nachname,
+			vorname,
+			status,
+			beitragsart,
+			eintrittsdatum,
+			strasse,
+			plz,
+			ort,
+			email,
+			version,
+			deleted)
+		VALUES
+			(#{mitgliedId},
+			#{mitgliedsnummer},
+			#{nachname},
+			#{vorname},
+			#{status},
+			#{beitragsart},
+			#{eintrittsdatum},
+			#{strasse},
+			#{plz},
+			#{ort},
+			#{email},
+			#{version},
+			#{deleted})
+	</insert>
+	
+	<update id="updateMitglied" parameterType="BeitragMitglied">
+		UPDATE beitragMitglied
+		SET
+			mitgliedsnummer = #{mitgliedsnummer},
+			nachname = #{nachname},
+			vorname = #{vorname},
+			status = #{status},
+			beitragsart = #{beitragsart},
+			eintrittsdatum = #{eintrittsdatum},
+			strasse = #{strasse},
+			plz = #{plz},
+			ort = #{ort},
+			email = #{email},
+			version = #{version},
+			deleted = #{deleted}
+		WHERE mitgliedId = #{mitgliedId}
+	</update>
+
+	<select id="isDeleted" parameterType="int" resultType="boolean">
+		SELECT deleted
+		FROM beitragMitglied
+		WHERE mitgliedId = #{id} 
+	</select>
+
+	<update id="setDeleted" parameterType="int">
+		UPDATE beitragMitglied
+		SET deleted = TRUE
+		WHERE mitgliedId = #{id}
+	</update>
+
+	<select id="findMitglieder" resultType="BeitragMitglied">
+		SELECT *
+		FROM beitragMitglied
+		<where>
+			<if test="mitgliedsnummer != null and mitgliedsnummer != ''">
+			mitgliedsnummer = #{mitgliedsnummer}
+			</if>
+			<if test="vorname != null and vorname != ''">
+			AND vorname LIKE #{vorname}
+			</if>
+			<if test="nachname != null and nachname != ''">
+			AND nachname LIKE #{nachname}
+			</if>
+		</where>
+	</select>
+
+	<!-- *** Buchungen *** -->
+	<resultMap id="buchungResult" type="BeitragBuchung" autoMapping="true">
+		<!-- ID ist hier notwendig, da sonst Buchungen mit gleichem Halbjahr als
+		     Duplikat aussortiert werden -->
+		<id property="buchungId" column="buchungId" />
+		<association property="halbjahr" resultMap="halbjahrResult" />
+	</resultMap>
+
+	<select id="getBuchungById" parameterType="int" resultMap="buchungResult">
+		SELECT *
+		FROM beitragBuchung
+		WHERE buchungId = #{id}
+	</select>
+
+	<select id="getBuchungByNamiId" parameterType="int" resultType="BeitragBuchung"
+		resultMap="buchungResult">
+		SELECT *
+		FROM beitragBuchung
+		WHERE namiBuchungId = #{id}
+	</select>
+
+	<select id="checkForRechnungBundesebene" resultType="int">
+		SELECT COUNT(*)
+		FROM beitragBuchung
+		WHERE mitgliedId = #{mitgliedId}
+			AND halbjahr = #{halbjahr.halbjahr}
+			AND jahr = #{halbjahr.jahr}
+			AND typ = 'RECHNUNG_BUNDESEBENE'
+	</select>
+
+	<delete id="deleteVorausberechnung">
+		DELETE FROM beitragBuchung
+		WHERE mitgliedId = #{mitgliedId}
+			AND halbjahr = #{halbjahr.halbjahr}
+			AND jahr = #{halbjahr.jahr}
+			AND vorausberechnung = true
+	</delete>
+
+	<insert id="insertBuchung" parameterType="BeitragBuchung">
+		INSERT INTO beitragBuchung
+			(mitgliedId,
+			namiBuchungId,
+			rechnungsNummer,
+			typ,
+			datum,
+			betrag,
+			halbjahr,
+			jahr,
+			vorausberechnung,
+			kommentar)
+		VALUES
+			(#{mitgliedId},
+			#{namiBuchungId},
+			#{rechnungsNummer},
+			#{typ},
+			#{datum},
+			#{betrag},
+			#{halbjahr.halbjahr},
+			#{halbjahr.jahr},
+			#{vorausberechnung},
+			#{kommentar})
+	</insert>
+
+	<resultMap id="zeitraumSaldoResult" type="ZeitraumSaldo" autoMapping="true">
+		<association property="halbjahr" resultMap="halbjahrResult" />
+	</resultMap>
+	<select id="getSaldoPerHalbjahr" parameterType="int" resultMap="zeitraumSaldoResult">
+		SELECT halbjahr,
+			jahr,
+			COUNT(buchungId) AS anzahlBuchungen,
+			SUM(betrag) AS saldo
+		FROM beitragBuchung
+		WHERE mitgliedId = #{mitgliedId}
+			AND vorausberechnung = false
+		GROUP BY jahr, halbjahr
+	</select>
+
+	<select id="getBuchungenByHalbjahr" resultType="BeitragBuchung" resultMap="buchungResult">
+		SELECT *
+		FROM beitragBuchung
+		WHERE mitgliedId = #{mitgliedId}
+			AND halbjahr = #{halbjahr.halbjahr}
+			AND jahr = #{halbjahr.jahr}
+	</select>
+
+	<!-- *** Zeiträume *** -->
+	<resultMap id="zeitraumResult" type="BeitragZeitraum" autoMapping="true">
+		<association property="halbjahr" resultMap="halbjahrResult" />
+	</resultMap>
+
+	<select id="getZeitraum" parameterType="Halbjahr"
+		resultType="BeitragZeitraum" resultMap="zeitraumResult">
+		SELECT *
+		FROM beitragZeitraum
+		WHERE halbjahr = #{halbjahr}
+			AND jahr = #{jahr}
+	</select>
+
+	<insert id="insertZeitraum" parameterType="BeitragZeitraum">
+		INSERT INTO beitragZeitraum
+			(halbjahr, jahr, abgeschlossen)
+		VALUES
+			(#{halbjahr.halbjahr}, #{halbjahr.jahr}, #{abgeschlossen})
+	</insert>
+</mapper>

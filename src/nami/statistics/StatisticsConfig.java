@@ -133,7 +133,7 @@ public class StatisticsConfig {
         // Update Database Schema
         SchemaUpdater updater = new SchemaUpdater(dbDriver, dbUrl, dbUsername,
                 dbPassword);
-        updater.update();
+        updater.update("statistics");
 
         // Initialise MyBatis
         Properties prop = new Properties();
