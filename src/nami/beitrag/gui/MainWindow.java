@@ -154,7 +154,7 @@ public class MainWindow extends JFrame {
         button6.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                BeitragskontoWindow beitragskontoWin = new BeitragskontoWindow(
+                MitgliedAnzeigenWindow beitragskontoWin = new MitgliedAnzeigenWindow(
                         namiBeitrag.getSessionFactory());
                 beitragskontoWin.setVisible(true);
             }

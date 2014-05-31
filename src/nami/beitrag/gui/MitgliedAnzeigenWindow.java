@@ -6,11 +6,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,6 +26,7 @@ import javax.swing.table.AbstractTableModel;
 
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragMapper;
+import nami.beitrag.db.BeitragMitglied;
 import nami.beitrag.db.ZeitraumSaldo;
 import nami.connector.Halbjahr;
 import net.miginfocom.swing.MigLayout;
@@ -45,7 +48,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
  * @author Fabian Lipp
  * 
  */
-public class BeitragskontoWindow extends JFrame {
+public class MitgliedAnzeigenWindow extends JFrame {
     private static final long serialVersionUID = 4398977549939312811L;
 
     private SqlSessionFactory sessionFactory;
@@ -53,7 +56,10 @@ public class BeitragskontoWindow extends JFrame {
     private MitgliedSelectComponent mitgliedSelect;
     private JTabbedPane tabbedPane;
 
-    // Übersichts-Tab
+    // Stammdaten-Tab
+    private StammdatenPanel stammdatenPanel;
+
+    // Beitragskonto-Tab
     private JScrollPane overviewTablePane;
     private JTable overviewTable;
     private OverviewTableModel overviewTableModel;
@@ -76,8 +82,8 @@ public class BeitragskontoWindow extends JFrame {
      * @param sqlSessionFactory
      *            Verbindung zur Datenbank
      */
-    public BeitragskontoWindow(SqlSessionFactory sqlSessionFactory) {
-        super("Beitragskonten anzeigen");
+    public MitgliedAnzeigenWindow(SqlSessionFactory sqlSessionFactory) {
+        super("Mitglied anzeigen");
         this.sessionFactory = sqlSessionFactory;
         buildFrame();
     }
@@ -95,7 +101,10 @@ public class BeitragskontoWindow extends JFrame {
         getContentPane().add(lblMitglied, "flowx,cell 0 0");
         getContentPane().add(mitgliedSelect, "cell 0 0,alignx left,aligny top");
 
-        // Overview-Tab
+        // Stammdaten-Tab
+        stammdatenPanel = new StammdatenPanel();
+
+        // Beitragskonto-Tab
         overviewTableModel = new OverviewTableModel();
         overviewTable = new JTable(overviewTableModel);
         // verhindert, dass die Spaltenbreiten beim Austausch des Models
@@ -132,10 +141,12 @@ public class BeitragskontoWindow extends JFrame {
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
         tabbedPane.addChangeListener(refreshListener);
         getContentPane().add(tabbedPane, "cell 0 1,grow");
-        tabbedPane.addTab("Übersicht", null, overviewTablePane, null);
-        tabbedPane.setMnemonicAt(0, KeyEvent.VK_B);
+        tabbedPane.addTab("Stammdaten", null, stammdatenPanel, null);
+        tabbedPane.setMnemonicAt(0, KeyEvent.VK_S);
+        tabbedPane.addTab("Beitragskonto", null, overviewTablePane, null);
+        tabbedPane.setMnemonicAt(1, KeyEvent.VK_B);
         tabbedPane.addTab("Details", null, detailsPanel, null);
-        tabbedPane.setMnemonicAt(1, KeyEvent.VK_D);
+        tabbedPane.setMnemonicAt(2, KeyEvent.VK_D);
 
         pack();
     }
@@ -147,13 +158,161 @@ public class BeitragskontoWindow extends JFrame {
     private class RefreshListener implements ChangeListener {
         @Override
         public void stateChanged(ChangeEvent e) {
-            if (tabbedPane.getSelectedComponent() == overviewTablePane) {
+            if (tabbedPane.getSelectedComponent() == stammdatenPanel) {
+                stammdatenPanel.refreshStammdaten();
+            } else if (tabbedPane.getSelectedComponent() == overviewTablePane) {
                 refreshOverview();
             } else {
                 refreshDetails();
             }
         }
 
+    }
+
+    /**
+     * Stellt ein Panel mit den Stammdaten eines Mitglieds bereit.
+     */
+    private final class StammdatenPanel extends JPanel {
+        private static final long serialVersionUID = 7500743610141285252L;
+
+        private int shownMitgliedId;
+
+        private JLabel mitgliedId;
+        private JLabel mitgliedsNummer;
+        private JLabel nachname;
+        private JLabel vorname;
+        private JLabel status;
+        private JLabel beitragsart;
+        private JLabel eintrittsdatum;
+        private JLabel strasse;
+        private JLabel plz;
+        private JLabel ort;
+        private JLabel email;
+        private JLabel version;
+        private JCheckBox deleted;
+
+        private StammdatenPanel() {
+            this.setLayout(new MigLayout("", "[][grow]", ""));
+
+            JLabel lblMitgliedId = new JLabel("Mitglied-ID:");
+            this.add(lblMitgliedId, "");
+            mitgliedId = new JLabel("");
+            this.add(mitgliedId, "wrap");
+
+            JLabel lblMitgliedsNummer = new JLabel("Mitgliedsnummer:");
+            this.add(lblMitgliedsNummer, "");
+            mitgliedsNummer = new JLabel("");
+            this.add(mitgliedsNummer, "wrap");
+
+            JLabel lblNachname = new JLabel("Nachname:");
+            this.add(lblNachname, "");
+            nachname = new JLabel("");
+            this.add(nachname, "wrap");
+
+            JLabel lblVorname = new JLabel("Vorname:");
+            this.add(lblVorname, "");
+            vorname = new JLabel("");
+            this.add(vorname, "wrap");
+
+            JLabel lblStatus = new JLabel("Status:");
+            this.add(lblStatus, "");
+            status = new JLabel("");
+            this.add(status, "wrap");
+
+            JLabel lblBeitragsart = new JLabel("Beitragsart:");
+            this.add(lblBeitragsart, "");
+            beitragsart = new JLabel("");
+            this.add(beitragsart, "wrap");
+
+            JLabel lblEintrittsdatum = new JLabel("Eintrittsdatum:");
+            this.add(lblEintrittsdatum, "");
+            eintrittsdatum = new JLabel("");
+            this.add(eintrittsdatum, "wrap");
+
+            JLabel lblStrasse = new JLabel("Straße:");
+            this.add(lblStrasse, "");
+            strasse = new JLabel("");
+            this.add(strasse, "wrap");
+
+            JLabel lblPlz = new JLabel("PLZ:");
+            this.add(lblPlz, "");
+            plz = new JLabel("");
+            this.add(plz, "wrap");
+
+            JLabel lblOrt = new JLabel("Ort:");
+            this.add(lblOrt, "");
+            ort = new JLabel("");
+            this.add(ort, "wrap");
+
+            JLabel lblEmail = new JLabel("E-Mail:");
+            this.add(lblEmail, "");
+            email = new JLabel("");
+            this.add(email, "wrap");
+
+            JLabel lblVersion = new JLabel("Version:");
+            this.add(lblVersion, "");
+            version = new JLabel("");
+            this.add(version, "wrap");
+
+            JLabel lblDeleted = new JLabel("Gelöscht in NaMi:");
+            this.add(lblDeleted, "");
+            deleted = new JCheckBox();
+            deleted.setEnabled(false);
+            this.add(deleted, "wrap");
+
+            pack();
+        }
+
+        private void refreshStammdaten() {
+            int selMitgliedId = mitgliedSelect.getMitgliedId();
+            // Mitglied has not changed -> nothing to do
+            if (selMitgliedId == shownMitgliedId) {
+                return;
+            }
+            shownMitgliedId = selMitgliedId;
+
+            if (selMitgliedId == -1) {
+                mitgliedId.setText("");
+                mitgliedsNummer.setText("");
+                nachname.setText("");
+                vorname.setText("");
+                status.setText("");
+                beitragsart.setText("");
+                eintrittsdatum.setText("");
+                strasse.setText("");
+                plz.setText("");
+                ort.setText("");
+                email.setText("");
+                version.setText("");
+                deleted.setSelected(false);
+                return;
+            }
+
+            SqlSession session = sessionFactory.openSession();
+            try {
+                BeitragMapper mapper = session.getMapper(BeitragMapper.class);
+                BeitragMitglied mgl = mapper.getMitglied(selMitgliedId);
+
+                mitgliedId.setText(Integer.toString(mgl.getMitgliedId()));
+                mitgliedsNummer.setText(Integer.toString(mgl
+                        .getMitgliedsnummer()));
+                nachname.setText(mgl.getNachname());
+                vorname.setText(mgl.getVorname());
+                status.setText(mgl.getStatus().toString());
+                beitragsart.setText(mgl.getBeitragsart().toString());
+                String datum = new SimpleDateFormat("dd.MM.yyyy").format(mgl
+                        .getEintrittsdatum());
+                eintrittsdatum.setText(datum);
+                strasse.setText(mgl.getStrasse());
+                plz.setText(mgl.getPlz());
+                ort.setText(mgl.getOrt());
+                email.setText(mgl.getEmail());
+                version.setText(Integer.toString(mgl.getVersion()));
+                deleted.setSelected(mgl.isDeleted());
+            } finally {
+                session.close();
+            }
+        }
     }
 
     /**
