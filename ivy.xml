@@ -14,7 +14,7 @@
 		<dependency org="net.sourceforge.htmlcleaner" name="htmlcleaner" rev="2.4"/>
 		<dependency org="org.hsqldb" name="hsqldb" rev="2.3.0"/>
 		<dependency org="org.mybatis" name="mybatis" rev="3.2.2" />
-		<dependency org="org.liquibase" name="liquibase-core" rev="3.0.3"/>
+		<dependency org="org.liquibase" name="liquibase-core" rev="3.1.1"/>
 		<!--<dependency org="org.projectlombok" name="lombok" rev="0.12.0" conf="build" />-->
 		<dependency org="org.projectlombok" name="lombok" rev="0.12.0" />
 		<dependency org="com.miglayout" name="miglayout" rev="3.7.4"/>

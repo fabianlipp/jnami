@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 	<changeSet author="fabian" id="02-1" context="beitrag">
 		<createTable tableName="beitragPrenotification">
 			<column autoIncrement="true" name="prenotificationId" type="INT(10)">
@@ -103,10 +103,10 @@
 			<column name="vorname" type="VARCHAR(255)">
 				<constraints nullable="false" />
 			</column>
-			<column name="status" type="ENUM(17)">
+			<column name="status" type="ENUM('MITGLIED', 'NICHT_MITGLIED', 'SCHNUPPERMITGLIED', '')">
 				<constraints nullable="false" />
 			</column>
-			<column name="beitragsart" type="ENUM(18)">
+			<column name="beitragsart" type="ENUM('VOLLER_BEITRAG', 'FAMILIEN_BEITRAG', 'SOZIALERMAESSIGUNG', 'KEIN_BEITRAG')">
 				<constraints nullable="false" />
 			</column>
 			<column name="eintrittsdatum" type="date" />
@@ -152,7 +152,7 @@
 	</changeSet>
 	<changeSet author="fabian" id="02-8" context="beitrag">
 		<createTable tableName="beitragZeitraum">
-			<column name="halbjahr" type="ENUM(2)">
+			<column name="halbjahr" type="ENUM('1', '2')">
 				<constraints nullable="false" />
 			</column>
 			<column name="jahr" type="YEAR">
@@ -185,7 +185,7 @@
 				<constraints nullable="false" />
 			</column>
 			<column name="datum" type="date" />
-			<column name="typ" type="ENUM(15)" />
+			<column name="typ" type="ENUM('RECHNUNG', 'MAHNUNG', 'PRENOTIFICATION')" />
 			<column name="kompiliert" type="datetime" />
 		</createTable>
 	</changeSet>
@@ -225,7 +225,7 @@
 			<column name="frist" type="date">
 				<constraints nullable="false" />
 			</column>
-			<column defaultValue="OFFEN" name="status" type="ENUM(13)">
+			<column defaultValue="OFFEN" name="status" type="ENUM('OFFEN', 'BEGLICHEN', 'ABGESCHRIEBEN')">
 				<constraints nullable="false" />
 			</column>
 		</createTable>
@@ -244,7 +244,7 @@
 			<column name="faelligkeit" type="date">
 				<constraints nullable="false" />
 			</column>
-			<column name="typ" type="ENUM(11)">
+			<column name="typ" type="ENUM('EMAIL', 'SCHRIFTLICH', 'MUENDLICH')">
 				<constraints nullable="false" />
 			</column>
 			<column name="namiEingetragen" type="date" />
@@ -263,7 +263,7 @@
 				type="INT(10)" />
 			<column name="rechnungsNummer" remarks="Rechnungsnummer von Bundesebene"
 				type="VARCHAR(20)" />
-			<column name="typ" type="ENUM(22)">
+			<column name="typ" type="ENUM('RECHNUNG_BUNDESEBENE', 'GUTSCHRIFT_BUNDESEBENE', 'UEBERWEISUNG', 'LASTSCHRIFT', 'RUECKLASTSCHRIFT', 'BAR', 'ERLASS', 'BELASTUNG')">
 				<constraints nullable="false" />
 			</column>
 			<column name="datum" type="date">
@@ -272,7 +272,7 @@
 			<column name="betrag" type="DECIMAL(10, 2)">
 				<constraints nullable="false" />
 			</column>
-			<column name="halbjahr" type="ENUM(2)">
+			<column name="halbjahr" type="ENUM('1', '2')">
 				<constraints nullable="false" />
 			</column>
 			<column name="jahr" type="YEAR">

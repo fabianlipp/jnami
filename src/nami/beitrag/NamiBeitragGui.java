@@ -102,7 +102,7 @@ public final class NamiBeitragGui {
         Properties dbConfig = conf.getDatabaseConfig();
         SchemaUpdater updater = new SchemaUpdater(
                 dbConfig.getProperty("driver"), dbConfig.getProperty("url"),
-                dbConfig.getProperty("user"), dbConfig.getProperty("password"));
+                dbConfig.getProperty("username"), dbConfig.getProperty("password"));
         updater.update("beitrag");
 
         // Initialise MyBatis
