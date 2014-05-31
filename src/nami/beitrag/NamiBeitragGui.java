@@ -20,6 +20,13 @@ import nami.connector.credentials.NamiCredentials;
 import nami.connector.exception.CredentialsInitiationException;
 import nami.db.schema.SchemaUpdater;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
@@ -33,8 +40,24 @@ public final class NamiBeitragGui {
     private NamiBeitragGui() {
     }
 
-    private static final String CONFIG_FILENAME = "namibeitrag.xml";
+    private static final String DEFAULT_CONFIG_FILENAME = "namibeitrag.xml";
     private static final String MYBATIS_CONFIGFILE = "db/mybatis-config.xml";
+
+    @SuppressWarnings("static-access")
+    private static Options createOptions() {
+        Options options = new Options();
+        Option configfile = OptionBuilder.hasArg().withArgName("filename")
+                .withLongOpt("configfile").create('c');
+        options.addOption(configfile);
+
+        return options;
+    }
+
+    private static File getDefaultConfigFile()
+            throws ApplicationDirectoryException {
+        return new File(Configuration.getApplicationDirectory(),
+                DEFAULT_CONFIG_FILENAME);
+    }
 
     /**
      * Haupt-Funktion zum Aufruf der GUI.
@@ -49,12 +72,26 @@ public final class NamiBeitragGui {
      *             Fehler beim Dateizugriff
      * @throws ConfigFormatException
      *             Fehler beim Parsen der Konfigurationsdatei
+     * @throws ParseException
+     *             Fehler beim Parsen der Kommandozeile
      */
     public static void main(String[] args)
             throws CredentialsInitiationException,
-            ApplicationDirectoryException, ConfigFormatException, IOException {
-        File configFile = new File(Configuration.getApplicationDirectory(),
-                CONFIG_FILENAME);
+            ApplicationDirectoryException, ConfigFormatException, IOException,
+            ParseException {
+
+        Options options = createOptions();
+        CommandLineParser clParser = new GnuParser();
+        CommandLine cl = clParser.parse(options, args);
+
+        // Konfiguration einlesen
+        File configFile;
+        if (cl.hasOption('c')) {
+            configFile = new File(cl.getOptionValue('c'));
+        } else {
+            configFile = getDefaultConfigFile();
+        }
+
         if (!configFile.exists()) {
             throw new IllegalArgumentException(
                     "Erwarte Konfigurationsdatei in " + configFile);
