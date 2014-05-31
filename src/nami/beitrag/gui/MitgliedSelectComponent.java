@@ -33,7 +33,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 public class MitgliedSelectComponent extends JComponent {
     private static final long serialVersionUID = 969876938697755251L;
 
-    private JTextField txtMitgliedid;
+    private JTextField txtMitgliedsnummer;
     private JButton btnSearchbutton;
     private JLabel lblMitgliedsnummer;
     private JLabel lblVorname;
@@ -49,11 +49,11 @@ public class MitgliedSelectComponent extends JComponent {
     private class MitgliedIdFocusListener extends FocusAdapter {
         @Override
         public void focusLost(FocusEvent e) {
-            if (e.getComponent() != txtMitgliedid) {
+            if (e.getComponent() != txtMitgliedsnummer) {
                 throw new IllegalArgumentException(
                         "Focus listener on wrong object");
             }
-            searchMitgliedId();
+            searchMitgliedsnummer();
         }
     }
 
@@ -64,7 +64,7 @@ public class MitgliedSelectComponent extends JComponent {
     private class MitgliedIdEnterListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            searchMitgliedId();
+            searchMitgliedsnummer();
         }
     }
 
@@ -82,8 +82,7 @@ public class MitgliedSelectComponent extends JComponent {
             selectDiag.setVisible(true);
             int mglId = selectDiag.getChosenMglId();
             if (mglId != -1) {
-                txtMitgliedid.setText(Integer.toString(mglId));
-                searchMitgliedId();
+                setMitgliedId(mglId);
             }
         }
     }
@@ -102,12 +101,12 @@ public class MitgliedSelectComponent extends JComponent {
     private void createPanel() {
         setLayout(new MigLayout("insets 0", "[grow][][][][]", "[shrink]"));
 
-        txtMitgliedid = new JTextField();
-        txtMitgliedid.setText("");
-        txtMitgliedid.setColumns(10);
-        txtMitgliedid.addFocusListener(new MitgliedIdFocusListener());
-        txtMitgliedid.addActionListener(new MitgliedIdEnterListener());
-        add(txtMitgliedid, "flowx,alignx left");
+        txtMitgliedsnummer = new JTextField();
+        txtMitgliedsnummer.setText("");
+        txtMitgliedsnummer.setColumns(10);
+        txtMitgliedsnummer.addFocusListener(new MitgliedIdFocusListener());
+        txtMitgliedsnummer.addActionListener(new MitgliedIdEnterListener());
+        add(txtMitgliedsnummer, "flowx,alignx left");
 
         btnSearchbutton = new JButton("...");
         btnSearchbutton.setMargin(new Insets(0, 1, 0, 1));
@@ -128,53 +127,19 @@ public class MitgliedSelectComponent extends JComponent {
      * Sucht in der Datenbank nach der Mitglied-ID und füllt die Labels
      * entsprechend.
      */
-    private void searchMitgliedId() {
-        if (sessionFactory == null) {
-            throw new IllegalArgumentException(
-                    "Used MitgliedSelectPanel without a SqlSessionFactory");
-        }
-
-        int mitgliedId;
-        String mitgliedIdStr = txtMitgliedid.getText().trim();
-        if (mitgliedIdStr.isEmpty()) {
-            lblMitgliedsnummer.setText("");
-            lblVorname.setText("");
-            lblNachname.setText("");
-            if (validatedMitgliedId != -1) {
-                validatedMitgliedId = -1;
-                fireStateChanged();
-            }
-            markError(false);
-            return;
-        }
-        try {
-            mitgliedId = Integer.parseInt(mitgliedIdStr);
-        } catch (NumberFormatException e) {
-            markError(true);
-            return;
-        }
-
-        SqlSession session = sessionFactory.openSession();
-        try {
-            BeitragMapper mapper = session.getMapper(BeitragMapper.class);
-
-            BeitragMitglied mgl = mapper.getMitglied(mitgliedId);
-
-            if (mgl != null) {
-                lblMitgliedsnummer.setText(Integer.toString(mgl
-                        .getMitgliedsnummer()));
-                lblVorname.setText(mgl.getVorname());
-                lblNachname.setText(mgl.getNachname());
-                if (validatedMitgliedId != mitgliedId) {
-                    validatedMitgliedId = mitgliedId;
-                    fireStateChanged();
-                }
-                markError(false);
-            } else {
+    private void searchMitgliedsnummer() {
+        String mitgliedsnummerStr = txtMitgliedsnummer.getText().trim();
+        if (mitgliedsnummerStr.isEmpty()) {
+            setMitgliedId(-1, false);
+        } else {
+            int mitgliedsnummer;
+            try {
+                mitgliedsnummer = Integer.parseInt(mitgliedsnummerStr);
+            } catch (NumberFormatException e) {
                 markError(true);
+                return;
             }
-        } finally {
-            session.close();
+            setMitgliedId(mitgliedsnummer, true);
         }
     }
 
@@ -190,13 +155,13 @@ public class MitgliedSelectComponent extends JComponent {
             lblMitgliedsnummer.setText("");
             lblVorname.setText("");
             lblNachname.setText("");
-            txtMitgliedid.setBackground(Color.RED);
+            txtMitgliedsnummer.setBackground(Color.RED);
             if (validatedMitgliedId != -1) {
                 validatedMitgliedId = -1;
                 fireStateChanged();
             }
         } else {
-            txtMitgliedid.setBackground(UIManager
+            txtMitgliedsnummer.setBackground(UIManager
                     .getColor("TextField.background"));
         }
     }
@@ -223,12 +188,65 @@ public class MitgliedSelectComponent extends JComponent {
      *            Inhalt des Textfeldes gelöscht
      */
     public void setMitgliedId(int mitgliedId) {
+        setMitgliedId(mitgliedId, false);
+    }
+
+    /**
+     * Setzt die interne Mitglied-ID und füllt die Felder entsprechend.
+     * 
+     * @param mitgliedId
+     *            ID/Mitgliedsnummer des Mitglieds
+     * @param byMitgliedsnummer
+     *            falls <tt>true</tt> wird der übergebene Integer als
+     *            Mitgliedsnummer verwendet, sonst als Mitglieds-ID
+     */
+    private void setMitgliedId(int mitgliedId, boolean byMitgliedsnummer) {
+        if (sessionFactory == null) {
+            throw new IllegalArgumentException(
+                    "Used MitgliedSelectPanel without a SqlSessionFactory");
+        }
+
         if (mitgliedId == -1) {
-            txtMitgliedid.setText("");
-            searchMitgliedId();
+            // alle Felder löschen
+            txtMitgliedsnummer.setText("");
+            lblMitgliedsnummer.setText("");
+            lblVorname.setText("");
+            lblNachname.setText("");
+            if (validatedMitgliedId != -1) {
+                validatedMitgliedId = -1;
+                fireStateChanged();
+            }
+            markError(false);
         } else {
-            txtMitgliedid.setText(Integer.toString(mitgliedId));
-            searchMitgliedId();
+            // Felder füllen, wenn Mitglied-ID gültig
+            SqlSession session = sessionFactory.openSession();
+            try {
+                BeitragMapper mapper = session.getMapper(BeitragMapper.class);
+                BeitragMitglied mgl;
+                if (!byMitgliedsnummer) {
+                    mgl = mapper.getMitglied(mitgliedId);
+                } else {
+                    mgl = mapper.getMitgliedByNummer(mitgliedId);
+                }
+
+                if (mgl != null) {
+                    txtMitgliedsnummer.setText(Integer.toString(mgl
+                            .getMitgliedsnummer()));
+                    lblMitgliedsnummer.setText(Integer.toString(mgl
+                            .getMitgliedsnummer()));
+                    lblVorname.setText(mgl.getVorname());
+                    lblNachname.setText(mgl.getNachname());
+                    if (validatedMitgliedId != mgl.getMitgliedId()) {
+                        validatedMitgliedId = mgl.getMitgliedId();
+                        fireStateChanged();
+                    }
+                    markError(false);
+                } else {
+                    markError(true);
+                }
+            } finally {
+                session.close();
+            }
         }
     }
 
@@ -308,7 +326,7 @@ public class MitgliedSelectComponent extends JComponent {
      */
     public void setEnabled(boolean b) {
         super.setEnabled(b);
-        txtMitgliedid.setEnabled(b);
+        txtMitgliedsnummer.setEnabled(b);
         btnSearchbutton.setEnabled(b);
     }
 }

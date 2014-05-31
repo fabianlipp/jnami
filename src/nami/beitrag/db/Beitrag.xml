@@ -34,7 +34,13 @@
 		FROM beitragMitglied
 		WHERE mitgliedId = #{id}
 	</select>
-	
+
+	<select id="getMitgliedByNummer" parameterType="int" resultType="BeitragMitglied">
+		SELECT *
+		FROM beitragMitglied
+		WHERE mitgliedsnummer = #{mitgliedsnummer}
+	</select>
+
 	<select id="getMitgliedIds" resultType="int">
 		SELECT mitgliedId
 		FROM beitragMitglied

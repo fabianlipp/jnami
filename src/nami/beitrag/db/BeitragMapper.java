@@ -25,6 +25,15 @@ public interface BeitragMapper {
     BeitragMitglied getMitglied(int mitgliedId);
 
     /**
+     * Liefert den Datensatz eines Mitglieds.
+     * 
+     * @param mitgliedsnummer
+     *            Mitgliedsnummer
+     * @return kompletter Datensatz des Mitglieds
+     */
+    BeitragMitglied getMitgliedByNummer(int mitgliedsnummer);
+
+    /**
      * Liefert die Mitglieds-IDs, die in der Datenbank vorhanden sind.
      * 
      * @return vorhandene Mitglieds-IDs
