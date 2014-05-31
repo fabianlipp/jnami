@@ -83,7 +83,6 @@ public final class NamiBeitragGui {
             con = new NamiConnector(NamiServer.LIVESERVER, credentials);
         }
 
-        // TODO: Aus Konfigurationsdatei lesen
         LetterDirectory dir = new LetterDirectory(new File(
                 conf.getLetterOutputPath()));
 

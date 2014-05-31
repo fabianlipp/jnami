@@ -1,40 +1,20 @@
 package nami.beitrag.gui;
 
-import guitest.SelectTest;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
 
 import nami.beitrag.NamiBeitrag;
 import nami.beitrag.NamiBeitragConfiguration;
-import nami.beitrag.db.BeitragBuchung;
-import nami.beitrag.db.BeitragMapper;
-import nami.beitrag.db.BeitragMitglied;
-import nami.beitrag.db.LastschriftenMapper.FilterSettings;
-import nami.beitrag.db.RechnungenMapper;
-import nami.beitrag.db.RechnungenMapper.DataMahnungKomplett;
-import nami.beitrag.db.ReportsMapper;
 import nami.beitrag.letters.LetterDirectory;
 import nami.beitrag.letters.LetterGenerator;
-import nami.beitrag.letters.LetterType;
-import nami.beitrag.reports.DataAbrechnungHalbjahr;
-import nami.beitrag.reports.PDFReportGenerator;
 import nami.connector.exception.NamiApiException;
 import net.miginfocom.swing.MigLayout;
-
-import org.apache.ibatis.session.SqlSession;
 
 /**
  * Stellt das Hauptfenster der GUI dar.
@@ -46,6 +26,7 @@ import org.apache.ibatis.session.SqlSession;
 public class MainWindow extends JFrame {
     private static final long serialVersionUID = 7477838944466651902L;
 
+    private static final String MIG_BUTTON_CONSTRAINTS = "wrap,alignx left,aligny top";
     private LetterGenerator letterGenerator;
 
     /**
@@ -56,25 +37,25 @@ public class MainWindow extends JFrame {
      *            und NaMi)
      */
     public MainWindow(final NamiBeitrag namiBeitrag,
-            final LetterDirectory letterDirectory, final NamiBeitragConfiguration conf) {
+            final LetterDirectory letterDirectory,
+            final NamiBeitragConfiguration conf) {
+
         letterGenerator = new LetterGenerator(namiBeitrag.getSessionFactory(),
                 letterDirectory, conf);
 
         setTitle("NamiBeitrag");
+        getContentPane().setLayout(
+                new MigLayout("", "[grow][grow]", "[grow][grow][grow][][]"));
 
-        final BeitragMapper mapper = namiBeitrag.getSessionFactory()
-                .openSession().getMapper(BeitragMapper.class);
-        final ReportsMapper reportMapper = namiBeitrag.getSessionFactory()
-                .openSession().getMapper(ReportsMapper.class);
+        /**** NaMi ****/
+        JPanel panelNami = new JPanel();
+        getContentPane().add(panelNami, "cell 0 0,grow");
+        panelNami.setBorder(new TitledBorder("NaMi-Zugriff"));
+        panelNami.setLayout(new MigLayout("", "[]", "[][]"));
 
-        JPanel buttons = new JPanel();
-        JPanel control = new JPanel();
-        buttons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        control.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        buttons.setLayout(new MigLayout("", "[][]", "[][][][][]"));
-
-        JButton button1 = new JButton("Mitglieder synchronisieren");
-        button1.addActionListener(new ActionListener() {
+        JButton btnSync = new JButton("Mitglieder mit NaMi synchronisieren");
+        panelNami.add(btnSync, MIG_BUTTON_CONSTRAINTS);
+        btnSync.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -85,18 +66,10 @@ public class MainWindow extends JFrame {
                 }
             }
         });
-        buttons.add(button1, "grow");
-        JLabel label1 = new JLabel(
-                "<html>Holt alle Mitglieder mit der entsprechenden "
-                        + "Stammgruppierung aus NaMi und speichert sie in die "
-                        + "lokale Datenbank bzw. aktualisiert ihre "
-                        + "lokalen Datensätze.</html>");
-        label1.setLabelFor(button1);
-        buttons.add(label1, "grow,wrap");
 
-        JButton button2 = new JButton("Beitragszahlungen holen");
-        buttons.add(button2, "grow");
-        button2.addActionListener(new ActionListener() {
+        JButton btnFetch = new JButton("Beitragszahlungen aus NaMi holen");
+        panelNami.add(btnFetch, MIG_BUTTON_CONSTRAINTS);
+        btnFetch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -107,38 +80,38 @@ public class MainWindow extends JFrame {
                 }
             }
         });
-        JLabel label2 = new JLabel("def");
-        buttons.add(label2, "grow,wrap");
 
-        JButton button3 = new JButton("Mitglied auswählen");
-        buttons.add(button3, "grow");
-        button3.addActionListener(new ActionListener() {
+        /**** Buchungen ****/
+        JPanel panelBuchungen = new JPanel();
+        getContentPane().add(panelBuchungen, "cell 1 0,grow");
+        panelBuchungen.setBorder(new TitledBorder(""));
+        panelBuchungen.setLayout(new MigLayout("", "[]", "[][][]"));
+
+        JButton btnBeitragskonto = new JButton("Beitragskonto");
+        panelBuchungen.add(btnBeitragskonto, MIG_BUTTON_CONSTRAINTS);
+        btnBeitragskonto.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                MitgliedSelectDialog sel = new MitgliedSelectDialog(
-                        MainWindow.this, namiBeitrag.getSessionFactory());
-                sel.setVisible(true);
-                System.out.println("chosen: " + sel.getChosenMglId());
+                MitgliedAnzeigenWindow beitragskontoWin = new MitgliedAnzeigenWindow(
+                        namiBeitrag.getSessionFactory());
+                beitragskontoWin.setVisible(true);
             }
         });
-        JLabel label3 = new JLabel("def");
-        buttons.add(label3, "grow,wrap");
 
-        JButton button4 = new JButton("Mitglied auswählen (Panel)");
-        buttons.add(button4, "grow");
-        button4.addActionListener(new ActionListener() {
+        JButton btnNeueBuchung = new JButton("Neue Buchung");
+        panelBuchungen.add(btnNeueBuchung, MIG_BUTTON_CONSTRAINTS);
+        btnNeueBuchung.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                SelectTest sel = new SelectTest(namiBeitrag.getSessionFactory());
-                sel.setVisible(true);
+                BuchungDialog diag = new BuchungDialog(namiBeitrag
+                        .getSessionFactory());
+                diag.setVisible(true);
             }
         });
-        JLabel label4 = new JLabel("def");
-        buttons.add(label4, "grow,wrap");
 
-        JButton button5 = new JButton("Vorausberechnung");
-        buttons.add(button5, "grow");
-        button5.addActionListener(new ActionListener() {
+        JButton btnVorausberechnung = new JButton("Vorausberechnung");
+        panelBuchungen.add(btnVorausberechnung, MIG_BUTTON_CONSTRAINTS);
+        btnVorausberechnung.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 HalbjahrSelectDialog halbjahrSel = new HalbjahrSelectDialog(
@@ -147,210 +120,16 @@ public class MainWindow extends JFrame {
                 namiBeitrag.vorausberechnung(halbjahrSel.getChosenHalbjahr());
             }
         });
-        JLabel label5 = new JLabel("def");
-        buttons.add(label5, "grow,wrap");
 
-        JButton button6 = new JButton("Beitragskonto");
-        buttons.add(button6, "grow");
-        button6.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                MitgliedAnzeigenWindow beitragskontoWin = new MitgliedAnzeigenWindow(
-                        namiBeitrag.getSessionFactory());
-                beitragskontoWin.setVisible(true);
-            }
-        });
-        JLabel label6 = new JLabel("def");
-        buttons.add(label6, "grow,wrap");
+        /**** Abmeldungen ****/
+        JPanel panelAbmeldungen = new JPanel();
+        getContentPane().add(panelAbmeldungen, "cell 0 1,grow");
+        panelAbmeldungen.setBorder(new TitledBorder(""));
+        panelAbmeldungen.setLayout(new MigLayout("", "[]", "[][]"));
 
-        JButton button7 = new JButton("Buchung (ID 11) anzeigen");
-        buttons.add(button7, "grow");
-        button7.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                BeitragBuchung buchung = mapper.getBuchungById(11);
-                BuchungDialog diag = new BuchungDialog(namiBeitrag
-                        .getSessionFactory(), buchung);
-                diag.setVisible(true);
-            }
-        });
-        JLabel label7 = new JLabel("def");
-        buttons.add(label7, "grow,wrap");
-
-        JButton button8 = new JButton("Neue Buchung");
-        buttons.add(button8, "grow");
-        button8.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                BuchungDialog diag = new BuchungDialog(namiBeitrag
-                        .getSessionFactory());
-                diag.setVisible(true);
-            }
-        });
-        JLabel label8 = new JLabel("def");
-        buttons.add(label8, "grow,wrap");
-
-        JButton button9 = new JButton("Mitglied bearbeiten");
-        buttons.add(button9, "grow");
-        button9.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                MitgliedSelectDialog sel = new MitgliedSelectDialog(
-                        MainWindow.this, namiBeitrag.getSessionFactory());
-                sel.setVisible(true);
-
-                BeitragMitglied mgl = mapper.getMitglied(sel.getChosenMglId());
-                MitgliedDialog diag = new MitgliedDialog(namiBeitrag
-                        .getSessionFactory(), mgl);
-                diag.setVisible(true);
-            }
-        });
-        JLabel label9 = new JLabel("def");
-        buttons.add(label9, "grow,wrap");
-
-        JButton button10 = new JButton("Abrechnung für Halbjahr erzeugen");
-        buttons.add(button10, "grow");
-        button10.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                HalbjahrSelectDialog halbjahrSel = new HalbjahrSelectDialog(
-                        MainWindow.this);
-                halbjahrSel.setVisible(true);
-
-                HashMap<String, Object> params = new HashMap<>();
-                params.put("HALBJAHR", halbjahrSel.getChosenHalbjahr()
-                        .toString());
-                Collection<DataAbrechnungHalbjahr> data = reportMapper
-                        .abrechnungHalbjahr(halbjahrSel.getChosenHalbjahr());
-
-                PDFReportGenerator.generateReport("abrechnung_halbjahr",
-                        params, data, "abrechnungHalbjahr.pdf");
-            }
-        });
-        JLabel label10 = new JLabel("def");
-        buttons.add(label10, "grow,wrap");
-
-        JButton button11 = new JButton("Rechnungen erstellen");
-        buttons.add(button11, "grow");
-        button11.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                RechnungenErstellenWindow win = new RechnungenErstellenWindow(
-                        namiBeitrag.getSessionFactory(), letterGenerator);
-                win.setVisible(true);
-            }
-        });
-        JLabel label11 = new JLabel("def");
-        buttons.add(label11, "grow,wrap");
-
-        JButton button12 = new JButton("Rechnungen verwalten");
-        buttons.add(button12, "grow");
-        button12.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame win = new RechnungenVerwaltenWindow(namiBeitrag
-                        .getSessionFactory(), letterGenerator);
-                win.setVisible(true);
-            }
-        });
-        JLabel label12 = new JLabel("def");
-        buttons.add(label12, "grow,wrap");
-
-        JButton button13 = new JButton("Mandat erfassen");
-        buttons.add(button13, "grow,wrap");
-        button13.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame win = new MandatErstellenWindow(namiBeitrag
-                        .getSessionFactory());
-                win.setVisible(true);
-            }
-        });
-
-        JButton button14 = new JButton("Mandate verwalten");
-        buttons.add(button14, "grow,wrap");
-        button14.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame win = new MandatVerwaltenWindow(namiBeitrag
-                        .getSessionFactory());
-                win.setVisible(true);
-            }
-        });
-
-        JButton button15 = new JButton("Teste MyBatis Nested Results");
-        buttons.add(button15, "grow,wrap");
-        button15.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                SqlSession session = namiBeitrag.getSessionFactory()
-                        .openSession();
-                try {
-                    RechnungenMapper mapper = session
-                            .getMapper(RechnungenMapper.class);
-                    FilterSettings filterSettings = new FilterSettings();
-                    filterSettings.setBereitsErstellt(true);
-                    DataMahnungKomplett result = mapper.getMahnungKomplett(3);
-
-                    System.out.println("Fertig");
-                } finally {
-                    session.close();
-                }
-            }
-        });
-
-        JButton button16 = new JButton("Lastschriften erstellen");
-        buttons.add(button16, "grow,wrap");
-        button16.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame win = new LastschriftErstellenWindow(namiBeitrag
-                        .getSessionFactory());
-                win.setVisible(true);
-            }
-        });
-
-        JButton button17 = new JButton("Lastschriften verwalten");
-        buttons.add(button17, "grow,wrap");
-        button17.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame win = new LastschriftVerwaltenWindow(namiBeitrag
-                        .getSessionFactory(), letterGenerator, conf);
-                win.setVisible(true);
-            }
-        });
-
-        JButton button18 = new JButton(
-                "Mahnungen 1-4 mit LetterGenerator erzeugen");
-        buttons.add(button18, "grow,wrap");
-        button18.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                LinkedList<Integer> ids = new LinkedList<>();
-                ids.add(1);
-                ids.add(2);
-                ids.add(3);
-                ids.add(4);
-                letterGenerator.generateLetters(LetterType.MAHNUNG, ids,
-                        new Date());
-            }
-        });
-
-        JButton button19 = new JButton("Briefe verwalten");
-        buttons.add(button19, "grow,wrap");
-        button19.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame win = new BriefeWindow(namiBeitrag.getSessionFactory(),
-                        letterDirectory, conf);
-                win.setVisible(true);
-            }
-        });
-
-        JButton button20 = new JButton("Abmeldung einfügen");
-        buttons.add(button20, "grow,wrap");
-        button20.addActionListener(new ActionListener() {
+        JButton btnAbmeldungVormerken = new JButton("Abmeldung vormerken");
+        panelAbmeldungen.add(btnAbmeldungVormerken, MIG_BUTTON_CONSTRAINTS);
+        btnAbmeldungVormerken.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFrame win = new AbmeldungErstellenWindow(namiBeitrag
@@ -359,9 +138,9 @@ public class MainWindow extends JFrame {
             }
         });
 
-        JButton button21 = new JButton("Abmeldungen verwalten");
-        buttons.add(button21, "grow,wrap");
-        button21.addActionListener(new ActionListener() {
+        JButton btnAbmeldungenVerwalten = new JButton("Abmeldungen verwalten");
+        panelAbmeldungen.add(btnAbmeldungenVerwalten, MIG_BUTTON_CONSTRAINTS);
+        btnAbmeldungenVerwalten.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFrame win = new AbmeldungenAnzeigenWindow(namiBeitrag
@@ -370,19 +149,119 @@ public class MainWindow extends JFrame {
             }
         });
 
+        /**** Mandate ****/
+        JPanel panelMandate = new JPanel();
+        getContentPane().add(panelMandate, "cell 1 1,grow");
+        panelMandate.setBorder(new TitledBorder(""));
+        panelMandate.setLayout(new MigLayout("", "[]", "[][]"));
+
+        JButton btnMandateErfassen = new JButton("Mandat erfassen");
+        panelMandate.add(btnMandateErfassen, MIG_BUTTON_CONSTRAINTS);
+        btnMandateErfassen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new MandatErstellenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
+        JButton btnMandateVerwalten = new JButton("Mandate verwalten");
+        panelMandate.add(btnMandateVerwalten, MIG_BUTTON_CONSTRAINTS);
+        btnMandateVerwalten.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new MandatVerwaltenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
+        /**** Rechnungen ****/
+        JPanel panelRechnungen = new JPanel();
+        getContentPane().add(panelRechnungen, "cell 0 2,grow");
+        panelRechnungen.setBorder(new TitledBorder(""));
+        panelRechnungen.setLayout(new MigLayout("", "[]", "[][]"));
+
+        JButton btnRechnungenErstellen = new JButton("Rechnungen erstellen");
+        panelRechnungen.add(btnRechnungenErstellen, MIG_BUTTON_CONSTRAINTS);
+        btnRechnungenErstellen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                RechnungenErstellenWindow win = new RechnungenErstellenWindow(
+                        namiBeitrag.getSessionFactory(), letterGenerator);
+                win.setVisible(true);
+            }
+        });
+
+        JButton btnRechnungenVerwalten = new JButton("Rechnungen verwalten");
+        panelRechnungen.add(btnRechnungenVerwalten, MIG_BUTTON_CONSTRAINTS);
+        btnRechnungenVerwalten.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new RechnungenVerwaltenWindow(namiBeitrag
+                        .getSessionFactory(), letterGenerator);
+                win.setVisible(true);
+            }
+        });
+
+        /**** Lastschriften ****/
+        JPanel panelLastschriften = new JPanel();
+        getContentPane().add(panelLastschriften, "cell 1 2,grow");
+        panelLastschriften.setBorder(new TitledBorder(""));
+        panelLastschriften.setLayout(new MigLayout("", "[]", "[][]"));
+
+        JButton btnLastschriftenErstellen = new JButton(
+                "Lastschriften erstellen");
+        panelLastschriften.add(btnLastschriftenErstellen,
+                MIG_BUTTON_CONSTRAINTS);
+        btnLastschriftenErstellen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new LastschriftErstellenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
+        JButton btnLastschriftenVerwalten = new JButton(
+                "Lastschriften verwalten");
+        panelLastschriften.add(btnLastschriftenVerwalten,
+                MIG_BUTTON_CONSTRAINTS);
+        btnLastschriftenVerwalten.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new LastschriftVerwaltenWindow(namiBeitrag
+                        .getSessionFactory(), letterGenerator, conf);
+                win.setVisible(true);
+            }
+        });
+
+        /**** Briefe verwalten ****/
+        JPanel panelBriefeVerwalten = new JPanel();
+        getContentPane().add(panelBriefeVerwalten, "cell 0 3,grow");
+        panelBriefeVerwalten.setBorder(new TitledBorder(""));
+        panelBriefeVerwalten.setLayout(new MigLayout("", "[]", "[]"));
+        JButton btnBriefeVerwalten = new JButton("Briefe verwalten");
+        panelBriefeVerwalten.add(btnBriefeVerwalten, MIG_BUTTON_CONSTRAINTS);
+        btnBriefeVerwalten.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new BriefeWindow(namiBeitrag.getSessionFactory(),
+                        letterDirectory, conf);
+                win.setVisible(true);
+            }
+        });
+
         JButton buttonClose = new JButton("Beenden");
+        getContentPane().add(buttonClose, "cell 0 4,span,alignx center");
         buttonClose.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.exit(0);
             }
         });
-        control.add(buttonClose);
 
-        getContentPane().setLayout(
-                new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-        getContentPane().add(buttons);
-        getContentPane().add(control);
         pack();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
