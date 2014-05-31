@@ -347,6 +347,28 @@ public class MainWindow extends JFrame {
             }
         });
 
+        JButton button20 = new JButton("Abmeldung einfügen");
+        buttons.add(button20, "grow,wrap");
+        button20.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new AbmeldungErstellenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
+        JButton button21 = new JButton("Abmeldungen verwalten");
+        buttons.add(button21, "grow,wrap");
+        button21.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new AbmeldungenAnzeigenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
         JButton buttonClose = new JButton("Beenden");
         buttonClose.addActionListener(new ActionListener() {
             @Override

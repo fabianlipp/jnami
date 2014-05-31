@@ -9,6 +9,7 @@
 	</settings>
 
 	<typeAliases>
+		<typeAlias type="nami.beitrag.db.BeitragAbmeldung" alias="BeitragAbmeldung" />
 		<typeAlias type="nami.beitrag.db.BeitragBrief" alias="BeitragBrief" />
 		<typeAlias type="nami.beitrag.db.BeitragBuchung" alias="BeitragBuchung" />
 		<typeAlias type="nami.beitrag.db.BeitragLastschrift" alias="BeitragLastschrift" />
@@ -34,6 +35,8 @@
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataMahnungKomplett" alias="DataMahnungKomplett" />
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataRechnungMitBuchungen" alias="DataRechnungMitBuchungen" />
 
+		<typeAlias type="nami.beitrag.db.AbmeldungenMapper$DataAbmeldungMitglied" alias="DataAbmeldungMitglied" />
+
 		<typeAlias type="nami.beitrag.reports.DataAbrechnungHalbjahr" alias="DataAbrechnungHalbjahr" />
 		<typeAlias type="nami.connector.Halbjahr" alias="Halbjahr" />
 	</typeAliases>
@@ -56,6 +59,7 @@
 	</databaseIdProvider>
 
 	<mappers>
+		<mapper resource="nami/beitrag/db/Abmeldungen.xml" />
 		<mapper resource="nami/beitrag/db/Beitrag.xml" />
 		<mapper resource="nami/beitrag/db/Briefe.xml" />
 		<mapper resource="nami/beitrag/db/Lastschriften.xml" />
