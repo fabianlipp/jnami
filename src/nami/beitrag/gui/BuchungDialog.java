@@ -3,6 +3,7 @@ package nami.beitrag.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.math.BigDecimal;
+import java.util.logging.Logger;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -46,6 +47,8 @@ public class BuchungDialog extends JFrame {
     private JButton btnAbbrechen;
     private JButton btnSpeichern;
 
+    private static Logger log = Logger.getLogger(BuchungDialog.class.getName());
+
     /**
      * Zeigt einer vorhandene Buchung an. Alle Eingabefelder werden gesperrt,
      * die Buchung kann nicht bearbeitet werden.
@@ -58,13 +61,17 @@ public class BuchungDialog extends JFrame {
     public BuchungDialog(SqlSessionFactory sessionFactory,
             BeitragBuchung buchung) {
         this.sessionFactory = sessionFactory;
+        setTitle("Buchung anzeigen");
         buildFrame(false);
 
         // Daten einsetzen
         lblId.setText(Integer.toString(buchung.getBuchungId()));
         mitglied.setMitgliedId(buchung.getMitgliedId());
         mitglied.setEnabled(false);
-        namiBuchungId.setText(Integer.toString(buchung.getNamiBuchungId()));
+        Integer namiBuchungIdInt = buchung.getNamiBuchungId();
+        if (namiBuchungIdInt != null) {
+            namiBuchungId.setText(Integer.toString(namiBuchungIdInt));
+        }
         rechnungsNummer.setText(buchung.getRechnungsNummer());
         typ.setSelectedItem(buchung.getTyp());
         typ.setEnabled(false);
@@ -90,6 +97,7 @@ public class BuchungDialog extends JFrame {
      */
     public BuchungDialog(SqlSessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
+        setTitle("Neue Buchung");
         buildFrame(true);
     }
 
@@ -112,7 +120,7 @@ public class BuchungDialog extends JFrame {
         getContentPane().add(lblMitglied, "cell 0 1");
         mitglied = new MitgliedSelectComponent(sessionFactory);
         lblMitglied.setLabelFor(mitglied);
-        getContentPane().add(mitglied, "cell 1 1");
+        getContentPane().add(mitglied, "flowx,cell 1 1");
 
         JLabel lbllblNamibuchungsid = new JLabel("NaMi-Buchung-ID:");
         getContentPane().add(lbllblNamibuchungsid, "cell 0 2");
@@ -126,26 +134,28 @@ public class BuchungDialog extends JFrame {
 
         JLabel lblTyp = new JLabel("Typ:");
         lblTyp.setDisplayedMnemonic('t');
-        getContentPane().add(lblTyp, "cell 0 4,alignx left");
+        getContentPane().add(lblTyp, "cell 0 4");
         typ = new JComboBox<Buchungstyp>();
         lblTyp.setLabelFor(typ);
         typ.setModel(new DefaultComboBoxModel<>(Buchungstyp.values()));
-        getContentPane().add(typ, "cell 1 4,growx");
+        getContentPane().add(typ, "wrap,cell 1 4");
 
         JLabel lblDatum = new JLabel("Datum:");
         lblDatum.setDisplayedMnemonic('d');
         getContentPane().add(lblDatum, "cell 0 5");
         dateChooser = new JDateChooser();
         lblDatum.setLabelFor(dateChooser);
-        getContentPane().add(dateChooser, "cell 1 5,grow");
+        getContentPane().add(dateChooser, "cell 1 5");
 
         JLabel lblBetrag = new JLabel("Betrag:");
         lblBetrag.setDisplayedMnemonic('b');
-        getContentPane().add(lblBetrag, "cell 0 6,alignx left");
+        getContentPane().add(lblBetrag, "cell 0 6");
         betrag = new JTextField();
         lblBetrag.setLabelFor(betrag);
-        getContentPane().add(betrag, "cell 1 6,growx");
+        getContentPane().add(betrag, "flowx,cell 1 6");
         betrag.setColumns(10);
+        JLabel lblNegativBelastung = new JLabel("negativ = Belastung");
+        getContentPane().add(lblNegativBelastung, "cell 1 6");
 
         JLabel lblHalbjahr = new JLabel("Halbjahr:");
         lblHalbjahr.setDisplayedMnemonic('h');
@@ -163,10 +173,10 @@ public class BuchungDialog extends JFrame {
 
         JLabel lblKommentar = new JLabel("Kommentar:");
         lblKommentar.setDisplayedMnemonic('k');
-        getContentPane().add(lblKommentar, "cell 0 9,alignx left");
+        getContentPane().add(lblKommentar, "cell 0 9");
         kommentar = new JTextField();
         lblKommentar.setLabelFor(kommentar);
-        getContentPane().add(kommentar, "cell 1 9,growx");
+        getContentPane().add(kommentar, "grow,cell 1 9");
         kommentar.setColumns(10);
 
         if (saveButton) {
@@ -174,18 +184,18 @@ public class BuchungDialog extends JFrame {
             btnAbbrechen.setMnemonic('a');
             btnAbbrechen.addActionListener(new CloseActionListener());
             getContentPane().add(btnAbbrechen,
-                    "flowx,cell 1 10,alignx trailing");
+                    "cell 0 10,span,split 2,flowx,alignx trailing");
 
             btnSpeichern = new JButton("Speichern");
             btnSpeichern.setMnemonic('s');
             btnSpeichern.addActionListener(new SaveActionListener());
-            getContentPane().add(btnSpeichern, "cell 1 10,alignx trailing");
+            getContentPane().add(btnSpeichern, "cell 0 10,alignx trailing");
         } else {
             btnAbbrechen = new JButton("Schließen");
             btnAbbrechen.setMnemonic('s');
             btnAbbrechen.addActionListener(new CloseActionListener());
-            getContentPane().add(btnAbbrechen,
-                    "flowx,cell 1 10,alignx trailing");
+            getContentPane()
+                    .add(btnAbbrechen, "cell 0 10,span,alignx trailing");
         }
 
         pack();
@@ -197,32 +207,16 @@ public class BuchungDialog extends JFrame {
     private class SaveActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (!validateForm()) {
+                return;
+            }
+
             BeitragBuchung buchung = new BeitragBuchung();
 
-            int mitgliedId = mitglied.getMitgliedId();
-            if (mitgliedId == -1) {
-                return;
-            }
-            buchung.setMitgliedId(mitgliedId);
-
-            if (typ.getSelectedIndex() == -1) {
-                return;
-            }
+            buchung.setMitgliedId(mitglied.getMitgliedId());
             buchung.setTyp(typ.getItemAt(typ.getSelectedIndex()));
-
-            if (dateChooser.getDate() == null) {
-                return;
-            }
             buchung.setDatum(dateChooser.getDate());
-
-            BigDecimal betragDec;
-            try {
-                betragDec = new BigDecimal(betrag.getText());
-            } catch (NumberFormatException ex) {
-                return;
-            }
-            buchung.setBetrag(betragDec);
-
+            buchung.setBetrag(new BigDecimal(betrag.getText()));
             buchung.setHalbjahr(halbjahr.getValue());
             buchung.setVorausberechnung(vorausberechnung.isSelected());
             buchung.setKommentar(kommentar.getText());
@@ -236,7 +230,38 @@ public class BuchungDialog extends JFrame {
                 session.close();
             }
             System.out.println("Stored Buchung");
+
+            setVisible(false);
+            dispose();
         }
+    }
+
+    private boolean validateForm() {
+        boolean hasError = false;
+
+        if (mitglied.getMitgliedId() == -1) {
+            log.warning("Kein Mitglied ausgewählt");
+            hasError = true;
+        }
+
+        if (typ.getSelectedIndex() == -1) {
+            log.warning("Kein Buchungstyp ausgewählt");
+            hasError = true;
+        }
+
+        if (dateChooser.getDate() == null) {
+            log.warning("Kein Datum eingegeben");
+            hasError = true;
+        }
+
+        try {
+            new BigDecimal(betrag.getText());
+        } catch (NumberFormatException ex) {
+            log.warning("Ungültiger Betrag eingegeben");
+            hasError = true;
+        }
+
+        return !hasError;
     }
 
     /**
@@ -246,6 +271,7 @@ public class BuchungDialog extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             setVisible(false);
+            dispose();
         }
     }
 }

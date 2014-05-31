@@ -314,7 +314,8 @@ public final class NamiBeitrag {
         buchung.setRechnungsNummer(null);
         buchung.setTyp(Buchungstyp.RECHNUNG_BUNDESEBENE);
         buchung.setDatum(new Date());
-        buchung.setBetrag(beitragssaetze.get(mgl.getBeitragsart()));
+        // Betrag negativ, da Belastung
+        buchung.setBetrag(beitragssaetze.get(mgl.getBeitragsart()).negate());
         buchung.setHalbjahr(halbjahr);
         buchung.setVorausberechnung(true);
         buchung.setKommentar(null);

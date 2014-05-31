@@ -56,7 +56,7 @@ public class BeitragBuchung {
         cal.set(Calendar.YEAR, beitr.getJahr());
         datum = cal.getTime();
 
-        betrag = beitr.getValue();
+        betrag = beitr.getValue().negate(); // negatives Vorzeichen, da Belastung
         halbjahr = beitr.getZeitraum();
         vorausberechnung = false;
         kommentar = beitr.getBuchungstext();
