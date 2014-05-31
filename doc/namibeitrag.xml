@@ -1,0 +1,45 @@
+<tns:namibeitrag xmlns:tns="http://www.example.org/namibeitrag/"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.example.org/namibeitrag/ /home/fabian/eclipse/nami/src/nami/beitrag/namibeitrag.xsd"
+	gruppierungsnummer="220309"> <!-- Gruppierungsnummer, für die Beiträge berechnet werden -->
+
+	<!-- Konfiguration der verwendeten SQL-Datenbank -->
+	<database>
+		<driver>com.mysql.jdbc.Driver</driver>
+		<url>jdbc:mysql://localhost:3306/jnamiBeitrag</url>
+		<username>jnami</username>
+		<password>jnami</password>
+	</database>
+
+	<beitragssaetze>
+		<beitragssatz typ="VOLLER_BEITRAG" betrag="19.75" />
+		<beitragssatz typ="FAMILIEN_BEITRAG" betrag="13.20" />
+		<beitragssatz typ="SOZIALERMAESSIGUNG" betrag="6.90" />
+		<beitragssatz typ="KEIN_BEITRAG" betrag="0.00" />
+	</beitragssaetze>
+
+	<!-- Parameter für SEPA-Lastschriften/für Hibiscus -->
+	<sepa>
+		<!-- Gläubiger-ID -->
+		<creditorId>CRED</creditorId>
+
+		<!-- Art der erzugten Lastschriften (CORE oder COR1) -->
+		<lastschriftType>CORE</lastschriftType>
+
+		<!-- Prefix, das bei den Mandatsreferenzen vor der ID eingefügt wird (optional) -->
+		<mrefPrefix>M</mrefPrefix>
+
+		<!-- URL zur XML-RPC-Schnittstelle von Hibiscus -->
+		<hibiscusUrl>http://localhost:8080/xmlrpc/</hibiscusUrl>
+
+		<!-- Hibiscus-interne ID des verwendeten Girokontos -->
+		<hibiscusKontoId>1</hibiscusKontoId>
+	</sepa>
+
+	<!-- PDF-Viewer, der zum Betrachten von Briefen aufgerufen wird -->
+	<pdfViewer>okular</pdfViewer>
+
+	<!-- Verzeichnis, in dem die Briefe erzeugt werden -->
+	<letterOutputPath>/home/user/letterOutput</letterOutputPath>
+
+</tns:namibeitrag>
