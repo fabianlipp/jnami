@@ -18,6 +18,7 @@ import nami.connector.NamiConnector;
 import nami.connector.NamiServer;
 import nami.connector.credentials.NamiCredentials;
 import nami.connector.exception.CredentialsInitiationException;
+import nami.db.schema.SchemaUpdater;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
@@ -60,17 +61,18 @@ public final class NamiBeitragGui {
         }
         NamiBeitragConfiguration conf = new NamiBeitragConfiguration(configFile);
 
-        // TODO: Liquibase verwenden
         // Update Database Schema
-        // SchemaUpdater updater = new SchemaUpdater(dbDriver, dbUrl,
-        // dbUsername, dbPassword);
-        // updater.update();
+        Properties dbConfig = conf.getDatabaseConfig();
+        SchemaUpdater updater = new SchemaUpdater(
+                dbConfig.getProperty("driver"), dbConfig.getProperty("url"),
+                dbConfig.getProperty("user"), dbConfig.getProperty("password"));
+        updater.update("beitrag");
 
         // Initialise MyBatis
         InputStream is = NamiBeitragGui.class
                 .getResourceAsStream(MYBATIS_CONFIGFILE);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder()
-                .build(is, conf.getDatabaseConfig());
+                .build(is, dbConfig);
 
         // Connect to NaMi
         Properties p = Configuration.getGeneralProperties();

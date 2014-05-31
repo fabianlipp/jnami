@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
 
-	<changeSet author="fabian" id="01-1">
+	<changeSet author="fabian" id="01-1" context="statistics">
 		<createTable tableName="gruppierung">
 			<column name="gruppierungId" type="CHAR(6)">
 				<constraints nullable="false" primaryKey="true" />
@@ -18,7 +18,7 @@
 		</createTable>
 	</changeSet>
 
-	<changeSet author="fabian" id="01-2">
+	<changeSet author="fabian" id="01-2" context="statistics">
 		<createTable tableName="statisticsRun">
 			<column autoIncrement="true" name="runId" type="INT(10)">
 				<constraints primaryKey="true" />
@@ -29,7 +29,7 @@
 		</createTable>
 	</changeSet>
 
-	<changeSet author="fabian" id="01-3">
+	<changeSet author="fabian" id="01-3" context="statistics">
 		<createTable tableName="statisticsGruppe">
 			<column name="gruppeId" type="INT(10)">
 				<constraints nullable="false" primaryKey="true" />
@@ -40,7 +40,7 @@
 		</createTable>
 	</changeSet>
 
-	<changeSet author="fabian" id="01-4">
+	<changeSet author="fabian" id="01-4" context="statistics">
 		<createTable tableName="statisticsData">
 			<column name="gruppierungId" type="CHAR(6)">
 				<constraints nullable="false" />
@@ -57,12 +57,12 @@
 		</createTable>
 	</changeSet>
 
-	<changeSet author="fabian" id="01-5">
+	<changeSet author="fabian" id="01-5" context="statistics">
 		<addPrimaryKey columnNames="gruppierungId, gruppeId, runId"
 			constraintName="PRIMARY" tableName="statisticsData" />
 	</changeSet>
 
-	<changeSet author="fabian" id="01-6">
+	<changeSet author="fabian" id="01-6" context="statistics">
 		<addForeignKeyConstraint baseColumnNames="runId"
 			baseTableName="statisticsData" constraintName="statisticsData_ibfk_3"
 			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
@@ -70,7 +70,7 @@
 			referencedTableName="statisticsRun" />
 	</changeSet>
 
-	<changeSet author="fabian" id="01-7">
+	<changeSet author="fabian" id="01-7" context="statistics">
 		<addForeignKeyConstraint baseColumnNames="gruppeId"
 			baseTableName="statisticsData" constraintName="statisticsData_ibfk_2"
 			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
@@ -78,7 +78,7 @@
 			referencedTableName="statisticsGruppe" />
 	</changeSet>
 
-	<changeSet author="fabian" id="01-8">
+	<changeSet author="fabian" id="01-8" context="statistics">
 		<addForeignKeyConstraint baseColumnNames="gruppierungId"
 			baseTableName="statisticsData" constraintName="statisticsData_ibfk_1"
 			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"

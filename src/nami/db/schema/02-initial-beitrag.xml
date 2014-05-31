@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+	<changeSet author="fabian" id="02-1" context="beitrag">
+		<createTable tableName="beitragPrenotification">
+			<column autoIncrement="true" name="prenotificationId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="mandatId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="datum" type="date">
+				<constraints nullable="false" />
+			</column>
+			<column name="betrag" type="DECIMAL(10, 2)">
+				<constraints nullable="false" />
+			</column>
+			<column name="faelligkeit" type="date">
+				<constraints nullable="false" />
+			</column>
+			<column name="regelmaessig" type="BIT(1)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-2" context="beitrag">
+		<createTable tableName="beitragLastschrift">
+			<column autoIncrement="true" name="lastschriftId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="sammelLastschriftId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="mandatId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="verwendungszweck" type="VARCHAR(140)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-3" context="beitrag">
+		<createTable tableName="beitragSepaMandat">
+			<column autoIncrement="true" name="mandatId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="iban" type="VARCHAR(34)">
+				<constraints nullable="false" />
+			</column>
+			<column name="bic" type="VARCHAR(11)">
+				<constraints nullable="false" />
+			</column>
+			<column name="datum" type="date">
+				<constraints nullable="false" />
+			</column>
+			<column name="kontoinhaber" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="strasse" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="plz" type="VARCHAR(5)">
+				<constraints nullable="false" />
+			</column>
+			<column name="ort" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="email" type="VARCHAR(255)" />
+			<column name="gueltig" type="BIT(1)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-4" context="beitrag">
+		<createTable tableName="beitragMahnung">
+			<column autoIncrement="true" name="mahnungId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="rechnungId" remarks="Rechnung, auf die die Mahnung sich bezieht"
+				type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="datum" remarks="Datum, an dem die Mahnung verschickt wird"
+				type="date" />
+			<column name="frist" remarks="Frist, die in der Mahnung angegeben ist"
+				type="date" />
+			<column name="mahnungArt" remarks="Erste, zweite, dritte Mahnung"
+				type="INT(10)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-5" context="beitrag">
+		<createTable tableName="beitragMitglied">
+			<column autoIncrement="true" name="mitgliedId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="mitgliedsnummer" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="nachname" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="vorname" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="status" type="ENUM(17)">
+				<constraints nullable="false" />
+			</column>
+			<column name="beitragsart" type="ENUM(18)">
+				<constraints nullable="false" />
+			</column>
+			<column name="eintrittsdatum" type="date" />
+			<column name="strasse" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="plz" type="CHAR(5)">
+				<constraints nullable="false" />
+			</column>
+			<column name="ort" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="email" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="version"
+				remarks="letzte Daten-Version, die aus NaMi geladen wurde." type="INT(10)" />
+			<column name="aktivesMandat" type="INT(10)" />
+			<column defaultValueNumeric="0" name="deleted" type="BIT(1)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-6" context="beitrag">
+		<createTable tableName="beitragLastschriftRechnung">
+			<column name="lastschriftId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="rechnungId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-7" context="beitrag">
+		<createTable tableName="beitragSepaMandatMitglieder">
+			<column name="mandatId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="mitgliedId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-8" context="beitrag">
+		<createTable tableName="beitragZeitraum">
+			<column name="halbjahr" type="ENUM(2)">
+				<constraints nullable="false" />
+			</column>
+			<column name="jahr" type="YEAR">
+				<constraints nullable="false" />
+			</column>
+			<column name="abgeschlossen"
+				remarks="Beschreibt, wann das Halbjahr als abgeschlossen markiert wurde. Nach dem Abschluss können keine Buchungen mehr hinzugefügt werden und nicht mehr benötigte Datensätze können evtl. gelöscht werden."
+				type="date" />
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-9" context="beitrag">
+		<createTable tableName="beitragRechnungPosten">
+			<column name="rechnungId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="buchungId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="buchungstext" type="LONGTEXT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-10" context="beitrag">
+		<createTable tableName="beitragBrief">
+			<column autoIncrement="true" name="briefId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="dateiname" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="datum" type="date" />
+			<column name="typ" type="ENUM(15)" />
+			<column name="kompiliert" type="datetime" />
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-11" context="beitrag">
+		<createTable tableName="beitragSammelLastschrift">
+			<column autoIncrement="true" name="sammelLastschriftId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="faelligkeit"
+				remarks="Datum, das als Ausführungsdatum an die Bank übertragen wird"
+				type="date">
+				<constraints nullable="false" />
+			</column>
+			<column name="ausgefuehrt" remarks="Sammellastschrift wurde an die Bank übertragen"
+				type="BIT(1)">
+				<constraints nullable="false" />
+			</column>
+			<column name="bezeichnung" type="VARCHAR(255)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-12" context="beitrag">
+		<createTable tableName="beitragRechnung">
+			<column autoIncrement="true" name="rechnungId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="mitgliedId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="rechnungsNummer"
+				remarks="Rechnungen werden innerhalb eines Jahres fortlaufend nummeriert"
+				type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="datum" type="date">
+				<constraints nullable="false" />
+			</column>
+			<column name="frist" type="date">
+				<constraints nullable="false" />
+			</column>
+			<column defaultValue="OFFEN" name="status" type="ENUM(13)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-13" context="beitrag">
+		<createTable tableName="beitragAbmeldung">
+			<column autoIncrement="true" name="abmeldungId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="mitgliedId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="datum" type="date">
+				<constraints nullable="false" />
+			</column>
+			<column name="faelligkeit" type="date">
+				<constraints nullable="false" />
+			</column>
+			<column name="typ" type="ENUM(11)">
+				<constraints nullable="false" />
+			</column>
+			<column name="namiEingetragen" type="date" />
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-14" context="beitrag">
+		<createTable tableName="beitragBuchung">
+			<column autoIncrement="true" name="buchungId" type="INT(10)">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="mitgliedId" type="INT(10)">
+				<constraints nullable="false" />
+			</column>
+			<column name="namiBuchungId"
+				remarks="ID der Buchung in NaMi (falls sie von dort stammt, sonst NULL)"
+				type="INT(10)" />
+			<column name="rechnungsNummer" remarks="Rechnungsnummer von Bundesebene"
+				type="VARCHAR(20)" />
+			<column name="typ" type="ENUM(22)">
+				<constraints nullable="false" />
+			</column>
+			<column name="datum" type="date">
+				<constraints nullable="false" />
+			</column>
+			<column name="betrag" type="DECIMAL(10, 2)">
+				<constraints nullable="false" />
+			</column>
+			<column name="halbjahr" type="ENUM(2)">
+				<constraints nullable="false" />
+			</column>
+			<column name="jahr" type="YEAR">
+				<constraints nullable="false" />
+			</column>
+			<column defaultValueNumeric="0" name="vorausberechnung" type="BIT(1)">
+				<constraints nullable="false" />
+			</column>
+			<column name="kommentar" type="LONGTEXT" />
+		</createTable>
+	</changeSet>
+	<changeSet author="fabian" id="02-15" context="beitrag">
+		<addPrimaryKey columnNames="mandatId, mitgliedId"
+			constraintName="PRIMARY" tableName="beitragSepaMandatMitglieder" />
+	</changeSet>
+	<changeSet author="fabian" id="02-16" context="beitrag">
+		<addPrimaryKey columnNames="lastschriftId, rechnungId"
+			constraintName="PRIMARY" tableName="beitragLastschriftRechnung" />
+	</changeSet>
+	<changeSet author="fabian" id="02-17" context="beitrag">
+		<addPrimaryKey columnNames="halbjahr, jahr"
+			constraintName="PRIMARY" tableName="beitragZeitraum" />
+	</changeSet>
+	<changeSet author="fabian" id="02-18" context="beitrag">
+		<addPrimaryKey columnNames="buchungId, rechnungId"
+			constraintName="PRIMARY" tableName="beitragRechnungPosten" />
+	</changeSet>
+	<changeSet author="fabian" id="02-19" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="lastschriftId"
+			baseTableName="beitragLastschriftRechnung"
+			constraintName="fk_beitragLastschrift_has_beitragRechnung_beitragLastschrift1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="lastschriftId"
+			referencedTableName="beitragLastschrift" />
+	</changeSet>
+	<changeSet author="fabian" id="02-20" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="mandatId"
+			baseTableName="beitragLastschrift" constraintName="fk_beitragLastschrift_beitragSepaMandat1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="mandatId"
+			referencedTableName="beitragSepaMandat" />
+	</changeSet>
+	<changeSet author="fabian" id="02-21" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="buchungId"
+			baseTableName="beitragRechnungPosten" constraintName="fk_beitragRechnungPosten_beitragBuchung1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="buchungId"
+			referencedTableName="beitragBuchung" />
+	</changeSet>
+	<changeSet author="fabian" id="02-22" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="halbjahr"
+			baseTableName="beitragBuchung" constraintName="beitragBuchung_ibfk_1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="halbjahr"
+			referencedTableName="beitragZeitraum" />
+	</changeSet>
+	<changeSet author="fabian" id="02-23" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="mitgliedId"
+			baseTableName="beitragAbmeldung" constraintName="fk_beitragAbmeldung_beitragMitglied1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="mitgliedId"
+			referencedTableName="beitragMitglied" />
+	</changeSet>
+	<changeSet author="fabian" id="02-24" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="rechnungId"
+			baseTableName="beitragLastschriftRechnung"
+			constraintName="fk_beitragLastschrift_has_beitragRechnung_beitragRechnung1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="rechnungId"
+			referencedTableName="beitragRechnung" />
+	</changeSet>
+	<changeSet author="fabian" id="02-25" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="mitgliedId"
+			baseTableName="beitragRechnung" constraintName="beitragRechnung_ibfk_1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="mitgliedId"
+			referencedTableName="beitragMitglied" />
+	</changeSet>
+	<changeSet author="fabian" id="02-26" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="sammelLastschriftId"
+			baseTableName="beitragLastschrift" constraintName="fk_beitragLastschrift_beitragSammelLastschrift1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="sammelLastschriftId"
+			referencedTableName="beitragSammelLastschrift" />
+	</changeSet>
+	<changeSet author="fabian" id="02-27" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="mitgliedId"
+			baseTableName="beitragSepaMandatMitglieder"
+			constraintName="fk_beitragSepaMandat_has_beitragMitglied_beitragMitglied1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="mitgliedId"
+			referencedTableName="beitragMitglied" />
+	</changeSet>
+	<changeSet author="fabian" id="02-28" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="rechnungId"
+			baseTableName="beitragMahnung" constraintName="fk_beitragMahnung_beitragRechnung1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="rechnungId"
+			referencedTableName="beitragRechnung" />
+	</changeSet>
+	<changeSet author="fabian" id="02-29" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="mitgliedId"
+			baseTableName="beitragBuchung" constraintName="beitragBuchung_ibfk_2"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="mitgliedId"
+			referencedTableName="beitragMitglied" />
+	</changeSet>
+	<changeSet author="fabian" id="02-30" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="mandatId"
+			baseTableName="beitragPrenotification" constraintName="fk_beitragSepaPrenotification_beitragSepaMandat1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="mandatId"
+			referencedTableName="beitragSepaMandat" />
+	</changeSet>
+	<changeSet author="fabian" id="02-31" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="rechnungId"
+			baseTableName="beitragRechnungPosten" constraintName="fk_beitragRechnungPosten_beitragRechnung1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="rechnungId"
+			referencedTableName="beitragRechnung" />
+	</changeSet>
+	<changeSet author="fabian" id="02-32" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="aktivesMandat"
+			baseTableName="beitragMitglied" constraintName="fk_beitragMitglied_beitragSepaMandat1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="mandatId"
+			referencedTableName="beitragSepaMandat" />
+	</changeSet>
+	<changeSet author="fabian" id="02-33" context="beitrag">
+		<addForeignKeyConstraint baseColumnNames="mandatId"
+			baseTableName="beitragSepaMandatMitglieder"
+			constraintName="fk_beitragSepaMandat_has_beitragMitglied_beitragSepaMandat1"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="mandatId"
+			referencedTableName="beitragSepaMandat" />
+	</changeSet>
+	<changeSet author="fabian" id="02-34" context="beitrag">
+		<createIndex indexName="halbjahr" tableName="beitragBuchung"
+			unique="false">
+			<column name="halbjahr" />
+			<column name="jahr" />
+		</createIndex>
+	</changeSet>
+</databaseChangeLog>
