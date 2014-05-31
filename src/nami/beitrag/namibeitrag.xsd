@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.example.org/namibeitrag/"
+	targetNamespace="http://www.example.org/namibeitrag/"
+	elementFormDefault="unqualified">
+
+	<element name="namibeitrag" type="tns:namibeitragT" />
+
+	<complexType name="namibeitragT">
+		<sequence>
+			<element name="database" type="tns:databaseT" maxOccurs="1"
+				minOccurs="1" />
+			<element name="beitragssaetze" type="tns:beitragssaetzeT"
+				maxOccurs="1" minOccurs="1" />
+			<element name="sepa" type="tns:sepaT" maxOccurs="1"
+				minOccurs="1" />
+			<element name="pdfViewer" type="string" maxOccurs="1" minOccurs="1" />
+			<element name="letterOutputPath" type="string" maxOccurs="1" minOccurs="1" />
+		</sequence>
+		<attribute name="gruppierungsnummer" type="string" use="required" />
+	</complexType>
+
+	<complexType name="databaseT">
+		<all>
+			<element name="driver" type="string" maxOccurs="1" minOccurs="1" />
+			<element name="url" type="string" maxOccurs="1" minOccurs="1" />
+			<element name="username" type="string" maxOccurs="1"
+				minOccurs="0" />
+			<element name="password" type="string" maxOccurs="1"
+				minOccurs="0" />
+		</all>
+	</complexType>
+
+	<complexType name="beitragssaetzeT">
+		<sequence>
+			<element name="beitragssatz" type="tns:beitragssatzT"
+				maxOccurs="unbounded" minOccurs="0" />
+		</sequence>
+
+	</complexType>
+
+	<complexType name="beitragssatzT">
+		<attribute name="typ" use="required">
+			<simpleType>
+				<restriction base="string">
+					<enumeration value="VOLLER_BEITRAG" />
+					<enumeration value="FAMILIEN_BEITRAG" />
+					<enumeration value="SOZIALERMAESSIGUNG" />
+					<enumeration value="KEIN_BEITRAG" />
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="betrag" type="decimal" use="required" />
+	</complexType>
+
+	<complexType name="sepaT">
+		<all>
+			<element name="creditorId" type="string" maxOccurs="1"
+				minOccurs="1" />
+			<element name="lastschriftType" type="string" maxOccurs="1"
+				minOccurs="0" />
+			<element name="mrefPrefix" type="string" maxOccurs="1"
+				minOccurs="0" />
+			<element name="hibiscusUrl" type="string" maxOccurs="1"
+				minOccurs="0" />
+			<element name="hibiscusKontoId" type="integer" maxOccurs="1"
+				minOccurs="0" />
+		</all>
+	</complexType>
+</schema>

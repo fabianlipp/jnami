@@ -34,6 +34,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import nami.beitrag.Buchungstyp;
+import nami.beitrag.NamiBeitragConfiguration;
 import nami.beitrag.Rechnungsstatus;
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragLastschrift;
@@ -50,7 +51,6 @@ import nami.beitrag.gui.utils.DisabledCellRenderer;
 import nami.beitrag.hibiscus.HibiscusExporter;
 import nami.beitrag.letters.LetterGenerator;
 import nami.beitrag.letters.LetterType;
-import nami.configuration.Configuration;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.ibatis.session.SqlSession;
@@ -72,6 +72,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
 
     private SqlSessionFactory sqlSessionFactory;
     private LetterGenerator letterGenerator;
+    private NamiBeitragConfiguration conf;
 
     // Filter-Kriterien
     private JRadioButton rdbtnStatusOffen;
@@ -106,12 +107,15 @@ public class LastschriftVerwaltenWindow extends JFrame {
      *            Zugriff auf die Datenbank
      * @param letterGenerator
      *            Brief-Erzeuger
+     * @param conf
+     *            Konfiguration des Nami-Beitrags-Tools
      */
     public LastschriftVerwaltenWindow(SqlSessionFactory sqlSessionFactory,
-            LetterGenerator letterGenerator) {
+            LetterGenerator letterGenerator, NamiBeitragConfiguration conf) {
         super("Sammellastschriften verwalten");
         this.sqlSessionFactory = sqlSessionFactory;
         this.letterGenerator = letterGenerator;
+        this.conf = conf;
         buildFrame();
     }
 
@@ -560,8 +564,8 @@ public class LastschriftVerwaltenWindow extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             BeitragSammelLastschrift sl = getSelectedSammellast();
-            HibiscusExporter exporter = new HibiscusExporter(
-                    Configuration.getGeneralProperties(), sqlSessionFactory);
+            HibiscusExporter exporter = new HibiscusExporter(conf,
+                    sqlSessionFactory);
 
             if (type == HibiscusExportType.ALLE_EINZEL) {
                 SqlSession session = sqlSessionFactory.openSession();

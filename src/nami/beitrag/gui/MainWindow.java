@@ -18,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import nami.beitrag.NamiBeitrag;
+import nami.beitrag.NamiBeitragConfiguration;
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragMitglied;
@@ -55,9 +56,9 @@ public class MainWindow extends JFrame {
      *            und NaMi)
      */
     public MainWindow(final NamiBeitrag namiBeitrag,
-            final LetterDirectory letterDirectory) {
+            final LetterDirectory letterDirectory, final NamiBeitragConfiguration conf) {
         letterGenerator = new LetterGenerator(namiBeitrag.getSessionFactory(),
-                letterDirectory);
+                letterDirectory, conf);
 
         setTitle("NamiBeitrag");
 
@@ -315,7 +316,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFrame win = new LastschriftVerwaltenWindow(namiBeitrag
-                        .getSessionFactory(), letterGenerator);
+                        .getSessionFactory(), letterGenerator, conf);
                 win.setVisible(true);
             }
         });
@@ -342,7 +343,7 @@ public class MainWindow extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFrame win = new BriefeWindow(namiBeitrag.getSessionFactory(),
-                        letterDirectory);
+                        letterDirectory, conf);
                 win.setVisible(true);
             }
         });
@@ -394,6 +395,6 @@ public class MainWindow extends JFrame {
      */
     // TODO: Debug
     public static void main(String[] args) {
-        new MainWindow(null, null).setVisible(true);
+        new MainWindow(null, null, null).setVisible(true);
     }
 }

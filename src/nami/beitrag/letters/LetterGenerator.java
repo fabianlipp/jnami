@@ -8,18 +8,17 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nami.beitrag.NamiBeitragConfiguration;
 import nami.beitrag.db.BeitragBrief;
 import nami.beitrag.db.BriefeMapper;
 import nami.beitrag.db.LastschriftenMapper;
-import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.LastschriftenMapper.DataPrenotificationMandat;
+import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.RechnungenMapper.DataMahnungKomplett;
 import nami.beitrag.db.RechnungenMapper.DataRechnungMitBuchungen;
-import nami.configuration.Configuration;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -48,7 +47,9 @@ public class LetterGenerator {
     private SqlSessionFactory sqlSessionFactory;
     private LetterDirectory dir;
 
-    private static Properties p = Configuration.getGeneralProperties();
+    private String mRefPrefix;
+    private String credId;
+
     private static Logger logger = Logger.getLogger(LetterGenerator.class
             .getName());
 
@@ -69,11 +70,15 @@ public class LetterGenerator {
      * @param dir
      *            Verzeichnis, in dem die erstellten Briefe (als
      *            LaTeX-Quelltexte) abgelegt werden
+     * @param conf
+     *            Konfiguration des Nami-Beitrags-Tools
      */
     public LetterGenerator(SqlSessionFactory sqlSessionFactory,
-            LetterDirectory dir) {
+            LetterDirectory dir, NamiBeitragConfiguration conf) {
         this.sqlSessionFactory = sqlSessionFactory;
         this.dir = dir;
+        mRefPrefix = conf.getSepaMRefPrefix();
+        credId = conf.getSepaCreditorId();
     }
 
     private static Template getTemplate(String templateName) {
@@ -242,17 +247,6 @@ public class LetterGenerator {
 
     private void generatePrenotifications(
             Collection<Integer> prenotificationIds, Writer w) {
-        // Variablen aus Konfigurationsdatei lesen
-        String creditorId = p.getProperty("jnami.beitrag.sepa.creditorId");
-        if (creditorId == null) {
-            throw new IllegalArgumentException(
-                    "No creditor ID defined in properties file.");
-        }
-        String mrefPrefix = p.getProperty("jnami.beitrag.sepa.mrefPrefix");
-        if (mrefPrefix == null) {
-            mrefPrefix = "";
-        }
-
         SqlSession session = sqlSessionFactory.openSession();
         try {
             LastschriftenMapper mapper = session
@@ -268,8 +262,8 @@ public class LetterGenerator {
             VelocityContext context = new VelocityContext();
             context.put("date", new DateTool());
             context.put("prenots", prenots);
-            context.put("creditorId", creditorId);
-            context.put("mrefPrefix", mrefPrefix);
+            context.put("creditorId", credId);
+            context.put("mrefPrefix", mRefPrefix);
 
             // Template füllen
             Template template = getTemplate(TEMPLATE_PRENOTIFICATIONS);

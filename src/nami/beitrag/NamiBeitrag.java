@@ -47,19 +47,18 @@ public final class NamiBeitrag {
      * 
      * @param sqlSessionFactory
      *            Verbindung zur Datenbank
-     * @param gruppierungsNummer
-     *            Gruppierungsnummer, deren Beiträge verwaltet werden
-     * @param beitragssaetze
-     *            Höhe der Mitgliedsbeiträge für die verschiedenen Beitragsarten
+     * @param conf
+     *            Konfiguration des Nami-Beitrags-Tools
      * @param con
      *            Verbindung zum NaMi-Server
      */
     public NamiBeitrag(SqlSessionFactory sqlSessionFactory,
-            String gruppierungsNummer,
-            Map<Beitragsart, BigDecimal> beitragssaetze, NamiConnector con) {
+            NamiBeitragConfiguration conf, NamiConnector con) {
         this.sqlSessionFactory = sqlSessionFactory;
-        this.gruppierungsNummer = gruppierungsNummer;
-        this.beitragssaetze = beitragssaetze;
+
+        gruppierungsNummer = conf.getGruppierungsnummer();
+        beitragssaetze = conf.getBeitragssaetze();
+
         this.con = con;
     }
 

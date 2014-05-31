@@ -28,13 +28,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
 
+import nami.beitrag.NamiBeitragConfiguration;
 import nami.beitrag.db.BeitragBrief;
 import nami.beitrag.db.BriefeMapper;
 import nami.beitrag.db.BriefeMapper.FilterSettings;
 import nami.beitrag.letters.LatexRunner;
 import nami.beitrag.letters.LetterDirectory;
 import nami.beitrag.letters.LetterType;
-import nami.configuration.Configuration;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.ibatis.session.SqlSession;
@@ -82,16 +82,17 @@ public class BriefeWindow extends JFrame {
      *            Zugriff auf die Datenbank
      * @param letterDirectory
      *            Verzeichnis für Briefe
+     * @param conf
+     *            Konfiguration des Nami-Beitrags-Tools
      */
     public BriefeWindow(SqlSessionFactory sqlSessionFactory,
-            LetterDirectory letterDirectory) {
+            LetterDirectory letterDirectory, NamiBeitragConfiguration conf) {
         super("Rechnungen erstellen");
         this.sqlSessionFactory = sqlSessionFactory;
         this.letterDirectory = letterDirectory;
         this.latex = new LatexRunner(letterDirectory);
 
-        pdfViewer = Configuration.getGeneralProperties().getProperty(
-                "jnami.beitrag.pdfViewer");
+        pdfViewer = conf.getPdfViewer();
 
         buildFrame();
     }

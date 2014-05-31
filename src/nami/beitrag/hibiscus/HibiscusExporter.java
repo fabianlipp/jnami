@@ -12,10 +12,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nami.beitrag.NamiBeitragConfiguration;
 import nami.beitrag.db.BeitragLastschrift;
 import nami.beitrag.db.BeitragSammelLastschrift;
 import nami.beitrag.db.BeitragSepaMandat;
@@ -36,12 +36,11 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
  * 
  */
 public class HibiscusExporter {
-    // TODO: Aus Konfigurationsdatei lesen
     // URL zur Kontaktaufnahme zu Hibiscus
-    private String url = "http://localhost:8080/xmlrpc/";
+    private String url;
     // ID (Hibiscus-Intern) des Kontos, für das die Lastschriften eingefügt
     // werden
-    private String kontoId = "1";
+    private String kontoId;
     // Gläubiger-ID des Zahlungsempfängers
     private String creditorId;
     // Verwendeter Lastschrifttyp (CORE oder COR1)
@@ -70,23 +69,18 @@ public class HibiscusExporter {
     /**
      * Erzeugt einen neuen Exporter.
      * 
-     * @param p
-     *            Properties-Objekt, das die SEPA-Konfiguration enthält (wird
-     *            normalerweise aus der Konfigurationsdatei eingelesen)
+     * @param conf
+     *            Konfiguration der Beitrags-Tools
      * @param sqlSessionFactory
      *            Verbindung zur SQL-Datenbank.
      */
-    public HibiscusExporter(Properties p, SqlSessionFactory sqlSessionFactory) {
-        creditorId = p.getProperty("jnami.beitrag.sepa.creditorId");
-        if (creditorId == null) {
-            throw new IllegalArgumentException(
-                    "No creditor ID defined in properties file.");
-        }
-        sepatype = p.getProperty("jnami.beitrag.sepa.sepatype");
-        mrefPrefix = p.getProperty("jnami.beitrag.sepa.mrefPrefix");
-        if (mrefPrefix == null) {
-            mrefPrefix = "";
-        }
+    public HibiscusExporter(NamiBeitragConfiguration conf,
+            SqlSessionFactory sqlSessionFactory) {
+        creditorId = conf.getSepaCreditorId();
+        sepatype = conf.getSepaType();
+        mrefPrefix = conf.getSepaMRefPrefix();
+        kontoId = conf.getHibiscusKontoId();
+        url = conf.getHibiscusUrl();
 
         this.sqlSessionFactory = sqlSessionFactory;
     }
