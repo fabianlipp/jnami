@@ -2,13 +2,12 @@ Various tools to work with NaMi (membership management of DPSG) from Java. Furth
 
 
 
-Das Ganze hat bisher eher dazu gedient mich mit der API vertraut zu machen. Die Tools sind also noch nicht für den produktiven Einsatz gedacht.
 
 Lizenz:
 -------
 Der Code unterliegt der GNU GPL. Der vollständige Lizenztext befindet sich in LICENSE.
 
-    Copyright (C) 2013 Fabian Lipp
+    Copyright (C) 2013-2014 Fabian Lipp
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,12 +23,24 @@ Der Code unterliegt der GNU GPL. Der vollständige Lizenztext befindet sich in L
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+Nutzbare Tools:
+---------------
+- NamiConnector: Bibliothek, die auf NaMi zugreift und die Ergebnisse in Java-Objekte umsetzt. Deckt noch nicht den vollen Funktionsumfang von NaMi ab, sollte aber problemlos erweiterbar sein.
+- NamiStatistics: Zählt die Mitglieder (aufgeteilt nach Gruppierung und Stufenzugehörigkeit) in NaMi und speichert die Ergebnisse in eine SQL-Datenbank. Soll dann noch um Funktionen erweitert werden, um die Daten aus dieser Datenbank auszuwerten (um beispielsweise eine Statistik für den Stamm, den ganzen Bezirk usw. zu generieren). Insgesamt soll das Tool mindestens die Statistik-Funktion aus NaMi 1 ersetzen, die es in NaMi 2 nicht mehr gibt (ein Bug-Report diesbezüglich blieb unbeantwortet).
+- Beitragstool: Noch nicht wirklich gut getestet, sollte aber schon funktionieren. Funktionsumfang:
+  + Mitglieder-Datenbank mit NaMi synchronisieren
+  + Beitragskonten aus NaMi abholen (momentan in NaMi nicht verfügbar)
+  + Rechnungen/Mahnungen erstellen (mittels LaTeX)
+  + SEPA-Mandatsverwaltung
+  + SEPA-Lastschriftaufträge mittel XML-RPC an Hibiscus übergeben
+  + Prenotifications erzeugen (mittels LaTeX)
+  + Kündigungen vormerken
+
+
 Begonnene Tools:
 ----------------
-- Nami2Mailman: Sucht Personen nach Gruppenzugehörigkeit und generiert daruas Mailverteiler (als Tetdateien) die dann beispielsweise mit GNU Mailman synchronisiert werden können
-- NamiStatistics: Zählt die Mitglieder (aufgeteilt nach Gruppierung und Stufenzugehörigkeit) in NaMi und speichert die Ergebnisse in eine SQL-Datenbank. Soll dann noch um Funktionen erweitert werden, um die Daten aus dieser Datenbank auszuwerten (um beispielsweise eine Statistik für den Stamm, den ganzen Bezirk usw. zu generieren). Insgesamt soll das Tool mindestens die Statistik-Funktion aus NaMi 1 ersetzen, die es in NaMi 2 nicht mehr gibt (ein Bug-Report diesbezüglich blieb unbeantwortet).
+- Nami2Mailman: Sucht Personen nach Gruppenzugehörigkeit und generiert daraus Mailverteiler (als Textdateien) die dann beispielsweise mit GNU Mailman synchronisiert werden können
 Das Ganze ist mittels XML konfigurierbar und im Stamm, Bezirk und Diözesanverband schon genutzt.
-- Beitragstool: soll folgendes können: Daten aus NaMi holen, Lastschrift-Aufträge und Rechnungen/Mahnungen generieren und Zahlungseingänge überwachen
 - NaMiCli: Eine Kommandozeilen-Interface, mit dem einige NaMi-Funktionen genutzt werden können (z. B. Personen gesucht werden). Außerdem kann auch hieraus das Statistik-Tool genutzt werden.
 
 
@@ -52,8 +63,8 @@ Kompilierung
 Ausführung
 ----------
 NaMiCli lässt sich -- nachdem Ant erfolgreich war -- folgendermaßen starten (Bash-Syntax):
-CLASSPATH=$(< namicli.classpath)  # Diese Datei wird von Ant generiert
-java -cp $CLASSPATH nami.cli.NamiCli
+  export CLASSPATH=$(< namicli.classpath)  # Diese Datei wird von Ant generiert
+  java nami.cli.NamiCli
 
 
 
