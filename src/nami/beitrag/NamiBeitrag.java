@@ -91,17 +91,6 @@ public final class NamiBeitrag {
                     .withStammgruppierung(gruppierungsNummer)
                     .getAllResults(con);
 
-            // DEBUG: nehme nur 10 Mitglieder aus Nami
-            Collection<NamiMitgliedListElement> tmp = new LinkedList<>();
-            Iterator<NamiMitgliedListElement> iter = mitgliederFromNami
-                    .iterator();
-            for (int i = 0; i <= 9; i++) {
-                if (iter.hasNext()) {
-                    tmp.add(iter.next());
-                }
-            }
-            mitgliederFromNami = tmp;
-
             for (NamiMitgliedListElement namiMgl : mitgliederFromNami) {
                 BeitragMitglied beitMgl = mapper.getMitglied(namiMgl.getId());
                 if (beitMgl != null) {

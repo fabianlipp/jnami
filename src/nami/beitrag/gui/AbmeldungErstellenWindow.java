@@ -139,6 +139,8 @@ public class AbmeldungErstellenWindow extends JFrame {
                 session.close();
             }
             System.out.println("Stored Abmeldung");
+            setVisible(false);
+            dispose();
         }
     }
 

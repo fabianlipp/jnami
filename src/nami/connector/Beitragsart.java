@@ -52,6 +52,7 @@ public enum Beitragsart {
             return SOZIALERMAESSIGUNG;
         case "NICHT_MITGLIEDER":
         case "KEIN_BEITRAG":
+        case "(keine Beitragsarten zugeordnet)":
             return KEIN_BEITRAG;
         case "":
             return null;

@@ -20,10 +20,10 @@
 	</path>
 	<path id="run.path.id">
 		<!-- Classpath für Ausführung -->
+		<files includes="/usr/share/java/mysql-connector-java.jar" />
 		<path location="${classes.dir}" />
 		<path refid="lib.path.id" />
 		<files includes="/home/fabian/.java/libwallet/dbus-java/dbus-java-2.7/libdbus-java-2.7.jar" />
-		<files includes="/usr/share/java/mysql-connector-java.jar" />
 	</path>
 
 	<target name="clean">
