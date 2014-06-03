@@ -5,6 +5,7 @@ import java.util.Date;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nami.connector.Beitragsart;
+import nami.connector.MitgliedStatus;
 import nami.connector.Mitgliedstyp;
 import nami.connector.namitypes.NamiMitglied;
 
@@ -22,7 +23,8 @@ public class BeitragMitglied {
     private int mitgliedsnummer;
     private String nachname;
     private String vorname;
-    private Mitgliedstyp status;
+    private MitgliedStatus status;
+    private Mitgliedstyp mitgliedstyp;
     private Beitragsart beitragsart;
     private Date eintrittsdatum;
     private String strasse;
@@ -47,7 +49,8 @@ public class BeitragMitglied {
         mitgliedsnummer = namiMgl.getMitgliedsnummer();
         nachname = namiMgl.getNachname();
         vorname = namiMgl.getVorname();
-        status = namiMgl.getMitgliedstyp();
+        status = namiMgl.getStatus();
+        mitgliedstyp = namiMgl.getMitgliedstyp();
         beitragsart = namiMgl.getBeitragsart();
         eintrittsdatum = namiMgl.getEintrittsdatum();
         strasse = namiMgl.getStrasse();

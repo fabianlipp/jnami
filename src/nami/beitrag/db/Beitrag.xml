@@ -10,6 +10,7 @@
 		<result property="nachname" column="nachname" />
 		<result property="vorname" column="vorname" />
 		<result property="status" column="status" />
+		<result property="mitgliedstyp" column="mitgliedstyp" />
 		<result property="beitragsart" column="beitragsart" />
 		<result property="eintrittsdatum" column="eintrittsdatum" />
 		<result property="strasse" column="strasse" />
@@ -53,6 +54,7 @@
 			nachname,
 			vorname,
 			status,
+			mitgliedstyp,
 			beitragsart,
 			eintrittsdatum,
 			strasse,
@@ -67,6 +69,7 @@
 			#{nachname},
 			#{vorname},
 			#{status},
+			#{mitgliedstyp},
 			#{beitragsart},
 			#{eintrittsdatum},
 			#{strasse},
@@ -84,6 +87,7 @@
 			nachname = #{nachname},
 			vorname = #{vorname},
 			status = #{status},
+			mitgliedstyp = #{mitgliedstyp},
 			beitragsart = #{beitragsart},
 			eintrittsdatum = #{eintrittsdatum},
 			strasse = #{strasse},

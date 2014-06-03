@@ -182,6 +182,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
         private JLabel nachname;
         private JLabel vorname;
         private JLabel status;
+        private JLabel mitgliedstyp;
         private JLabel beitragsart;
         private JLabel eintrittsdatum;
         private JLabel strasse;
@@ -218,6 +219,11 @@ public class MitgliedAnzeigenWindow extends JFrame {
             this.add(lblStatus, "");
             status = new JLabel("");
             this.add(status, "wrap");
+
+            JLabel lblMitgliedstyp = new JLabel("Mitgliedstyp:");
+            this.add(lblMitgliedstyp, "");
+            mitgliedstyp = new JLabel("");
+            this.add(mitgliedstyp, "wrap");
 
             JLabel lblBeitragsart = new JLabel("Beitragsart:");
             this.add(lblBeitragsart, "");
@@ -277,6 +283,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
                 nachname.setText("");
                 vorname.setText("");
                 status.setText("");
+                mitgliedstyp.setText("");
                 beitragsart.setText("");
                 eintrittsdatum.setText("");
                 strasse.setText("");
@@ -298,7 +305,12 @@ public class MitgliedAnzeigenWindow extends JFrame {
                         .getMitgliedsnummer()));
                 nachname.setText(mgl.getNachname());
                 vorname.setText(mgl.getVorname());
-                status.setText(mgl.getStatus().toString());
+                if (mgl.getStatus() != null) {
+                    status.setText(mgl.getStatus().toString());
+                } else {
+                    status.setText("");
+                }
+                mitgliedstyp.setText(mgl.getMitgliedstyp().toString());
                 beitragsart.setText(mgl.getBeitragsart().toString());
                 String datum = new SimpleDateFormat("dd.MM.yyyy").format(mgl
                         .getEintrittsdatum());

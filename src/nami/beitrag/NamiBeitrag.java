@@ -5,8 +5,6 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -18,6 +16,7 @@ import nami.beitrag.db.BeitragMitglied;
 import nami.beitrag.db.BeitragZeitraum;
 import nami.connector.Beitragsart;
 import nami.connector.Halbjahr;
+import nami.connector.MitgliedStatus;
 import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
 import nami.connector.exception.NamiApiException;
@@ -267,7 +266,8 @@ public final class NamiBeitrag {
             return;
         }
 
-        if (mgl.getStatus() != Mitgliedstyp.MITGLIED) {
+        if (mgl.getMitgliedstyp() != Mitgliedstyp.MITGLIED
+                || mgl.getStatus() != MitgliedStatus.AKTIV) {
             // kein reguläres Mitglied
             // => es ist kein Beitrag zu bezahlen
             return;
