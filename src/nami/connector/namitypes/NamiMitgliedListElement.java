@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 
 import nami.connector.Geschlecht;
+import nami.connector.MitgliedStatus;
 import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
@@ -83,6 +84,11 @@ public class NamiMitgliedListElement extends NamiAbstractMitglied implements
     @Override
     public String getEmail() {
         return entries.email;
+    }
+
+    @Override
+    public MitgliedStatus getStatus() {
+        return MitgliedStatus.fromString(entries.status);
     }
 
     @Override

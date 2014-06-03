@@ -30,8 +30,10 @@ public enum MitgliedStatus {
     public static MitgliedStatus fromString(String str) {
         switch (str) {
         case "Aktiv":
+        case "aktiv":
         case "AKTIV":
             return AKTIV;
+        case "Inaktiv":
         case "inaktiv":
         case "INAKTIV":
             return INAKTIV;

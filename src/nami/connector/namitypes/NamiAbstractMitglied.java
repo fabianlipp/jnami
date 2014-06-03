@@ -3,6 +3,7 @@ package nami.connector.namitypes;
 import java.io.IOException;
 
 import nami.connector.Geschlecht;
+import nami.connector.MitgliedStatus;
 import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
 import nami.connector.exception.NamiApiException;
@@ -17,6 +18,8 @@ public abstract class NamiAbstractMitglied {
     public abstract String getEmail();
 
     public abstract int getMitgliedsnummer();
+
+    public abstract MitgliedStatus getStatus();
 
     public abstract Mitgliedstyp getMitgliedstyp();
 

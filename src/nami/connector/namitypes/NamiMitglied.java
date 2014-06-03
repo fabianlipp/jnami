@@ -13,6 +13,7 @@ import java.util.List;
 
 import nami.connector.Beitragsart;
 import nami.connector.Geschlecht;
+import nami.connector.MitgliedStatus;
 import nami.connector.Mitgliedstyp;
 import nami.connector.NamiConnector;
 import nami.connector.NamiResponse;
@@ -131,6 +132,11 @@ public class NamiMitglied extends NamiAbstractMitglied {
     @Override
     public int getMitgliedsnummer() {
         return mitgliedsNummer;
+    }
+
+    @Override
+    public MitgliedStatus getStatus() {
+        return MitgliedStatus.fromString(status);
     }
 
     @Override
