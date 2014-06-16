@@ -76,7 +76,6 @@ public class NamiMitglied extends NamiAbstractMitglied {
     private String mglTypeId; // ENUM?? z.B. NICHT_MITGLIED
     private String mglType;
 
-    private String geburtsDatumFormatted;
     private String geburtsDatum;
 
     private String regionId; // int? (null möglich)
@@ -256,7 +255,7 @@ public class NamiMitglied extends NamiAbstractMitglied {
         rows.add(new Row("Telefon 2", telefon2));
         rows.add(new Row("Telefon 3", telefon3));
         rows.add(new Row("Telefax", telefax));
-        rows.add(new Row("Geburtsdatum", geburtsDatumFormatted));
+        rows.add(new Row("Geburtsdatum", geburtsDatum));
         rows.add(new Row("Stammgruppierung", gruppierung));
         rows.add(new Row("Stufe", stufe));
         // TODO: Formatierung Eintrittsdatum
