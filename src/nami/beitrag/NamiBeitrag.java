@@ -266,6 +266,12 @@ public final class NamiBeitrag {
             return;
         }
 
+        if (mgl.isDeleted()) {
+            // Mitglied wurde in NaMi gelöscht
+            // => keinen Beitrag berechnen
+            return;
+        }
+
         if (mgl.getMitgliedstyp() != Mitgliedstyp.MITGLIED
                 || mgl.getStatus() != MitgliedStatus.AKTIV) {
             // kein reguläres Mitglied
