@@ -16,7 +16,7 @@
 	#set( $mandat = $prenotification.mandat )
 	\setkomavar{date}{$date.format('dd.MM.yyyy', $prenot.datum)}
 	\setkomavar{faelligkeit}{$date.format('dd.MM.yyyy', $prenot.faelligkeit)}
-	\setkomavar{betrag}{$prenot.betrag.negate()}
+	\setkomavar{betrag}{$df.format($prenot.betrag.negate())}
 	\setkomavar{mandatsreferenz}{$mfrePrefix$prenot.prenotificationId}
 	\setkomavar{iban}{$mandat.iban}
 	\setkomavar{bic}{$mandat.bic}

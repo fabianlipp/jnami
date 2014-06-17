@@ -21,12 +21,12 @@
 	
 	\setkomavar{date}{$date.format('dd.MM.yyyy', $rechnung.rechnung.datum)}
 	\setkomavar{frist}{$date.format('dd.MM.yyyy', $rechnung.rechnung.frist)}
-	\setkomavar{betrag}{$betragsum}
+	\setkomavar{betrag}{$df.format($betragsum)}
 	\setkomavar{rechnungsnummer}{$rechnung.rechnung.rechnungsNummer}
 	\setkomavar{mitgliedsname}{$mgl.vorname $mgl.nachname}
 	\begin{rechnung}{$mgl.vorname $mgl.nachname}{$mgl.strasse\\$mgl.plz $mgl.ort}
 	#foreach( $buchung in $rechnung.buchungen )
-		\rechnungposten{$!buchung.kommentar}{$buchung.betrag.negate()}
+		\rechnungposten{$!buchung.kommentar}{$df.format($buchung.betrag.negate())}
 	#end
 	\end{rechnung}
 

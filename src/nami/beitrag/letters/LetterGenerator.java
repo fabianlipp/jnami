@@ -5,9 +5,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -211,6 +214,7 @@ public class LetterGenerator {
             // Übergebe Daten an Velocity
             VelocityContext context = new VelocityContext();
             context.put("date", new DateTool());
+            context.put("df", getCurrencyFormatter());
             context.put("rechnungen", rechnungen);
 
             // Template füllen
@@ -235,6 +239,7 @@ public class LetterGenerator {
             // Übergebe Daten an Velocity
             VelocityContext context = new VelocityContext();
             context.put("date", new DateTool());
+            context.put("df", getCurrencyFormatter());
             context.put("mahnungen", mahnungen);
 
             // Template füllen
@@ -261,6 +266,7 @@ public class LetterGenerator {
             // Übergebe Daten an Velocity
             VelocityContext context = new VelocityContext();
             context.put("date", new DateTool());
+            context.put("df", getCurrencyFormatter());
             context.put("prenots", prenots);
             context.put("creditorId", credId);
             context.put("mrefPrefix", mRefPrefix);
@@ -271,5 +277,10 @@ public class LetterGenerator {
         } finally {
             session.close();
         }
+    }
+
+    private DecimalFormat getCurrencyFormatter() {
+        DecimalFormatSymbols sym = new DecimalFormatSymbols(Locale.GERMAN);
+        return new DecimalFormat("#,##0.00", sym);
     }
 }
