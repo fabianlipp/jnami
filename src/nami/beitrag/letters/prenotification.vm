@@ -1,49 +1,12 @@
-\documentclass[foldmarks=true]{dpsgbrief}
+\input{template_prenotification.tex}
 
-\usepackage[ngerman]{babel}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-
-\LoadLetterOption{stamm}
-\setkomavar{signature}{Fabian Lipp}
-\setkomavar{date}{$date.format('dd.MM.yyyy', $rechnungsdatum)}
-
-\newkomavar{neuefrist}
-\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $frist)}
-
-\renewcommand{\arraystretch}{1.5}
-
-
-%%%%%
-Variablen:
-allgemein:
-  - Gläubiger-ID
-
-pro Empfänger:
-  - Mandatsreferenz
-  - Versanddatum
-  - Fälligkeit
-  - Regelmäßig (ja/nein)
-  - Betrag
-  - Bankverbindung?
-
-  (Bsp: „zum jeweils 3. des Monats, beginnend mit dem 01.02.2014. Fällt der Fälligkeitstag auf einen Feiertag oder ein Wochenende verschiebt sich der Fälligkeitstag auf den nächsten Werktag“)
-
-
-  Rechnung vom 28.07.2013:
-„Die Forderung von 23,58 € ziehen wir mit der SEPA-Lastschrift zum Mandat SP1234321-1 zu der Gläubiger-
-Identifikationsnummer DE32XXX123456789 von Ihrem Konto IBAN DE12876543210987654321 bei der Muster-Bank BIC XXXXXXX zum
-Fälligkeitstag 05.08.2013 ein. Wir bitten Sie, für Kontodeckung zu sorgen.“
-
-Variante 2: Pre-Notification zu einer wiederkehrenden Zahlung
-
-„Die Miete von 500 € ziehen wir mit einer SEPA-Lastschrift zum Mandat
-SP1234337-1 zu der Gläubiger-Identifikationsnummer DE32XXX123456789 von Ihrem Konto IBAN DE12876543210987654321 bei
-der Muster-Bank BIC XXXXXXX zum jeweils 1. des Monats, beginnend mit dem 1.10.2013
-ein. Fällt der Fälligkeitstag auf einen Feiertag oder ein Wochenende verschiebt sich der Fälligkeitstag auf den nächsten Werktag.“
-
-%%%%%
-
+\newkomavar{faelligkeit}
+\newkomavar{mandatsreferenz}
+\newkomavar{credid}
+\setkomavar{credid}{$creditorId}
+\newkomavar{betrag}
+\newkomavar{iban}
+\newkomavar{bic}
 
 
 \begin{document}
@@ -51,16 +14,20 @@ ein. Fällt der Fälligkeitstag auf einen Feiertag oder ein Wochenende verschieb
 #foreach( $prenotification in $prenots )
 	#set( $prenot = $prenotification.prenotification )
 	#set( $mandat = $prenotification.mandat )
+	\setkomavar{date}{$date.format('dd.MM.yyyy', $prenot.datum)}
+	\setkomavar{faelligkeit}{$date.format('dd.MM.yyyy', $prenot.faelligkeit)}
+	\setkomavar{betrag}{$prenot.betrag}
+	\setkomavar{mandatsreferenz}{$mfrePrefix$prenot.prenotificationId}
+	\setkomavar{iban}{$mandat.iban}
+	\setkomavar{bic}{$mandat.bic}
 	#if ($prenot.regelmaessig)
 	\prenotification%
 	#else
-	\prenotificationeinmalig%
+	\prenotification[einmalig]%
 	#end
-	{$mandat.kontoinhaber}{$mandat.strasse\\##
-	$mandat.plz $mandat.ort}{$prenot.betrag}{$prenot.faelligkeit}
+	{$mandat.kontoinhaber}{$mandat.strasse\\$mandat.plz $mandat.ort}
 
 #end
-
 
 
 \end{document}

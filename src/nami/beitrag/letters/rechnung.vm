@@ -1,19 +1,15 @@
-\documentclass[foldmarks=true]{dpsgbrief}
+\input{template_rechnung.tex}
 
-\usepackage[ngerman]{babel}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+\newkomavar{frist}
+\newkomavar{rechnungsnummer}
+\newkomavar{betrag}
+\newkomavar{mitgliedsname}
 
-\LoadLetterOption{stamm}
-\setkomavar{signature}{Fabian Lipp}
-
-\newkomavar{neuefrist}
-
-\renewcommand{\arraystretch}{1.5}
 
 \begin{document}
 
 #foreach( $rechnung in $rechnungen )
+	#set( $mgl = $rechnung.mitglied )
 	#set( $betragsum = false )
 	#foreach( $buchung in $rechnung.buchungen )
 		#if ( $betragsum )
@@ -24,16 +20,17 @@
 	#end
 	
 	\setkomavar{date}{$date.format('dd.MM.yyyy', $rechnung.rechnung.datum)}
-	\setkomavar{neuefrist}{$date.format('dd.MM.yyyy', $rechnung.rechnung.frist)}
-	\begin{rechnung}{$rechnung.mitglied.vorname $rechnung.mitglied.nachname}{$rechnung.mitglied.strasse\\##
-	$rechnung.mitglied.plz $rechnung.mitglied.ort}{$rechnung.rechnung.rechnungsNummer}{$betragsum}
+	\setkomavar{frist}{$date.format('dd.MM.yyyy', $rechnung.rechnung.frist)}
+	\setkomavar{betrag}{$betragsum}
+	\setkomavar{rechnungsnummer}{$rechnung.rechnung.rechnungsNummer}
+	\setkomavar{mitgliedsname}{$mgl.vorname $mgl.nachname}
+	\begin{rechnung}{$mgl.vorname $mgl.nachname}{$mgl.strasse\\$mgl.plz $mgl.ort}
 	#foreach( $buchung in $rechnung.buchungen )
 		\rechnungposten{$!buchung.kommentar}{$buchung.betrag}
 	#end
 	\end{rechnung}
 
 #end
-
 
 
 \end{document}
