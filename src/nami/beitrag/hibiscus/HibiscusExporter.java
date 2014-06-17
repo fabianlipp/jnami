@@ -132,7 +132,7 @@ public class HibiscusExporter {
             params.put("blz", mandat.getBic());
             params.put("kontonummer", mandat.getIban());
             params.put("name", mandat.getKontoinhaber());
-            params.put("betrag", formatBetrag(lastschrift.getBetrag()));
+            params.put("betrag", formatBetrag(lastschrift.getBetrag().negate()));
             params.put("verwendungszweck", lastschrift.getVerwendungszweck());
             params.put("mandateid",
                     mrefPrefix + Integer.toString(mandat.getMandatId()));
@@ -217,7 +217,7 @@ public class HibiscusExporter {
                 params.put("blz", mandat.getBic());
                 params.put("kontonummer", mandat.getIban());
                 params.put("name", mandat.getKontoinhaber());
-                params.put("betrag", formatBetrag(lastschrift.getBetrag()));
+                params.put("betrag", formatBetrag(lastschrift.getBetrag().negate()));
                 params.put("verwendungszweck",
                         lastschrift.getVerwendungszweck());
                 params.put("mandateid",

@@ -668,7 +668,7 @@ public class LastschriftErstellenWindow extends JFrame {
                     return rNode.mitglied.getVorname() + " "
                             + rNode.mitglied.getNachname();
                 case BETRAG_RECH_COLUMN_INDEX:
-                    return rNode.rechnung.getBetrag();
+                    return rNode.rechnung.getBetrag().negate();
                 case CHECK_COLUMN_INDEX:
                     return rNode.checked;
                 default:

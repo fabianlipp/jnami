@@ -469,7 +469,7 @@ public class RechnungenVerwaltenWindow extends JFrame {
                         buchung.setTyp(inputBuchungstyp
                                 .getItemAt(inputBuchungstyp.getSelectedIndex()));
                         buchung.setDatum(inputBuchungsdatum.getDate());
-                        buchung.setBetrag(halbjahrBetrag.getBetrag());
+                        buchung.setBetrag(halbjahrBetrag.getBetrag().negate());
                         buchung.setHalbjahr(halbjahrBetrag.getHalbjahr());
                         buchung.setVorausberechnung(false);
                         buchung.setKommentar("Rechnung bezahlt");
@@ -807,7 +807,7 @@ public class RechnungenVerwaltenWindow extends JFrame {
             case EMPFAENGER_COLUMN_INDEX:
                 return row.getVorname() + " " + row.getNachname();
             case BETRAG_COLUMN_INDEX:
-                return rechnung.getBetrag();
+                return rechnung.getBetrag().negate();
             case DATUM_COLUMN_INDEX:
                 return formatter.format(rechnung.getDatum());
             case FRIST_COLUMN_INDEX:
@@ -987,7 +987,7 @@ public class RechnungenVerwaltenWindow extends JFrame {
             case BUCHUNGSTEXT_COLUMN_INDEX:
                 return posten.getBuchungstext();
             case BETRAG_COLUMN_INDEX:
-                return buchung.getBetrag();
+                return buchung.getBetrag().negate();
             default:
                 return null;
             }
@@ -1162,7 +1162,7 @@ public class RechnungenVerwaltenWindow extends JFrame {
             case HALBJAHR_COLUMN_INDEX:
                 return betrag.getHalbjahr();
             case BETRAG_COLUMN_INDEX:
-                return betrag.getBetrag();
+                return betrag.getBetrag().negate();
             default:
                 return null;
             }

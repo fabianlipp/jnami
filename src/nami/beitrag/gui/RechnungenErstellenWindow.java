@@ -750,7 +750,7 @@ public class RechnungenErstellenWindow extends JFrame {
                 case KOMMENTAR_COLUMN_INDEX:
                     return "";
                 case BETRAG_COLUMN_INDEX:
-                    return rNode.person.getSaldo();
+                    return rNode.person.getSaldo().negate();
                 case CHECK_COLUMN_INDEX:
                     return rNode.checked;
                 default:
@@ -771,7 +771,7 @@ public class RechnungenErstellenWindow extends JFrame {
                 case KOMMENTAR_COLUMN_INDEX:
                     return rNode.buchung.getKommentar();
                 case BETRAG_COLUMN_INDEX:
-                    return rNode.buchung.getBetrag();
+                    return rNode.buchung.getBetrag().negate();
                 case CHECK_COLUMN_INDEX:
                     return rNode.checked;
                 default:

@@ -685,10 +685,10 @@ public class LastschriftVerwaltenWindow extends JFrame {
                                     .getCompleteRechnungsNummer());
                             buchung.setTyp(Buchungstyp.LASTSCHRIFT);
                             buchung.setDatum(sl.getFaelligkeit());
-                            buchung.setBetrag(halbjahrBetrag.getBetrag());
+                            buchung.setBetrag(halbjahrBetrag.getBetrag().negate());
                             buchung.setHalbjahr(halbjahrBetrag.getHalbjahr());
                             buchung.setVorausberechnung(false);
-                            buchung.setKommentar("Rechnung bezahlt");
+                            buchung.setKommentar("Lastschrift eingezogen");
                             beitragMapper.insertBuchung(buchung);
                         }
 
@@ -879,7 +879,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
             case ANZAHL_COLUMN_INDEX:
                 return sl.getAnzahlLastschriften();
             case BETRAG_COLUMN_INDEX:
-                return sl.getBetrag();
+                return sl.getBetrag().negate();
             case AUSGEFUEHRT_COLUMN_INDEX:
                 return sl.isAusgefuehrt();
             default:
@@ -1010,7 +1010,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
             case VERWENDUNGSZWECK_COLUMN_INDEX:
                 return l.getVerwendungszweck();
             case BETRAG_COLUMN_INDEX:
-                return l.getBetrag();
+                return l.getBetrag().negate();
             default:
                 return null;
             }
