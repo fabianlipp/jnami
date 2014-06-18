@@ -24,7 +24,7 @@
 	\setkomavar{betrag}{$df.format($betragsum)}
 	\setkomavar{rechnungsnummer}{$rechnung.rechnung.rechnungsNummer}
 	\setkomavar{mitgliedsname}{$mgl.vorname $mgl.nachname}
-	\begin{rechnung}{$mgl.vorname $mgl.nachname}{$mgl.strasse\\$mgl.plz $mgl.ort}
+	\begin{rechnung}{$mgl.vorname $mgl.nachname}{$mgl.strasse\\\\$mgl.plz $mgl.ort}
 	#foreach( $buchung in $rechnung.buchungen )
 		\rechnungposten{$!buchung.kommentar}{$df.format($buchung.betrag.negate())}
 	#end

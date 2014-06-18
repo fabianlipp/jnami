@@ -18,7 +18,7 @@
 		<result property="gueltig" column="gueltig" />
 	</resultMap>
 	<resultMap id="prenotificationResult" type="BeitragPrenotification">
-		<id property="prenotificationId" column="mandatId" />
+		<id property="prenotificationId" column="prenotificationId" />
 		<result property="datum" column="datum" />
 		<result property="betrag" column="betrag" />
 		<result property="faelligkeit" column="faelligkeit" />

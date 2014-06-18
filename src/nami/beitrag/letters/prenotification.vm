@@ -17,7 +17,7 @@
 	\setkomavar{date}{$date.format('dd.MM.yyyy', $prenot.datum)}
 	\setkomavar{faelligkeit}{$date.format('dd.MM.yyyy', $prenot.faelligkeit)}
 	\setkomavar{betrag}{$df.format($prenot.betrag.negate())}
-	\setkomavar{mandatsreferenz}{$mfrePrefix$prenot.prenotificationId}
+	\setkomavar{mandatsreferenz}{$mrefPrefix$mandat.mandatId}
 	\setkomavar{iban}{$mandat.iban}
 	\setkomavar{bic}{$mandat.bic}
 	#if ($prenot.regelmaessig)
@@ -25,7 +25,7 @@
 	#else
 	\prenotification[einmalig]%
 	#end
-	{$mandat.kontoinhaber}{$mandat.strasse\\$mandat.plz $mandat.ort}
+	{$mandat.kontoinhaber}{$mandat.strasse\\\\$mandat.plz $mandat.ort}
 
 #end
 
