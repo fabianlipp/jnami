@@ -21,6 +21,7 @@ import nami.beitrag.db.BeitragSammelLastschrift;
 import nami.beitrag.db.BeitragSepaMandat;
 import nami.beitrag.db.DataLastschriftMandat;
 import nami.beitrag.db.MandateMapper;
+import nami.beitrag.gui.utils.MyStringUtils;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -131,9 +132,11 @@ public class HibiscusExporter {
             params.put("termin", formatDate(faelligkeit));
             params.put("blz", mandat.getBic());
             params.put("kontonummer", mandat.getIban());
-            params.put("name", mandat.getKontoinhaber());
+            params.put("name",
+                    MyStringUtils.replaceUmlauts(mandat.getKontoinhaber()));
             params.put("betrag", formatBetrag(lastschrift.getBetrag().negate()));
-            params.put("verwendungszweck", lastschrift.getVerwendungszweck());
+            params.put("verwendungszweck", MyStringUtils
+                    .replaceUmlauts(lastschrift.getVerwendungszweck()));
             params.put("mandateid",
                     mrefPrefix + Integer.toString(mandat.getMandatId()));
             params.put("creditorid", creditorId);
@@ -216,10 +219,12 @@ public class HibiscusExporter {
                 Map<String, Object> params = new HashMap<>();
                 params.put("blz", mandat.getBic());
                 params.put("kontonummer", mandat.getIban());
-                params.put("name", mandat.getKontoinhaber());
-                params.put("betrag", formatBetrag(lastschrift.getBetrag().negate()));
-                params.put("verwendungszweck",
-                        lastschrift.getVerwendungszweck());
+                params.put("name",
+                        MyStringUtils.replaceUmlauts(mandat.getKontoinhaber()));
+                params.put("betrag", formatBetrag(lastschrift.getBetrag()
+                        .negate()));
+                params.put("verwendungszweck", MyStringUtils
+                        .replaceUmlauts(lastschrift.getVerwendungszweck()));
                 params.put("mandateid",
                         mrefPrefix + Integer.toString(mandat.getMandatId()));
                 params.put("creditorid", creditorId);

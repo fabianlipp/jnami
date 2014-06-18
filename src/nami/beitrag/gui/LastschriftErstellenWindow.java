@@ -38,6 +38,7 @@ import nami.beitrag.db.LastschriftenMapper.DataRechnungMitglied;
 import nami.beitrag.db.LastschriftenMapper.FilterSettings;
 import nami.beitrag.gui.utils.Colors;
 import nami.beitrag.gui.utils.DisabledCellRenderer;
+import nami.beitrag.gui.utils.MyStringUtils;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.commons.lang3.StringUtils;
@@ -391,7 +392,7 @@ public class LastschriftErstellenWindow extends JFrame {
                     }
                     String verwendungszweck = "DPSG-Beitrag "
                             + StringUtils.join(vzweckStrings, ", ");
-                    verwendungszweck = replaceUmlaute(verwendungszweck);
+                    verwendungszweck = MyStringUtils.replaceUmlauts(verwendungszweck);
 
                     // Lastschrift in Datenbank einfügen
                     BeitragLastschrift lastschrift = new BeitragLastschrift();
@@ -896,15 +897,4 @@ public class LastschriftErstellenWindow extends JFrame {
         }
     }
 
-    private static final String[] REPLACE_UML_FROM = { "ä", "ö", "ü", "Ä", "Ö",
-            "Ü", "ß" };
-    private static final String[] REPLACE_UML_TO = { "ae", "oe", "ue", "Ae",
-            "Oe", "Ue", "ss" };
-
-    /**
-     * Ersetzt alle Umlaute im übergebenen String durch ihre Umschreibung.
-     */
-    private static String replaceUmlaute(String text) {
-        return StringUtils.replaceEach(text, REPLACE_UML_FROM, REPLACE_UML_TO);
-    }
 }
