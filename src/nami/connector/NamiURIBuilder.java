@@ -23,7 +23,7 @@ public class NamiURIBuilder extends URIBuilder {
      * URL, mit der die Root-Gruppierung und die Kinder für jede Gruppierung
      * abgefragt werden.
      */
-    public static final String URL_NAMI_GRP = "/nami/gruppierungen/filtered-for-navigation/gruppierung";
+    public static final String URL_NAMI_GRP = "/nami/gruppierungen/filtered-for-navigation/gruppierung/node";
 
     /**
      * URL, mit der der Datensatz eines Mitglieds (identifiziert durch seine ID)
