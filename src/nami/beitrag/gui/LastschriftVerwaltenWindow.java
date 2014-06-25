@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -685,7 +686,8 @@ public class LastschriftVerwaltenWindow extends JFrame {
                                     .getCompleteRechnungsNummer());
                             buchung.setTyp(Buchungstyp.LASTSCHRIFT);
                             buchung.setDatum(sl.getFaelligkeit());
-                            buchung.setBetrag(halbjahrBetrag.getBetrag().negate());
+                            buchung.setBetrag(halbjahrBetrag.getBetrag()
+                                    .negate());
                             buchung.setHalbjahr(halbjahrBetrag.getHalbjahr());
                             buchung.setVorausberechnung(false);
                             buchung.setKommentar("Lastschrift eingezogen");
@@ -714,18 +716,63 @@ public class LastschriftVerwaltenWindow extends JFrame {
 
     private JPanel createLoeschenPanel() {
         JPanel panel = new JPanel();
+        panel.setLayout(new MigLayout("", "[grow]", "[][][]"));
+
+        JButton btnAusgefuehrt = new JButton("Einzellastschrift löschen");
+        btnAusgefuehrt.addActionListener(new EinzelLoeschenAction());
+        panel.add(btnAusgefuehrt, "cell 0 0");
 
         JButton btnLoeschen = new JButton("Sammellastschrift löschen");
-        btnLoeschen.addActionListener(new LoeschenAction());
-        panel.add(btnLoeschen);
+        btnLoeschen.addActionListener(new SammelLoeschenAction());
+        panel.add(btnLoeschen, "cell 0 1");
+
         return panel;
+    }
+
+    /**
+     * Löscht eine Einzellastschrift aus der Datenbank.
+     */
+    private final class EinzelLoeschenAction implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            BeitragSammelLastschrift sl = getSelectedSammellast();
+            DataLastschriftMandat ls = getSelectedEinzellast();
+
+            if (sl == null || ls == null) {
+                return;
+            }
+
+            int slId = sl.getSammelLastschriftId();
+            int lsId = ls.getLastschrift().getLastschriftId();
+
+            if (sl.isAusgefuehrt()) {
+                logger.warning("Ausgeführte Lastschriften können nicht gelöscht werden.");
+                return;
+            }
+
+            SqlSession session = sqlSessionFactory.openSession();
+            try {
+                LastschriftenMapper mapper = session
+                        .getMapper(LastschriftenMapper.class);
+
+                // Lastschrift und Verbindungen zu Rechnungen löschen
+                mapper.deleteAllRechnungenFromLastschrift(lsId);
+                mapper.deleteLastschrift(lsId);
+
+                session.commit();
+            } finally {
+                session.close();
+            }
+            // Angezeigte Lastschriften neu aus DB laden
+            einzellastModel.loadPosten(slId);
+        }
     }
 
     /**
      * Löscht eine Sammellastschrift (inkl. der dazugehörigen
      * Einzellastschriften) aus der Datenbank.
      */
-    private final class LoeschenAction implements ActionListener {
+    private final class SammelLoeschenAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             BeitragSammelLastschrift sl = getSelectedSammellast();
@@ -733,6 +780,14 @@ public class LastschriftVerwaltenWindow extends JFrame {
 
             if (sl.isAusgefuehrt()) {
                 logger.warning("Ausgeführte Lastschriften können nicht gelöscht werden.");
+                return;
+            }
+
+            int dialogResult = JOptionPane.showConfirmDialog(
+                    LastschriftVerwaltenWindow.this,
+                    "Sicher, dass die Sammellastschrift gelöscht werden soll?",
+                    "Warning", JOptionPane.YES_NO_OPTION);
+            if (dialogResult != JOptionPane.YES_OPTION) {
                 return;
             }
 
@@ -879,7 +934,11 @@ public class LastschriftVerwaltenWindow extends JFrame {
             case ANZAHL_COLUMN_INDEX:
                 return sl.getAnzahlLastschriften();
             case BETRAG_COLUMN_INDEX:
-                return sl.getBetrag().negate();
+                if (sl.getBetrag() != null) {
+                    return sl.getBetrag().negate();
+                } else {
+                    return 0;
+                }
             case AUSGEFUEHRT_COLUMN_INDEX:
                 return sl.isAusgefuehrt();
             default:

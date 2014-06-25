@@ -171,16 +171,18 @@
 			COUNT(DISTINCT l.lastschriftId) AS anzahlLastschriften,
 			SUM(b.betrag) AS betrag
 		FROM beitragSammelLastschrift sl
-			JOIN beitragLastschrift l
+			LEFT JOIN (
+				beitragLastschrift l
+				JOIN beitragLastschriftRechnung lr
+					ON l.lastschriftId = lr.lastschriftId
+				JOIN beitragRechnung r
+					ON lr.rechnungId = r.rechnungId
+				JOIN beitragRechnungPosten p
+					ON r.rechnungId = p.RechnungId
+				JOIN beitragBuchung b
+					ON p.buchungId = b.buchungId
+			)
 				ON sl.sammelLastschriftId = l.sammelLastschriftId
-			JOIN beitragLastschriftRechnung lr
-				ON l.lastschriftId = lr.lastschriftId
-			JOIN beitragRechnung r
-				ON lr.rechnungId = r.rechnungId
-			JOIN beitragRechnungPosten p
-				ON r.rechnungId = p.RechnungId
-			JOIN beitragBuchung b
-				ON p.buchungId = b.buchungId
 		<where>
 			<if test="ausgefuehrt != null">
 				ausgefuehrt = #{ausgefuehrt}
