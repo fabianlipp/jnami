@@ -1,5 +1,6 @@
 package nami.beitrag.gui;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -90,6 +91,8 @@ public class LastschriftVerwaltenWindow extends JFrame {
     // Aktions-Tabs
     private JTabbedPane tabbedPane;
     private JDateChooser notificationdatum;
+    private JLabel lblPrenotUngueltigWarning;
+    private JLabel lblExportUngueltigWarning;
     private JCheckBox chckbxBuchungenErstellen;
 
     private static final int PRENOTIFICATION_TAB_INDEX = 0;
@@ -159,6 +162,11 @@ public class LastschriftVerwaltenWindow extends JFrame {
         einzellastTable = new JTable();
         einzellastTable.setModel(einzellastModel);
         einzellastTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        // Setzt den Renderer, der dafür sorgt, dass Checkboxen, die nicht
+        // bearbeitet werden können, disabled werden
+        einzellastTable.getColumnModel()
+                .getColumn(EinzellastModel.GUELTIG_COLUMN_INDEX)
+                .setCellRenderer(new DisabledCellRenderer());
 
         einzellastScrollPane = new JScrollPane();
         contentPane.add(einzellastScrollPane, "cell 0 4,growx");
@@ -182,6 +190,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
         refreshSammellastModelFromComponents();
         einzellastScrollPane.setVisible(false);
         tabbedPane.setVisible(false);
+
     }
 
     /**
@@ -253,6 +262,11 @@ public class LastschriftVerwaltenWindow extends JFrame {
                     defaultTabIndex = PRENOTIFICATION_TAB_INDEX;
                 }
 
+                lblPrenotUngueltigWarning.setVisible(!sammellast
+                        .isAlleGueltig());
+                lblExportUngueltigWarning.setVisible(!sammellast
+                        .isAlleGueltig());
+
                 if (!tabbedPane.isEnabledAt(tabbedPane.getSelectedIndex())) {
                     // aktuell gewähltes Tab ist disabled -> wähle Standard
                     tabbedPane.setSelectedIndex(defaultTabIndex);
@@ -318,7 +332,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
 
     private JPanel createPrenotificationPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new MigLayout("", "[][grow]", "[][][][]"));
+        panel.setLayout(new MigLayout("", "[][grow]", "[][][][][]"));
 
         JLabel lblRechnungsdatum = new JLabel("Datum der Prenotification:");
         panel.add(lblRechnungsdatum, "cell 0 0");
@@ -354,6 +368,11 @@ public class LastschriftVerwaltenWindow extends JFrame {
         btnEinzelPrenotification.addActionListener(new PrenotificationAction(
                 PrenotificationType.EINZELN_EINMALIG));
         panel.add(btnEinzelPrenotification, "cell 0 4,span");
+
+        lblPrenotUngueltigWarning = new JLabel(
+                "In der Sammellastschrift sind ungültige Mandate enthalten.");
+        lblPrenotUngueltigWarning.setForeground(Color.RED);
+        panel.add(lblPrenotUngueltigWarning, "cell 0 5,span");
 
         return panel;
     }
@@ -500,7 +519,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
 
     private JPanel createExportPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new MigLayout("", "[][grow]", "[][][][]"));
+        panel.setLayout(new MigLayout("", "[][grow]", "[][][][][]"));
 
         JLabel lblExportErklaerung = new JLabel(
                 "<html>Es wird immer die komplette Sammellastschrift exportiert.<br />"
@@ -525,6 +544,11 @@ public class LastschriftVerwaltenWindow extends JFrame {
         btnEinzellastschriftSingleExport.addActionListener(new ExportAction(
                 HibiscusExportType.MARKIERT_EINZEL));
         panel.add(btnEinzellastschriftSingleExport, "cell 0 3,span");
+
+        lblExportUngueltigWarning = new JLabel(
+                "In der Sammellastschrift sind ungültige Mandate enthalten.");
+        lblExportUngueltigWarning.setForeground(Color.RED);
+        panel.add(lblExportUngueltigWarning, "cell 0 4,span");
 
         return panel;
     }
@@ -1003,6 +1027,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
         private static final int BIC_COLUMN_INDEX = 3;
         private static final int VERWENDUNGSZWECK_COLUMN_INDEX = 4;
         private static final int BETRAG_COLUMN_INDEX = 5;
+        private static final int GUELTIG_COLUMN_INDEX = 6;
 
         // Angezeigte Lastschriften
         private ArrayList<DataLastschriftMandat> lastschriftList = null;
@@ -1045,7 +1070,7 @@ public class LastschriftVerwaltenWindow extends JFrame {
 
         @Override
         public int getColumnCount() {
-            return 6;
+            return 7;
         }
 
         @Override
@@ -1070,6 +1095,8 @@ public class LastschriftVerwaltenWindow extends JFrame {
                 return l.getVerwendungszweck();
             case BETRAG_COLUMN_INDEX:
                 return l.getBetrag().negate();
+            case GUELTIG_COLUMN_INDEX:
+                return m.isGueltig();
             default:
                 return null;
             }
@@ -1090,6 +1117,8 @@ public class LastschriftVerwaltenWindow extends JFrame {
                 return "Verwendungszweck";
             case BETRAG_COLUMN_INDEX:
                 return "Betrag";
+            case GUELTIG_COLUMN_INDEX:
+                return "Gültig";
             default:
                 return null;
             }
@@ -1108,6 +1137,14 @@ public class LastschriftVerwaltenWindow extends JFrame {
                 return null;
             }
             return lastschriftList.get(rowIndex);
+        }
+
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            if (columnIndex == GUELTIG_COLUMN_INDEX) {
+                return Boolean.class;
+            }
+            return super.getColumnClass(columnIndex);
         }
     }
 

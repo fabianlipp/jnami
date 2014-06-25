@@ -169,7 +169,8 @@
 	<select id="findSammelLastschriften" resultType="BeitragSammelLastschrift">
 		SELECT sl.*,
 			COUNT(DISTINCT l.lastschriftId) AS anzahlLastschriften,
-			SUM(b.betrag) AS betrag
+			SUM(b.betrag) AS betrag,
+			LEAST(1, BIT_AND(m.gueltig)) AS alleGueltig
 		FROM beitragSammelLastschrift sl
 			LEFT JOIN (
 				beitragLastschrift l
@@ -181,6 +182,8 @@
 					ON r.rechnungId = p.RechnungId
 				JOIN beitragBuchung b
 					ON p.buchungId = b.buchungId
+				JOIN beitragSepaMandat m
+					ON l.mandatId = m.mandatId
 			)
 				ON sl.sammelLastschriftId = l.sammelLastschriftId
 		<where>

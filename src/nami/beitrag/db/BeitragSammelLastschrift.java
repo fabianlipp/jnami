@@ -25,4 +25,6 @@ public class BeitragSammelLastschrift {
     private int anzahlLastschriften;
     @Setter(AccessLevel.NONE)
     private BigDecimal betrag;
+    @Setter(AccessLevel.NONE)
+    private boolean alleGueltig;
 }
