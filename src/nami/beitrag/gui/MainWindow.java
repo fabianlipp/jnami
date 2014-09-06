@@ -67,7 +67,8 @@ public class MainWindow extends JFrame {
             }
         });
 
-        JButton btnFetch = new JButton("Beitragszahlungen aus NaMi holen");
+        JButton btnFetch = new JButton("<html>Beitragszahlungen aus NaMi holen"
+                + "<br>(von NaMi momentan nicht unterstützt)");
         panelNami.add(btnFetch, MIG_BUTTON_CONSTRAINTS);
         btnFetch.addActionListener(new ActionListener() {
             @Override
@@ -81,9 +82,53 @@ public class MainWindow extends JFrame {
             }
         });
 
+        /**** Vorausberechnungen ****/
+        JPanel panelVorausberechnungen = new JPanel();
+        getContentPane().add(panelVorausberechnungen, "cell 1 0,grow");
+        panelVorausberechnungen
+                .setBorder(new TitledBorder("Vorausberechnungen"));
+        panelVorausberechnungen.setLayout(new MigLayout("", "[]", "[][][]"));
+
+        JButton btnVorausberechnung = new JButton(
+                "Vorausberechnung für alle Mitglieder ...");
+        panelVorausberechnungen
+                .add(btnVorausberechnung, MIG_BUTTON_CONSTRAINTS);
+        btnVorausberechnung.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HalbjahrMitgliedSelectDialog halbjahrSel;
+                halbjahrSel = new HalbjahrMitgliedSelectDialog(MainWindow.this);
+                halbjahrSel.setVisible(true);
+                if (halbjahrSel.getChosenHalbjahr() != null) {
+                    namiBeitrag.vorausberechnung(halbjahrSel
+                            .getChosenHalbjahr());
+                }
+            }
+        });
+
+        JButton btnVorausberechnungUpdate = new JButton(
+                "Vorausberechnung aktualisieren ...");
+        panelVorausberechnungen.add(btnVorausberechnungUpdate,
+                MIG_BUTTON_CONSTRAINTS);
+        btnVorausberechnungUpdate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HalbjahrMitgliedSelectDialog halbjahrMglSel;
+                halbjahrMglSel = new HalbjahrMitgliedSelectDialog(
+                        MainWindow.this, namiBeitrag.getSessionFactory());
+                halbjahrMglSel.setVisible(true);
+                if (halbjahrMglSel.getChosenHalbjahr() != null
+                        && halbjahrMglSel.getChosenMitgliedId() != -1) {
+                    namiBeitrag.aktualisiereVorausberechnung(
+                            halbjahrMglSel.getChosenHalbjahr(),
+                            halbjahrMglSel.getChosenMitgliedId());
+                }
+            }
+        });
+
         /**** Buchungen ****/
         JPanel panelBuchungen = new JPanel();
-        getContentPane().add(panelBuchungen, "cell 1 0,grow");
+        getContentPane().add(panelBuchungen, "cell 0 1,grow");
         panelBuchungen.setBorder(new TitledBorder(""));
         panelBuchungen.setLayout(new MigLayout("", "[]", "[][][]"));
 
@@ -106,46 +151,6 @@ public class MainWindow extends JFrame {
                 BuchungDialog diag = new BuchungDialog(namiBeitrag
                         .getSessionFactory());
                 diag.setVisible(true);
-            }
-        });
-
-        JButton btnVorausberechnung = new JButton("Vorausberechnung");
-        panelBuchungen.add(btnVorausberechnung, MIG_BUTTON_CONSTRAINTS);
-        btnVorausberechnung.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                HalbjahrSelectDialog halbjahrSel = new HalbjahrSelectDialog(
-                        MainWindow.this);
-                halbjahrSel.setVisible(true);
-                namiBeitrag.vorausberechnung(halbjahrSel.getChosenHalbjahr());
-            }
-        });
-
-        /**** Abmeldungen ****/
-        JPanel panelAbmeldungen = new JPanel();
-        getContentPane().add(panelAbmeldungen, "cell 0 1,grow");
-        panelAbmeldungen.setBorder(new TitledBorder(""));
-        panelAbmeldungen.setLayout(new MigLayout("", "[]", "[][]"));
-
-        JButton btnAbmeldungVormerken = new JButton("Abmeldung vormerken");
-        panelAbmeldungen.add(btnAbmeldungVormerken, MIG_BUTTON_CONSTRAINTS);
-        btnAbmeldungVormerken.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame win = new AbmeldungErstellenWindow(namiBeitrag
-                        .getSessionFactory());
-                win.setVisible(true);
-            }
-        });
-
-        JButton btnAbmeldungenVerwalten = new JButton("Abmeldungen verwalten");
-        panelAbmeldungen.add(btnAbmeldungenVerwalten, MIG_BUTTON_CONSTRAINTS);
-        btnAbmeldungenVerwalten.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame win = new AbmeldungenAnzeigenWindow(namiBeitrag
-                        .getSessionFactory());
-                win.setVisible(true);
             }
         });
 
@@ -253,6 +258,34 @@ public class MainWindow extends JFrame {
             }
         });
 
+        /**** Abmeldungen ****/
+        JPanel panelAbmeldungen = new JPanel();
+        getContentPane().add(panelAbmeldungen, "cell 1 3,grow");
+        panelAbmeldungen.setBorder(new TitledBorder(""));
+        panelAbmeldungen.setLayout(new MigLayout("", "[]", "[][]"));
+
+        JButton btnAbmeldungVormerken = new JButton("Abmeldung vormerken");
+        panelAbmeldungen.add(btnAbmeldungVormerken, MIG_BUTTON_CONSTRAINTS);
+        btnAbmeldungVormerken.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new AbmeldungErstellenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
+        JButton btnAbmeldungenVerwalten = new JButton("Abmeldungen verwalten");
+        panelAbmeldungen.add(btnAbmeldungenVerwalten, MIG_BUTTON_CONSTRAINTS);
+        btnAbmeldungenVerwalten.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame win = new AbmeldungenAnzeigenWindow(namiBeitrag
+                        .getSessionFactory());
+                win.setVisible(true);
+            }
+        });
+
         JButton buttonClose = new JButton("Beenden");
         getContentPane().add(buttonClose, "cell 0 4,span,alignx center");
         buttonClose.addActionListener(new ActionListener() {
@@ -264,16 +297,5 @@ public class MainWindow extends JFrame {
 
         pack();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    }
-
-    /**
-     * Main-Funktion zum Testen des Fensters ohne Funktion.
-     * 
-     * @param args
-     *            Kommandozeilen-Argumente
-     */
-    // TODO: Debug
-    public static void main(String[] args) {
-        new MainWindow(null, null, null).setVisible(true);
     }
 }

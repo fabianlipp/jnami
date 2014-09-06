@@ -138,8 +138,23 @@ public interface BeitragMapper {
      *            Halbjahr
      * @param mitgliedId
      *            ID des Mitglieds
+     * @deprecated Sollte nicht verwendet werden, da eine Buchung ggf. auch auf
+     *             einer Rechnung enthalten sein kann. Verwende stattdessen
+     *             {@link #storniereVorausberechnung(Halbjahr, int)}.
      */
     void deleteVorausberechnung(@Param("halbjahr") Halbjahr halbjahr,
+            @Param("mitgliedId") int mitgliedId);
+
+    /**
+     * Storniert alle Buchungen für das angegebene Mitglied und Halbjahr, die
+     * als Vorausberechnung markiert sind.
+     * 
+     * @param halbjahr
+     *            Halbjahr
+     * @param mitgliedId
+     *            ID des Mitglieds
+     */
+    void storniereVorausberechnung(@Param("halbjahr") Halbjahr halbjahr,
             @Param("mitgliedId") int mitgliedId);
 
     /**
@@ -171,6 +186,22 @@ public interface BeitragMapper {
      * @return Buchungen des Mitglieds im Halbjahr
      */
     Collection<BeitragBuchung> getBuchungenByHalbjahr(
+            @Param("halbjahr") Halbjahr halbjahr,
+            @Param("mitgliedId") int mitgliedId);
+
+    /**
+     * Prüft, ob für das angegebene Halbjahr eine Vorausberechnung für die
+     * Bundesebenen-Rechnung existiert.
+     * 
+     * @param halbjahr
+     *            Halbjahr
+     * @param mitgliedId
+     *            ID des Mitglieds
+     * @return <tt>true</tt>, falls eine nicht stornierte Vorausberechnung mit
+     *         Typ RECHNUNG_BUNDESEBENE für das angegebene Mitglied und Halbjahr
+     *         existiert
+     */
+    boolean hasVorausberechnungBundesebene(
             @Param("halbjahr") Halbjahr halbjahr,
             @Param("mitgliedId") int mitgliedId);
 

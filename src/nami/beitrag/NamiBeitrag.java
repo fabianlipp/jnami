@@ -203,7 +203,7 @@ public final class NamiBeitrag {
                 }
 
                 // Lösche vorhandene Vorausberechnungen
-                mapper.deleteVorausberechnung(zahlung.getZeitraum(), mitgliedId);
+                mapper.storniereVorausberechnung(zahlung.getZeitraum(), mitgliedId);
 
                 mapper.insertBuchung(buchung);
             }
@@ -242,10 +242,11 @@ public final class NamiBeitrag {
      * @param mitgliedId
      *            ID des Mitglieds
      */
-    public void vorausberechnung(Halbjahr halbjahr, int mitgliedId) {
+    public void aktualisiereVorausberechnung(Halbjahr halbjahr, int mitgliedId) {
         SqlSession session = sqlSessionFactory.openSession();
         try {
             BeitragMapper mapper = session.getMapper(BeitragMapper.class);
+            mapper.storniereVorausberechnung(halbjahr, mitgliedId);
             vorausberechnung(halbjahr, mitgliedId, mapper);
             session.commit();
         } finally {
@@ -257,8 +258,12 @@ public final class NamiBeitrag {
             BeitragMapper mapper) {
         BeitragMitglied mgl = mapper.getMitglied(mitgliedId);
 
-        // Lösche vorhandene Vorausberechnungen
-        mapper.deleteVorausberechnung(halbjahr, mitgliedId);
+        if (mapper.hasVorausberechnungBundesebene(halbjahr, mitgliedId)) {
+            // es existiert bereits eine Vorausberechnung für den Beitrag
+            // => es wird keine neue erstellt (dafür muss die
+            // aktualisiereVorausberechnung-Methode verwendet werden)
+            return;
+        }
 
         if (mapper.checkForRechnungBundesebene(halbjahr, mitgliedId) > 0) {
             // es existiert bereits eine Rechnungs-Buchung für dieses Halbjahr
