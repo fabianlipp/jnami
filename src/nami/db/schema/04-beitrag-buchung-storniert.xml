@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+	<changeSet author="fabian" id="04-1" context="beitrag">
+		<addColumn tableName="beitragBuchung">
+			<column defaultValueNumeric="0" name="storniert" type="BIT">
+				<constraints nullable="false"/>
+			</column>
+		</addColumn>
+	</changeSet>
+	<changeSet author="fabian" id="04-2" context="beitrag">
+		<createIndex indexName="fk_beitragLastschrift_has_beitragRechnung_beitragLastschrift1" tableName="beitragLastschriftRechnung" unique="false">
+			<column name="lastschriftId"/>
+		</createIndex>
+	</changeSet>
+	<changeSet author="fabian" id="04-3" context="beitrag">
+		<createIndex indexName="fk_beitragRechnungPosten_beitragBuchung1" tableName="beitragRechnungPosten" unique="false">
+			<column name="buchungId"/>
+		</createIndex>
+	</changeSet>
+	<changeSet author="fabian" id="04-4" context="beitrag">
+		<createIndex indexName="fk_beitragSepaMandat_has_beitragMitglied_beitragSepaMandat1" tableName="beitragSepaMandatMitglieder" unique="false">
+			<column name="mandatId"/>
+		</createIndex>
+	</changeSet>
+</databaseChangeLog>

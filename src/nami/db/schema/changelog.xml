@@ -8,6 +8,7 @@
 	<include file="01-initial-layout.xml" relativeToChangelogFile="true" />
 	<include file="02-initial-beitrag.xml" relativeToChangelogFile="true" />
 	<include file="03-beitrag-mitgliedstyp-status.xml" relativeToChangelogFile="true" />
+	<include file="04-beitrag-buchung-storniert.xml" relativeToChangelogFile="true" />
 
 
 </databaseChangeLog>

@@ -29,6 +29,7 @@ public class BeitragBuchung {
     private Halbjahr halbjahr;
     private boolean vorausberechnung;
     private String kommentar;
+    private boolean storniert = false;
 
     /**
      * Erzeugt eine Buchung mit den aus NaMi geladenen Daten.

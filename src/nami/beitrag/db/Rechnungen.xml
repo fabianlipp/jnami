@@ -136,6 +136,7 @@
 			LEFT JOIN beitragSepaMandat mand
 				ON m.aktivesMandat = mand.mandatId
 		WHERE b.mitgliedId = m.mitgliedId
+			AND b.storniert = FALSE
 			<if test="filterSettings.zahlungsart != null">
 				<if test="filterSettings.zahlungsart.toString() == 'LASTSCHRIFT'">
 					AND m.aktivesMandat IS NOT NULL
@@ -159,6 +160,7 @@
 		SELECT *
 		FROM beitragBuchung AS b
 		WHERE mitgliedId = #{mitgliedId}
+			AND storniert = FALSE
 			<include refid="buchungsFilter"/>
 	</select>
 

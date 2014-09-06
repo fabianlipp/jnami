@@ -176,7 +176,8 @@
 			halbjahr,
 			jahr,
 			vorausberechnung,
-			kommentar)
+			kommentar,
+			storniert)
 		VALUES
 			(#{mitgliedId},
 			#{namiBuchungId},
@@ -187,7 +188,8 @@
 			#{halbjahr.halbjahr},
 			#{halbjahr.jahr},
 			#{vorausberechnung},
-			#{kommentar})
+			#{kommentar},
+			#{storniert})
 	</insert>
 
 	<resultMap id="zeitraumSaldoResult" type="ZeitraumSaldo" autoMapping="true">
@@ -201,6 +203,7 @@
 		FROM beitragBuchung
 		WHERE mitgliedId = #{mitgliedId}
 			AND vorausberechnung = false
+			AND storniert = false
 		GROUP BY jahr, halbjahr
 	</select>
 
@@ -210,6 +213,7 @@
 		WHERE mitgliedId = #{mitgliedId}
 			AND halbjahr = #{halbjahr.halbjahr}
 			AND jahr = #{halbjahr.jahr}
+			AND storniert = false
 	</select>
 
 	<!-- *** Zeiträume *** -->
