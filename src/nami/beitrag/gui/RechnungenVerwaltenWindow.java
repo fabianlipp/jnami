@@ -44,6 +44,7 @@ import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.RechnungenMapper.DataFindRechnungen;
 import nami.beitrag.db.RechnungenMapper.DataHalbjahrBetraege;
 import nami.beitrag.db.RechnungenMapper.DataListPosten;
+import nami.beitrag.gui.utils.EnhancedJSpinner;
 import nami.beitrag.letters.LetterGenerator;
 import nami.beitrag.letters.LetterType;
 import net.miginfocom.swing.MigLayout;

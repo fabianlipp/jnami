@@ -1,4 +1,4 @@
-package nami.beitrag.gui;
+package nami.beitrag.gui.utils;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;

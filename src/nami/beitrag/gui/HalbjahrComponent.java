@@ -11,6 +11,7 @@ import javax.swing.JFormattedTextField.AbstractFormatter;
 import javax.swing.JSpinner;
 import javax.swing.text.DefaultFormatterFactory;
 
+import nami.beitrag.gui.utils.EnhancedJSpinner;
 import nami.connector.Halbjahr;
 
 /**
@@ -60,6 +61,10 @@ public class HalbjahrComponent extends EnhancedJSpinner {
         @Override
         public Object stringToValue(String text) throws ParseException {
             text = text.trim();
+
+            if (text.isEmpty()) {
+                throw new ParseException("empty string given", 0);
+            }
 
             // erster Teil (Halbjahr)
             char firstChar = text.charAt(0);
