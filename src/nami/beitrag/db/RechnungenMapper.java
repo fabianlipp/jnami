@@ -265,6 +265,21 @@ public interface RechnungenMapper {
             @Param("mitgliedId") int mitgliedId);
 
     /**
+     * Fragt alle offenen Rechnungen an das Mitglied ab, die Buchungen aus dem
+     * angefragten Halbjahr enthalten. Dabei wird als Rechnungsbetrag nur der
+     * Betrag des betreffenden Halbjahres zurückgegeben.
+     * 
+     * @param halbjahr
+     *            Halbjahr, dessen Buchungen betrachtet werden
+     * @param mitgliedId
+     *            Mitglied
+     * @return Rechnungen, die den Kriterien entsprechen
+     */
+    ArrayList<BeitragRechnung> getOffeneRechnungenByHalbjahr(
+            @Param("halbjahr") Halbjahr halbjahr,
+            @Param("mitgliedId") int mitgliedId);
+
+    /**
      * Beschreibt die zurückgegebenen Objekte bei der Abfrage der Posten einer
      * Rechnung.
      */

@@ -266,6 +266,23 @@
 		GROUP BY jahr, halbjahr
 	</select>
 
+	<select id="getOffeneRechnungenByHalbjahr" resultType="BeitragRechnung">
+		SELECT r.rechnungId, r.rechnungsNummer, r.datum, r.frist,
+			SUM(b.betrag) AS betrag
+		FROM beitragRechnung AS r
+			JOIN beitragRechnungPosten p
+				ON r.rechnungId = p.rechnungId
+			JOIN beitragBuchung b
+				ON p.buchungId = b.buchungId
+		<where>
+			b.halbjahr = #{halbjahr.halbjahr}
+			AND b.jahr = #{halbjahr.jahr}
+			AND r.mitgliedId = #{mitgliedId}
+			AND r.status = 'OFFEN'
+		</where>
+		GROUP BY r.rechnungId
+	</select>
+
 
 
 

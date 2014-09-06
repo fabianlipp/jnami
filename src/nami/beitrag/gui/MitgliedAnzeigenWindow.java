@@ -1,5 +1,7 @@
 package nami.beitrag.gui;
 
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -23,10 +25,13 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import nami.beitrag.db.BeitragBuchung;
 import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragMitglied;
+import nami.beitrag.db.BeitragRechnung;
+import nami.beitrag.db.RechnungenMapper;
 import nami.beitrag.db.ZeitraumSaldo;
 import nami.connector.Halbjahr;
 import net.miginfocom.swing.MigLayout;
@@ -126,9 +131,15 @@ public class MitgliedAnzeigenWindow extends JFrame {
         lblHalbjahr.setLabelFor(halbjahrSelect);
         lblHalbjahr.setDisplayedMnemonic('h');
         detailsPanel.add(lblHalbjahr, "flowx,cell 0 0");
-        detailsPanel.add(halbjahrSelect, "cell 0 0,alignx left,aligny top");
+        detailsPanel.add(halbjahrSelect,
+                "cell 0 0,alignx left,aligny top");
+        JLabel lblLegende = new JLabel(
+                "Kursiv: Vorausberechnung/Offene Rechnung");
+        detailsPanel.add(lblLegende, "cell 0 0");
 
         detailsTable = new JTable(new BuchungListTableModel());
+        detailsTable
+                .setDefaultRenderer(Object.class, new BuchungCellRenderer());
         detailsTable.setAutoCreateColumnsFromModel(false);
         detailsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         detailsTable.addMouseListener(new BuchungListClickListener());
@@ -508,14 +519,19 @@ public class MitgliedAnzeigenWindow extends JFrame {
 
         SqlSession session = sessionFactory.openSession();
         try {
-            BeitragMapper mapper = session.getMapper(BeitragMapper.class);
+            BeitragMapper beitragMapper = session
+                    .getMapper(BeitragMapper.class);
+            RechnungenMapper rechnungMapper = session
+                    .getMapper(RechnungenMapper.class);
 
-            Collection<BeitragBuchung> results = mapper.getBuchungenByHalbjahr(
-                    halbjahr, mitgliedId);
+            Collection<BeitragBuchung> buchungen = beitragMapper
+                    .getBuchungenByHalbjahr(halbjahr, mitgliedId);
+            Collection<BeitragRechnung> rechnungen = rechnungMapper
+                    .getOffeneRechnungenByHalbjahr(halbjahr, mitgliedId);
 
-            detailsTableModel = new BuchungListTableModel(results);
+            detailsTableModel = new BuchungListTableModel(buchungen, rechnungen);
             detailsTable.setModel(detailsTableModel);
-            if (results.size() > 0) {
+            if (buchungen.size() > 0) {
                 detailsTable.setRowSelectionInterval(0, 0);
             }
 
@@ -539,39 +555,52 @@ public class MitgliedAnzeigenWindow extends JFrame {
     private class BuchungListTableModel extends AbstractTableModel {
         private static final long serialVersionUID = 8639929360446497274L;
         private List<BeitragBuchung> buchungen;
+        private List<BeitragRechnung> rechnungen;
+
+        private static final int ID_COLUMN_INDEX = 0;
+        private static final int B_DATUM_COLUMN_INDEX = 1;
+        private static final int B_TYP_COLUMN_INDEX = 2;
+        private static final int B_BETRAG_COLUMN_INDEX = 3;
+        private static final int B_KOMMENTAR_COLUMN_INDEX = 4;
+
+        private static final int R_DATUM_COLUMN_INDEX = 1;
+        private static final int R_FRIST_COLUMN_INDEX = 2;
+        private static final int R_BETRAG_COLUMN_INDEX = 3;
+        private static final int R_RECHNUNGSNUMMER_COLUMN_INDEX = 4;
 
         public BuchungListTableModel() {
             this.buchungen = new ArrayList<>();
+            this.rechnungen = new ArrayList<>();
         }
 
-        public BuchungListTableModel(Collection<BeitragBuchung> buchungen) {
+        public BuchungListTableModel(Collection<BeitragBuchung> buchungen,
+                Collection<BeitragRechnung> rechnungen) {
             this.buchungen = new ArrayList<>(buchungen);
+            this.rechnungen = new ArrayList<>(rechnungen);
         }
 
         @Override
         public int getRowCount() {
-            return buchungen.size();
+            return buchungen.size() + rechnungen.size();
         }
 
         @Override
         public int getColumnCount() {
-            return 6;
+            return 5;
         }
 
         @Override
         public String getColumnName(int columnIndex) {
             switch (columnIndex) {
-            case 0:
+            case ID_COLUMN_INDEX:
                 return "ID";
-            case 1:
-                return "Vorausberechnung";
-            case 2:
+            case B_DATUM_COLUMN_INDEX:
                 return "Datum";
-            case 3:
-                return "Typ";
-            case 4:
+            case B_TYP_COLUMN_INDEX:
+                return "Typ/Frist";
+            case B_BETRAG_COLUMN_INDEX:
                 return "Betrag";
-            case 5:
+            case B_KOMMENTAR_COLUMN_INDEX:
                 return "Kommentar";
             default:
                 return "";
@@ -580,43 +609,93 @@ public class MitgliedAnzeigenWindow extends JFrame {
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            BeitragBuchung buchung = buchungen.get(rowIndex);
-            switch (columnIndex) {
-            case 0:
-                return buchung.getBuchungId();
-            case 1:
-                if (buchung.isVorausberechnung()) {
-                    return "Ja";
-                } else {
+            DateFormat formatter = DateFormat
+                    .getDateInstance(DateFormat.MEDIUM);
+            if (rowIndex >= buchungen.size()) {
+                BeitragRechnung rechnung = rechnungen.get(rowIndex
+                        - buchungen.size());
+                switch (columnIndex) {
+                case ID_COLUMN_INDEX:
+                    return rechnung.getRechnungId();
+                case R_DATUM_COLUMN_INDEX:
+                    return formatter.format(rechnung.getDatum());
+                case R_FRIST_COLUMN_INDEX:
+                    return formatter.format(rechnung.getFrist());
+                case R_BETRAG_COLUMN_INDEX:
+                    return rechnung.getBetrag().negate();
+                case R_RECHNUNGSNUMMER_COLUMN_INDEX:
+                    return "Offene Rechnung "
+                            + rechnung.getCompleteRechnungsNummer();
+                default:
                     return "";
                 }
-            case 2:
-                Date datum = buchung.getDatum();
-                DateFormat formatter = DateFormat
-                        .getDateInstance(DateFormat.MEDIUM);
-                return formatter.format(datum);
-            case 3:
-                return buchung.getTyp();
-            case 4:
-                return buchung.getBetrag();
-            case 5:
-                return buchung.getKommentar();
-            default:
-                return "";
+            } else {
+                BeitragBuchung buchung = buchungen.get(rowIndex);
+                switch (columnIndex) {
+                case ID_COLUMN_INDEX:
+                    return buchung.getBuchungId();
+                case B_DATUM_COLUMN_INDEX:
+                    Date datum = buchung.getDatum();
+                    return formatter.format(datum);
+                case B_TYP_COLUMN_INDEX:
+                    return buchung.getTyp();
+                case B_BETRAG_COLUMN_INDEX:
+                    return buchung.getBetrag();
+                case B_KOMMENTAR_COLUMN_INDEX:
+                    return buchung.getKommentar();
+                default:
+                    return "";
+                }
             }
         }
 
         /**
-         * Liefert die Buchung in einer bestimmten Zeile.
+         * Liefert den Datensatz in einer bestimmten Zeile.
          * 
          * @param rowIndex
          *            Zeile der Tabelle
-         * @return Buchung in dieser Zeile
+         * @return Buchung oder Rechnung in dieser Zeile
          */
-        public BeitragBuchung getBuchungAt(int rowIndex) {
-            return buchungen.get(rowIndex);
+        public Object getDatensatzAt(int rowIndex) {
+            if (rowIndex >= buchungen.size()) {
+                return rechnungen.get(rowIndex - buchungen.size());
+            } else {
+                return buchungen.get(rowIndex);
+            }
         }
+    }
 
+    /**
+     * Formatiert die Zeilen in der Buchungstabelle. Zeilen, die Vorausbuchungen
+     * oder offene Rechnungen beschreiben, werden kursiv dargestellt.
+     */
+    private class BuchungCellRenderer extends DefaultTableCellRenderer {
+        private static final long serialVersionUID = -1601651481159570806L;
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table,
+                Object value, boolean isSelected, boolean hasFocus, int row,
+                int column) {
+            final Component c = super.getTableCellRendererComponent(table,
+                    value, isSelected, hasFocus, row, column);
+            Object datensatz = detailsTableModel.getDatensatzAt(row);
+            boolean highlight = false;
+            if (datensatz instanceof BeitragRechnung) {
+                highlight = true;
+            } else if (datensatz instanceof BeitragBuchung) {
+                BeitragBuchung buchung = (BeitragBuchung) datensatz;
+                if (buchung.isVorausberechnung()) {
+                    highlight = true;
+                }
+            }
+
+            if (highlight) {
+                Font f = c.getFont();
+                c.setFont(f.deriveFont(Font.ITALIC));
+            }
+
+            return c;
+        }
     }
 
     /**
@@ -633,9 +712,17 @@ public class MitgliedAnzeigenWindow extends JFrame {
 
             if (e.getClickCount() == 2) {
                 int row = detailsTable.rowAtPoint(e.getPoint());
-                BeitragBuchung buchung = detailsTableModel.getBuchungAt(row);
-                BuchungDialog diag = new BuchungDialog(sessionFactory, buchung);
-                diag.setVisible(true);
+                Object datensatz = detailsTableModel.getDatensatzAt(row);
+                if (datensatz instanceof BeitragBuchung) {
+                    BeitragBuchung buchung = (BeitragBuchung) datensatz;
+                    BuchungDialog diag = new BuchungDialog(sessionFactory,
+                            buchung);
+                    diag.setVisible(true);
+                } else if (!(datensatz instanceof BeitragRechnung)
+                        && datensatz != null) {
+                    throw new ClassCastException("Wrong class in table model");
+                }
+                // do nothing for BeitragRechnung
             }
         }
     }
@@ -655,11 +742,18 @@ public class MitgliedAnzeigenWindow extends JFrame {
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                 int row = detailsTable.getSelectedRow();
                 if (row >= 0) {
-                    BeitragBuchung buchung = detailsTableModel
-                            .getBuchungAt(row);
-                    BuchungDialog diag = new BuchungDialog(sessionFactory,
-                            buchung);
-                    diag.setVisible(true);
+                    Object datensatz = detailsTableModel.getDatensatzAt(row);
+                    if (datensatz instanceof BeitragBuchung) {
+                        BeitragBuchung buchung = (BeitragBuchung) datensatz;
+                        BuchungDialog diag = new BuchungDialog(sessionFactory,
+                                buchung);
+                        diag.setVisible(true);
+                    } else if (!(datensatz instanceof BeitragRechnung)
+                            && datensatz != null) {
+                        throw new ClassCastException(
+                                "Wrong class in table model");
+                    }
+                    // do nothing for BeitragRechnung
                 }
             }
         }
