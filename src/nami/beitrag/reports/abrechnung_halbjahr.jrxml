@@ -2,7 +2,7 @@
 <!-- Created with Jaspersoft Studio version last-->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="abrechnung_halbjahr" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="60bd6a5c-6053-4a7c-b159-bde4e721793a">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Batistest auf localhost"/>
-	<parameter name="HALBJAHR" class="java.lang.String">
+	<parameter name="HALBJAHR" class="nami.connector.Halbjahr">
 		<parameterDescription><![CDATA[]]></parameterDescription>
 	</parameter>
 	<field name="buchungId" class="java.lang.Integer">

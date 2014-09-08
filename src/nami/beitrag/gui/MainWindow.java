@@ -13,6 +13,8 @@ import nami.beitrag.NamiBeitrag;
 import nami.beitrag.NamiBeitragConfiguration;
 import nami.beitrag.letters.LetterDirectory;
 import nami.beitrag.letters.LetterGenerator;
+import nami.beitrag.reports.ReportViewer;
+import nami.connector.Halbjahr;
 import nami.connector.exception.NamiApiException;
 import net.miginfocom.swing.MigLayout;
 
@@ -28,6 +30,7 @@ public class MainWindow extends JFrame {
 
     private static final String MIG_BUTTON_CONSTRAINTS = "wrap,alignx left,aligny top";
     private LetterGenerator letterGenerator;
+    private ReportViewer reportViewer;
 
     /**
      * Erzeugt das Hauptfenster.
@@ -42,10 +45,11 @@ public class MainWindow extends JFrame {
 
         letterGenerator = new LetterGenerator(namiBeitrag.getSessionFactory(),
                 letterDirectory, conf);
+        reportViewer = new ReportViewer(namiBeitrag.getSessionFactory());
 
         setTitle("NamiBeitrag");
         getContentPane().setLayout(
-                new MigLayout("", "[grow][grow]", "[grow][grow][grow][][]"));
+                new MigLayout("", "[grow][grow]", "[grow][grow][grow][][][]"));
 
         /**** NaMi ****/
         JPanel panelNami = new JPanel();
@@ -286,8 +290,30 @@ public class MainWindow extends JFrame {
             }
         });
 
+        /**** Auswertungen ****/
+        JPanel panelAuswertungen = new JPanel();
+        getContentPane().add(panelAuswertungen, "cell 0 4,grow");
+        panelAuswertungen.setBorder(new TitledBorder("Auswertungen"));
+        panelAuswertungen.setLayout(new MigLayout("", "[]", "[][]"));
+
+        JButton btnRepAbrechnungHalbjahr = new JButton("Abrechnung Halbjahr");
+        panelAuswertungen.add(btnRepAbrechnungHalbjahr, MIG_BUTTON_CONSTRAINTS);
+        btnRepAbrechnungHalbjahr.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HalbjahrMitgliedSelectDialog halbjahrSel;
+                halbjahrSel = new HalbjahrMitgliedSelectDialog(MainWindow.this);
+                halbjahrSel.setVisible(true);
+                Halbjahr halbjahr = halbjahrSel.getChosenHalbjahr();
+                if (halbjahr != null) {
+                    reportViewer.viewAbrechnungHalbjahr(halbjahr);
+                }
+            }
+        });
+
+        /**** Beenden ****/
         JButton buttonClose = new JButton("Beenden");
-        getContentPane().add(buttonClose, "cell 0 4,span,alignx center");
+        getContentPane().add(buttonClose, "cell 0 5,span,alignx center");
         buttonClose.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
