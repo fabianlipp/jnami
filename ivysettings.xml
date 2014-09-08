@@ -1,0 +1,19 @@
+<ivysettings>
+	<settings defaultResolver="default"/>
+
+	<resolvers>
+		<chain name="public">
+			<ibiblio name="public-default" m2compatible="true"/>
+			<!-- <ibiblio name="jasper" m2compatible="true" root="http://jasperreports.sourceforge.net/maven2/"/> -->
+			<!-- <ibiblio name="javabuilders" m2compatible="true" root="http://javabuilders.googlecode.com/svn/repo"/> -->
+
+			<!-- benötigt für jasperreports-functions -->
+			<ibiblio name="public" m2compatible="true" root="http://jaspersoft.artifactoryonline.com/jaspersoft/repo" />
+		</chain>
+	</resolvers>
+
+	<include url="${ivy.default.settings.dir}/ivysettings-shared.xml"/>
+	<include url="${ivy.default.settings.dir}/ivysettings-local.xml"/>
+	<include url="${ivy.default.settings.dir}/ivysettings-main-chain.xml"/>
+	<include url="${ivy.default.settings.dir}/ivysettings-default-chain.xml"/>
+</ivysettings>
