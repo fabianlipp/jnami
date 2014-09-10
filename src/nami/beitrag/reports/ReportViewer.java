@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nami.beitrag.db.BeitragMitglied;
 import nami.beitrag.db.ReportsMapper;
 import nami.connector.Halbjahr;
 import net.sf.jasperreports.engine.JRException;
@@ -37,6 +38,7 @@ public class ReportViewer {
 
     /* Dateinamen der Reports (daran wird jeweils .jasper ergänzt) */
     private static final String FILE_ABRECHNUNG_HALBJAHR = "abrechnung_halbjahr";
+    private static final String FILE_MITGLIEDER_OHNE_SEPA = "mitglieder_ohne_sepa";
 
     private static Logger log = Logger.getLogger(ReportViewer.class.getName());
 
@@ -85,6 +87,25 @@ public class ReportViewer {
             params.put("HALBJAHR", halbjahr);
 
             viewReport(FILE_ABRECHNUNG_HALBJAHR, params, data);
+        } finally {
+            session.close();
+        }
+    }
+
+    /**
+     * Zeigt eine Liste der aktiven Mitglieder, für die kein gültiges
+     * SEPA-Mandat existiert.
+     */
+    public void viewMitgliederOhneSepaMandat() {
+        SqlSession session = sessionFactory.openSession();
+        try {
+            ReportsMapper mapper = session.getMapper(ReportsMapper.class);
+            Collection<BeitragMitglied> data = mapper
+                    .mitgliederOhneSepaMandat();
+
+            Map<String, Object> params = new HashMap<String, Object>();
+
+            viewReport(FILE_MITGLIEDER_OHNE_SEPA, params, data);
         } finally {
             session.close();
         }

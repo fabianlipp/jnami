@@ -22,4 +22,12 @@ public interface ReportsMapper {
      * @return Liste mit Mitgliederdaten und -buchungen
      */
     Collection<DataAbrechnungHalbjahr> abrechnungHalbjahr(Halbjahr halbjahr);
+
+    /**
+     * Listet alle aktiven (beitragspflichtigen) Mitglieder auf, denen kein
+     * gültiges SEPA-Mandat zugeordnet ist.
+     * 
+     * @return Liste der Mitglieder ohne SEPA-Mandat
+     */
+    Collection<BeitragMitglied> mitgliederOhneSepaMandat();
 }

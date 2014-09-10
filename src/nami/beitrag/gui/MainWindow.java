@@ -186,6 +186,16 @@ public class MainWindow extends JFrame {
             }
         });
 
+        JButton btnMitgliederOhneSepa = new JButton(
+                "Mitglieder ohne gültiges SEPA-Mandat anzeigen");
+        panelMandate.add(btnMitgliederOhneSepa, MIG_BUTTON_CONSTRAINTS);
+        btnMitgliederOhneSepa.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                reportViewer.viewMitgliederOhneSepaMandat();
+            }
+        });
+
         /**** Rechnungen ****/
         JPanel panelRechnungen = new JPanel();
         getContentPane().add(panelRechnungen, "cell 0 2,grow");

@@ -14,5 +14,16 @@
 			AND beitragBuchung.jahr = #{jahr}
 	</select>
 
+	<select id="mitgliederOhneSepaMandat" resultType="BeitragMitglied">
+		SELECT m.*
+		FROM beitragMitglied m
+			LEFT JOIN beitragSepaMandat s
+				ON m.aktivesMandat = s.mandatId 
+		WHERE (aktivesMandat IS NULL
+			OR gueltig = FALSE)
+			AND status = 'AKTIV'
+			AND mitgliedstyp = 'MITGLIED'
+			AND deleted = FALSE
+	</select>
 
 </mapper>
