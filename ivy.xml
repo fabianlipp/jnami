@@ -68,8 +68,6 @@
 		<exclude org="com.fasterxml.jackson.core" module="jackson-databind" />
 		<exclude org="com.fasterxml.jackson.core" module="jackson-annotations" />
 		<exclude org="com.fasterxml.jackson.core" module="jackson-core" />
-		<exclude org="org.springframework" module="spring-beans" />
-		<exclude org="org.springframework" module="spring-core" />
 		<exclude org="net.sf.barcode4j" module="barcode4j" />
 		<exclude org="org.mozilla" module="rhino" />
 		<exclude org="jaxen" module="jaxen" />
