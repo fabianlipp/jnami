@@ -41,7 +41,7 @@
 	<field name="rechnungsnummer" class="java.lang.String">
 		<fieldDescription><![CDATA[rechnungsnummer]]></fieldDescription>
 	</field>
-	<sortField name="mitgliedsnummer"/>
+	<!--<sortField name="mitgliedsnummer"/>-->
 	<variable name="betrag1" class="java.math.BigDecimal" resetType="Group" resetGroup="mitgliedId" calculation="Sum">
 		<variableExpression><![CDATA[$F{betrag}]]></variableExpression>
 	</variable>

@@ -12,6 +12,8 @@
 			beitragBuchung.mitgliedId = beitragMitglied.mitgliedId
 			AND beitragBuchung.halbjahr = #{halbjahr}
 			AND beitragBuchung.jahr = #{jahr}
+			AND beitragBuchung.storniert = FALSE
+		ORDER BY beitragMitglied.mitgliedId
 	</select>
 
 	<select id="mitgliederOhneSepaMandat" resultType="BeitragMitglied">
