@@ -9,13 +9,14 @@
 	<!-- Grund-Konfiguration für Ivy -->
 	<path id="ivy.lib.path">
 		<fileset dir="/usr/share/ant/lib" includes="*.jar" />
+		<fileset dir="/usr/share/java" includes="*.jar" />
 	</path>
 	<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path" />
 	<ivy:settings file="ivysettings.xml" />
 
 	<path id="lib.path.id">
 		<!-- Classpath für Kompilierung -->
-		<fileset dir="${lib.dir}" excludes="ivy.run" />
+		<fileset dir="${lib.dir}" excludes="ivy.run" erroronmissingdir="false" />
 		<files includes="/home/fabian/.java/libwallet/libwallet-0.9.1-fabian.jar" />
 	</path>
 	<path id="run.path.id">
@@ -44,9 +45,7 @@
 	</target>
 
 	<!-- Konfiguration für Jasper -->
-	<taskdef name="jrc" classname="net.sf.jasperreports.ant.JRAntCompileTask">
-		<classpath refid="lib.path.id"/>
-	</taskdef>
+	<taskdef name="jrc" classname="net.sf.jasperreports.ant.JRAntCompileTask" classpathref="lib.path.id" onerror="report" />
 
 	<!-- Compile-Target -->
 	<target name="compile" depends="resolve">
@@ -56,6 +55,7 @@
 			<classpath refid="run.path.id"/>
 			<include name="**/*.jrxml"/>
 		</jrc>
+		<!-- TODO: möglicherweise sync statt copy -->
 		<copy todir="${classes.dir}">
 			<fileset dir="${src.dir}" excludes="**/*.java" />
 		</copy>

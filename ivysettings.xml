@@ -2,13 +2,15 @@
 	<settings defaultResolver="default"/>
 
 	<resolvers>
-		<chain name="public">
+		<chain name="public" returnFirst="true">
 			<ibiblio name="public-default" m2compatible="true"/>
 			<!-- <ibiblio name="jasper" m2compatible="true" root="http://jasperreports.sourceforge.net/maven2/"/> -->
 			<!-- <ibiblio name="javabuilders" m2compatible="true" root="http://javabuilders.googlecode.com/svn/repo"/> -->
 
+			<!-- speziell gepatchte Version von itext für jasperreports -->
+			<ibiblio name="jasperreports-sourceforge" m2compatible="true" root="http://jasperreports.sourceforge.net/maven2" />
 			<!-- benötigt für jasperreports-functions -->
-			<ibiblio name="public" m2compatible="true" root="http://jaspersoft.artifactoryonline.com/jaspersoft/repo" />
+			<ibiblio name="jaspersoft-artifactory" m2compatible="true" root="http://jaspersoft.artifactoryonline.com/jaspersoft/repo" />
 		</chain>
 	</resolvers>
 
