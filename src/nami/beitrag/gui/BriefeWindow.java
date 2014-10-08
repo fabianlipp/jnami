@@ -87,7 +87,7 @@ public class BriefeWindow extends JFrame {
      */
     public BriefeWindow(SqlSessionFactory sqlSessionFactory,
             LetterDirectory letterDirectory, NamiBeitragConfiguration conf) {
-        super("Rechnungen erstellen");
+        super("Briefe verwalten");
         this.sqlSessionFactory = sqlSessionFactory;
         this.letterDirectory = letterDirectory;
         this.latex = new LatexRunner(letterDirectory);
