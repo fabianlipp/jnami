@@ -69,11 +69,11 @@
 		<buildnumber file="${build.dir}/build.number" />
 	</target>
 
-	<!--<target name="run" depends="compile" description="compile and run the project">
-		<java classpathref="run.path.id" classname="nami.cli.NamiCli" fork="true" spawn="true">
+	<target name="run" depends="compile" description="compile and run the project">
+		<java classpathref="run.path.id" classname="nami.cli.NamiCli" fork="true" failonerror="true">
 			<sysproperty key="java.library.path" value="/usr/local/lib/jni" />
 		</java>
-	</target>-->
+	</target>
 
 	<target name="echoproperties">
 		<echoproperties/>

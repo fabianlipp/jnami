@@ -1,5 +1,9 @@
 package nami.connector.credentials;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 /**
  * Fragt die Zugangsdaten für NaMi von der Konsole ab. Die Zugangsdaten werden
  * erst vom Benutzer abgefragt, wenn eine andere Klasse darauf zugreift.
@@ -38,13 +42,35 @@ public class NamiConsoleCredentials extends NamiCredentials {
         }
     }
 
-    private void readFromConsole() {
-        if (apiUser == null) {
-            apiUser = System.console().readLine("Enter username: ");
+    private String readLine(String format, Object... args) throws IOException {
+        if (System.console() != null) {
+            return System.console().readLine(format, args);
         }
-        char[] res = System.console().readPassword("Enter password: ");
-        apiPass = String.valueOf(res);
-        readCredentials = true;
+        System.out.print(String.format(format, args));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+                System.in));
+        return reader.readLine();
+    }
+
+    private char[] readPassword(String format, Object... args)
+            throws IOException {
+        if (System.console() != null) {
+            return System.console().readPassword(format, args);
+        }
+        return this.readLine(format, args).toCharArray();
+    }
+
+    private void readFromConsole() {
+        try {
+            if (apiUser == null) {
+                apiUser = readLine("Enter username: ");
+            }
+            char[] res = readPassword("Enter password: ");
+            apiPass = String.valueOf(res);
+            readCredentials = true;
+        } catch (IOException e) {
+            System.err.println("Reading username and password failed.");
+        }
     }
 
     @Override

@@ -70,6 +70,5 @@
 		<exclude org="com.fasterxml.jackson.core" module="jackson-core" />
 		<exclude org="net.sf.barcode4j" module="barcode4j" />
 		<exclude org="org.mozilla" module="rhino" />
-		<exclude org="jaxen" module="jaxen" />
 	</dependencies>
 </ivy-module>
