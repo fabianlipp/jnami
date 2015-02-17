@@ -175,6 +175,14 @@
 			AND vorausberechnung = true
 	</update>
 
+	<update id="storniereVorausberechnungen">
+		UPDATE beitragBuchung
+		SET storniert = TRUE
+		WHERE halbjahr = #{halbjahr.halbjahr}
+			AND jahr = #{halbjahr.jahr}
+			AND vorausberechnung = true
+	</update>
+
 	<insert id="insertBuchung" parameterType="BeitragBuchung">
 		INSERT INTO beitragBuchung
 			(mitgliedId,

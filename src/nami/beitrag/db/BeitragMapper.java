@@ -158,6 +158,15 @@ public interface BeitragMapper {
             @Param("mitgliedId") int mitgliedId);
 
     /**
+     * Storniert alle Buchungen im angegebenen Halbjahr, die als
+     * Vorausberechnung markiert sind.
+     * 
+     * @param halbjahr
+     *            Halbjahr
+     */
+    void storniereVorausberechnungen(@Param("halbjahr") Halbjahr halbjahr);
+
+    /**
      * Fügt einen Buchungs-Datensatz in die Datenbank ein.
      * 
      * @param buchung

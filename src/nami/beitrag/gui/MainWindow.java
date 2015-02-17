@@ -102,8 +102,8 @@ public class MainWindow extends JFrame {
                         MainWindow.this);
                 diag.setVisible(true);
                 if (diag.isAccepted()) {
-                    imp.importCsv(diag.getChosenFile(), diag.getRechnungsNummer(),
-                            diag.getRechnungsDatum());
+                    imp.importCsv(diag.getChosenFile(),
+                            diag.getRechnungsNummer(), diag.getRechnungsDatum());
                 }
             }
         });
@@ -148,6 +148,23 @@ public class MainWindow extends JFrame {
                     namiBeitrag.aktualisiereVorausberechnung(
                             halbjahrMglSel.getChosenHalbjahr(),
                             halbjahrMglSel.getChosenMitgliedId());
+                }
+            }
+        });
+
+        JButton btnVorausberechnungDelete = new JButton(
+                "Vorausberechnungen für Halbjahr löschen ...");
+        panelVorausberechnungen.add(btnVorausberechnungDelete,
+                MIG_BUTTON_CONSTRAINTS);
+        btnVorausberechnungDelete.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HalbjahrMitgliedSelectDialog halbjahrSel;
+                halbjahrSel = new HalbjahrMitgliedSelectDialog(MainWindow.this);
+                halbjahrSel.setVisible(true);
+                if (halbjahrSel.getChosenHalbjahr() != null) {
+                    namiBeitrag.loescheVorausberechnungen(halbjahrSel
+                            .getChosenHalbjahr());
                 }
             }
         });
