@@ -55,7 +55,7 @@
 			<include name="**/*.jrxml"/>
 		</jrc>
 
-		<!-- TODO: möglicherweise sync statt copy -->
+		<!-- Nicht kompilierte Dateien (Icons, Konfiguration, XSD, ...) kopieren -->
 		<sync todir="${classes.dir}">
 			<fileset dir="${src.dir}">
 				<exclude name="**/*.java" />

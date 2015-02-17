@@ -24,7 +24,8 @@ import nami.connector.Halbjahr;
 import net.miginfocom.swing.MigLayout;
 
 /**
- * Stellt einen Dialog bereit, mit dem ein Halbjahr ausgewählt werden kann.
+ * Stellt einen Dialog bereit, mit dem ein Halbjahr und ggf. gleichzeitig auch
+ * ein Mitglied ausgewählt werden kann.
  * 
  * @author Fabian Lipp
  * 
