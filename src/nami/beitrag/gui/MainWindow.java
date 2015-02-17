@@ -11,6 +11,7 @@ import javax.swing.border.TitledBorder;
 
 import nami.beitrag.NamiBeitrag;
 import nami.beitrag.NamiBeitragConfiguration;
+import nami.beitrag.RechnungCsvImport;
 import nami.beitrag.letters.LetterDirectory;
 import nami.beitrag.letters.LetterGenerator;
 import nami.beitrag.reports.ReportViewer;
@@ -38,6 +39,10 @@ public class MainWindow extends JFrame {
      * @param namiBeitrag
      *            Objekt für die Beitragslogik (enthält Zugriff auf Datenbank
      *            und NaMi)
+     * @param letterDirectory
+     *            Verzeichnis, in dem die erzeugten Briefe abgelegt werden
+     * @param conf
+     *            Beitrags-Konfiguration
      */
     public MainWindow(final NamiBeitrag namiBeitrag,
             final LetterDirectory letterDirectory,
@@ -55,7 +60,7 @@ public class MainWindow extends JFrame {
         JPanel panelNami = new JPanel();
         getContentPane().add(panelNami, "cell 0 0,grow");
         panelNami.setBorder(new TitledBorder("NaMi-Zugriff"));
-        panelNami.setLayout(new MigLayout("", "[]", "[][]"));
+        panelNami.setLayout(new MigLayout("", "[]", "[][][]"));
 
         JButton btnSync = new JButton("Mitglieder mit NaMi synchronisieren");
         panelNami.add(btnSync, MIG_BUTTON_CONSTRAINTS);
@@ -82,6 +87,23 @@ public class MainWindow extends JFrame {
                 } catch (NamiApiException | IOException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
+                }
+            }
+        });
+
+        JButton btnCsvImport = new JButton("Rechnung im CSV-Format einlesen");
+        panelNami.add(btnCsvImport, MIG_BUTTON_CONSTRAINTS);
+        btnCsvImport.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                RechnungCsvImport imp = new RechnungCsvImport(namiBeitrag
+                        .getSessionFactory());
+                RechnungImportDialog diag = new RechnungImportDialog(
+                        MainWindow.this);
+                diag.setVisible(true);
+                if (diag.isAccepted()) {
+                    imp.importCsv(diag.getChosenFile(), diag.getRechnungsNummer(),
+                            diag.getRechnungsDatum());
                 }
             }
         });
