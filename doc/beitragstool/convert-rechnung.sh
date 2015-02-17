@@ -19,9 +19,10 @@ pdftotext -layout "$INFILE" "$TXTFILE"
 
 # Zeilen pro Mitglied auslesen (erste Zeile entfernen, da PLZ aus Adresse erkannt)
 DATUMREGEXP='[[:digit:]][[:digit:]]\.[[:digit:]][[:digit:]]\.[[:digit:]][[:digit:]]'
-BETRAGREGEXP='[[:digit:]]\?[[:digit:]],[[:digit:]][[:digit:]]'
+BETRAGREGEXP='-\?[[:digit:]]\?[[:digit:]][,.][[:digit:]][[:digit:]]'
 grep "^[[:digit:]]\{4,6\}" "$TXTFILE" \
 	| tail -n +2 \
+	| sed -e 's/\([[:space:]][[:digit:]]\?[[:digit:]]\)\.\([[:digit:]][[:digit:]][[:space:]]\)/\1,\2/' \
 	| sed -e 's/\(^[[:digit:]]\{4,6\}\).*\(\(SB\|VB\|FB\|SBS\|VBS\|FBS\) . Beitrag von \('"$DATUMREGEXP"'\) bis '"$DATUMREGEXP"'\)[[:space:]]*\('"$BETRAGREGEXP"'\)[[:space:]]*\([[:digit:]]*\)$/\1;\2;\3;\4;\5;\6/' > "$CSVFILE"
 
 
