@@ -41,7 +41,6 @@
 	<field name="rechnungsnummer" class="java.lang.String">
 		<fieldDescription><![CDATA[rechnungsnummer]]></fieldDescription>
 	</field>
-	<!--<sortField name="mitgliedsnummer"/>-->
 	<variable name="betrag1" class="java.math.BigDecimal" resetType="Group" resetGroup="mitgliedId" calculation="Sum">
 		<variableExpression><![CDATA[$F{betrag}]]></variableExpression>
 	</variable>
@@ -203,17 +202,25 @@
 	</detail>
 	<pageFooter>
 		<band height="17" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<textField>
-				<reportElement x="162" y="5" width="230" height="12" uuid="9aafefca-67d2-4421-915c-27f6970ad75a">
+				<reportElement x="207" y="5" width="70" height="12" uuid="9f1b9efc-3026-46a3-b8e9-7efd141c8c65">
 					<property name="local_mesure_unitheight" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.height" value="px"/>
-					<property name="local_mesure_unity" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="local_mesure_unitx" value="pixel"/>
 				</reportElement>
-				<textElement textAlignment="Center">
-					<font size="10"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}+" von "+$V{PAGE_COUNT}]]></textFieldExpression>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Seite " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="277" y="5" width="70" height="12" uuid="33e42ee8-306f-4224-b0e0-93e66eb00bb8">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[" von " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageFooter>
