@@ -14,6 +14,7 @@ import jline.console.history.FileHistory;
 import nami.cli.commands.EnumListings;
 import nami.cli.commands.Gruppierungen;
 import nami.cli.commands.Mitglieder;
+import nami.cli.commands.Vorstandsmailadressen;
 import nami.configuration.ApplicationDirectoryException;
 import nami.configuration.Configuration;
 import nami.connector.NamiConnector;
@@ -48,7 +49,8 @@ public final class NamiCli {
      * gekennzeichnet.
      */
     private static final Class<?>[] COMMAND_CLASSES = { Gruppierungen.class,
-            Mitglieder.class, EnumListings.class, NamiStatistics.class };
+            Mitglieder.class, EnumListings.class, NamiStatistics.class,
+            Vorstandsmailadressen.class };
 
     /**
      * Hauptfunktion des Programms.

@@ -142,6 +142,15 @@ public class NamiSearchedValues {
     }
 
     /**
+     * Legt fest, ob nach allen aktiven Tätigkeiten gesucht wird.
+     * 
+     * @param mitAllenTaetigkeiten Suche nach allen aktiven Tätigkeiten
+     */
+    public void setMitAllenTaetigkeiten(boolean mitAllenTaetigkeiten) {
+        this.mitAllenTaetigkeiten = mitAllenTaetigkeiten;
+    }
+
+    /**
      * Erzeugt ein <tt>NamiSearchedValues</tt>-Objekt aus der Beschreibung in
      * einem XML-Dokument.
      * 
