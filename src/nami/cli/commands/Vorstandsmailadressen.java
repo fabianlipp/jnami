@@ -38,6 +38,7 @@ public final class Vorstandsmailadressen {
      */
     @SuppressWarnings("unused")
     private static class Stamm {
+        private String gruppierungsnummer;
         private NamiGruppierung grp;
         private List<NamiMitgliedListElement> vorstand;
     }
@@ -56,6 +57,7 @@ public final class Vorstandsmailadressen {
                     search.getAllResults(con);
             Stamm stamm = new Stamm();
             stamm.grp = grp;
+            stamm.gruppierungsnummer = grp.getGruppierungsnummer();
             List<NamiMitgliedListElement> vorstand = new LinkedList<>();
             for (NamiMitgliedListElement mgl : mitglieder) {
                 vorstand.add(mgl);
