@@ -37,6 +37,9 @@ public enum Beitragsart {
      *         Beitragsart angegeben ist
      */
     public static Beitragsart fromString(String str) {
+        if (str == null) {
+            return KEIN_BEITRAG;
+        }
         switch (str) {
         case "Voller Beitrag":
         case "Voller Beitrag - Stiftungseuro":

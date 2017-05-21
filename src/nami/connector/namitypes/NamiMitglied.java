@@ -52,8 +52,8 @@ public class NamiMitglied extends NamiAbstractMitglied {
     private int id;
     private int mitgliedsNummer;
 
-    private String beitragsarten;
-    private Collection<Integer> beitragsartenId;
+    private String beitragsart;
+    private int beitragsartId;
     private String statusId; // ENUM??
     private String status; // ENUM?? (z.B. AKTIV)
 
@@ -169,7 +169,7 @@ public class NamiMitglied extends NamiAbstractMitglied {
      * @return Beitragsart
      */
     public Beitragsart getBeitragsart() {
-        return Beitragsart.fromString(beitragsarten);
+        return Beitragsart.fromString(beitragsart);
     }
 
     /**

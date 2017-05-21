@@ -18,42 +18,40 @@ import com.google.gson.reflect.TypeToken;
 
 public class NamiMitgliedListElement extends NamiAbstractMitglied implements
         Comparable<NamiMitgliedListElement> {
-    public static class EntriesType {
-        private String id;
+    private int entries_id;
 
-        private String vorname;
-        private String nachname;
+    private String entries_vorname;
+    private String entries_nachname;
 
-        private String email;
-        private String emailVertretungsberechtigter;
-        private String telefon1;
-        private String telefon2;
-        private String telefon3;
-        private String telefax;
+    private String entries_email;
+    private String entries_emailVertretungsberechtigter;
+    private String entries_telefon1;
+    private String entries_telefon2;
+    private String entries_telefon3;
+    private String entries_telefax;
 
-        // nur in Suche, nicht in Mitgliederverwaltung
-        private String gruppierungId;
-        private String gruppierung;
+    // nur in Suche, nicht in Mitgliederverwaltung
+    private String entries_gruppierungId;
+    private String entries_gruppierung;
 
-        private String stufe;
-        private String geburtsDatum;
+    private String entries_stufe;
+    private String entries_geburtsDatum;
 
-        private String mglType;
-        private String status;
+    private String entries_mglType;
+    private String entries_status;
 
-        private String staatsangehoerigkeit;
-        private String staatangehoerigkeitText;
-        private String geschlecht;
-        private String konfession;
-        private String rowCssClass;
-        private String lastUpdated;
-        private String version;
-        private String wiederverwendenFlag;
-        private String mitgliedsNummer;
-    }
+    private String entries_staatsangehoerigkeit;
+    private String entries_staatangehoerigkeitText;
+    private String entries_geschlecht;
+    private String entries_konfession;
+    private String entries_rowCssClass;
+    private String entries_lastUpdated;
+    private int entries_version;
+    private boolean entries_wiederverwendenFlag;
+    private int entries_mitgliedsNummer;
+    private String entries_eintrittsdatum;
 
     private String descriptor;
-    private EntriesType entries;
     private int id;
 
     @Override
@@ -63,52 +61,52 @@ public class NamiMitgliedListElement extends NamiAbstractMitglied implements
 
     @Override
     public int getGruppierungId() {
-        return Integer.parseInt(entries.gruppierungId);
+        return Integer.parseInt(entries_gruppierungId);
     }
 
     @Override
     public String getGruppierung() {
-        return entries.gruppierung;
+        return entries_gruppierung;
     }
 
     @Override
     public String getVorname() {
-        return entries.vorname;
+        return entries_vorname;
     }
 
     @Override
     public String getNachname() {
-        return entries.nachname;
+        return entries_nachname;
     }
 
     @Override
     public String getEmail() {
-        return entries.email;
+        return entries_email;
     }
 
     @Override
     public MitgliedStatus getStatus() {
-        return MitgliedStatus.fromString(entries.status);
+        return MitgliedStatus.fromString(entries_status);
     }
 
     @Override
     public Mitgliedstyp getMitgliedstyp() {
-        return Mitgliedstyp.fromString(entries.mglType);
+        return Mitgliedstyp.fromString(entries_mglType);
     }
 
     @Override
     public Geschlecht getGeschlecht() {
-        return Geschlecht.fromString(entries.geschlecht);
+        return Geschlecht.fromString(entries_geschlecht);
     }
 
     @Override
     public int getMitgliedsnummer() {
-        return Integer.parseInt(entries.mitgliedsNummer);
+        return entries_mitgliedsNummer;
     }
 
     @Override
     public int getVersion() {
-        return Integer.parseInt(entries.version);
+        return entries_version;
     }
 
     @Override
