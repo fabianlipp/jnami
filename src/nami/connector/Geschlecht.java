@@ -15,7 +15,12 @@ public enum Geschlecht {
     /**
      * Weiblich.
      */
-    WEIBLICH;
+    WEIBLICH,
+
+    /**
+     * Keine Angabe.
+     */
+    KEINE_ANGABE;
 
     /**
      * Setzt einen String ins entsprechende Geschlecht um.
@@ -33,6 +38,10 @@ public enum Geschlecht {
         case "weiblich":
         case "WEIBLICH":
             return WEIBLICH;
+        case "keine Angabe":
+        case "Keine Angabe":
+        case "KEINE_ANGABE":
+            return KEINE_ANGABE;
         case "":
             return null;
         default:
