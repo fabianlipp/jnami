@@ -77,6 +77,28 @@
 		WHERE mmgl.mandatId = #{mandatId}
 	</select>
 
+	<resultMap id="mandatLastschriftenResult" type="DataLastschriftSammellastschrift" autoMapping="true">
+		<id column="lastschriftId"/>
+		<association property="lastschrift" resultMap="nami.beitrag.db.LastschriftenMapper.lastschriftResult" />
+		<association property="sammelLastschrift" resultMap="nami.beitrag.db.LastschriftenMapper.sammelLastschriftResult" />
+	</resultMap>
+
+	<select id="findLastschriftenByMandat" parameterType="int" resultMap="mandatLastschriftenResult">
+		SELECT l.*, sl.*, SUM(b.betrag) AS betrag
+		FROM beitragLastschrift l
+		    	 JOIN beitragSammelLastschrift sl
+		    		  ON l.sammelLastschriftId = sl.sammelLastschriftId
+				 JOIN beitragLastschriftRechnung lr
+					  ON l.lastschriftId = lr.lastschriftId
+				 JOIN beitragRechnungPosten p
+					  ON lr.rechnungId = p.rechnungId
+				 JOIN beitragBuchung b
+					  ON p.buchungId = b.buchungId
+		WHERE l.mandatId = #{mandatId}
+		GROUP BY l.lastschriftId
+		ORDER BY sl.faelligkeit DESC
+	</select>
+
 	<select id="isMandatUsed" parameterType="int" resultType="boolean">
 		SELECT CASE WHEN count(*) > 0 THEN 1 ELSE 0 END
 		FROM beitragLastschrift l

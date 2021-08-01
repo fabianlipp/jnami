@@ -35,7 +35,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 public class MandatVerwaltenWindow extends JFrame {
     private static final long serialVersionUID = -6932254055456226188L;
 
-    private SqlSessionFactory sqlSessionFactory;
+    private final SqlSessionFactory sqlSessionFactory;
 
     private MitgliedSelectComponent mitgliedSelector;
 
@@ -43,6 +43,7 @@ public class MandatVerwaltenWindow extends JFrame {
     private MandateTableModel mandateModel;
     private JTable mitgliederTable;
     private MitgliederTableModel mitgliederModel;
+    private LastschriftenTableModel lastschriftenModel;
 
     /**
      * Erzeugt ein neues Rechnungs-Fenster.
@@ -59,7 +60,7 @@ public class MandatVerwaltenWindow extends JFrame {
     private void buildFrame() {
 
         getContentPane().setLayout(
-                new MigLayout("", "[grow]", "[][][grow][][][grow][]"));
+                new MigLayout("", "[grow]", "[][][grow][][][grow][][][grow]"));
 
         JLabel lblMitglied = new JLabel("Mitglied:");
         getContentPane().add(lblMitglied, "flowx,cell 0 0");
@@ -116,6 +117,17 @@ public class MandatVerwaltenWindow extends JFrame {
         btnAddMitglied.addActionListener(new AddMitgliedAction());
         getContentPane().add(btnAddMitglied, "cell 0 6");
 
+        JLabel lblDurchgefuehrteLastschriften = new JLabel("Durchgeführte Lastschriften:");
+        getContentPane().add(lblDurchgefuehrteLastschriften, "cell 0 7");
+
+        JScrollPane lastschriftenPane = new JScrollPane();
+        getContentPane().add(lastschriftenPane, "cell 0 8,grow");
+        lastschriftenModel = new LastschriftenTableModel();
+        JTable lastschriftenTable = new JTable();
+        lastschriftenTable.setModel(lastschriftenModel);
+        lastschriftenTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        lastschriftenPane.setViewportView(lastschriftenTable);
+
         pack();
     }
 
@@ -128,6 +140,7 @@ public class MandatVerwaltenWindow extends JFrame {
         public void stateChanged(ChangeEvent e) {
             mandateModel.loadMandate(mitgliedSelector.getMitgliedId());
             mitgliederModel.clear();
+            lastschriftenModel.clear();
         }
     }
 
@@ -142,6 +155,7 @@ public class MandatVerwaltenWindow extends JFrame {
                 int mandatId = mandateModel.getIdAtRow(mandateTable
                         .getSelectedRow());
                 mitgliederModel.loadMitglieder(mandatId);
+                lastschriftenModel.loadLastschriften(mandatId);
             }
         }
     }
@@ -151,7 +165,7 @@ public class MandatVerwaltenWindow extends JFrame {
      */
     private final class GueltigAction implements ActionListener {
         // Status (gültig=true, ungültig=false), den das Mandat bekommen soll
-        private boolean state;
+        private final boolean state;
 
         private GueltigAction(boolean state) {
             this.state = state;
@@ -163,15 +177,11 @@ public class MandatVerwaltenWindow extends JFrame {
                     .getSelectedRow());
             if (mandat != null) {
                 mandat.setGueltig(state);
-                SqlSession session = sqlSessionFactory.openSession();
-                try {
-                    MandateMapper mapper = session
-                            .getMapper(MandateMapper.class);
+                try (SqlSession session = sqlSessionFactory.openSession()) {
+                    MandateMapper mapper = session.getMapper(MandateMapper.class);
                     mapper.updateMandat(mandat);
                     session.commit();
                     mandateModel.reload();
-                } finally {
-                    session.close();
                 }
             }
         }
@@ -200,8 +210,7 @@ public class MandatVerwaltenWindow extends JFrame {
     private class AktivAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
+            try (SqlSession session = sqlSessionFactory.openSession()) {
                 MandateMapper mapper = session.getMapper(MandateMapper.class);
                 int mandatId = mandateModel.getIdAtRow(mandateTable
                         .getSelectedRow());
@@ -210,8 +219,6 @@ public class MandatVerwaltenWindow extends JFrame {
                 mapper.setAktivesMandat(mandatId, mitgliedId);
                 session.commit();
                 mitgliederModel.reload();
-            } finally {
-                session.close();
             }
         }
     }
@@ -225,16 +232,13 @@ public class MandatVerwaltenWindow extends JFrame {
     private class InaktivAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
+            try (SqlSession session = sqlSessionFactory.openSession()) {
                 MandateMapper mapper = session.getMapper(MandateMapper.class);
                 int mitgliedId = mitgliederModel.getIdAtRow(mitgliederTable
                         .getSelectedRow());
                 mapper.setAktivesMandat(null, mitgliedId);
                 session.commit();
                 mitgliederModel.reload();
-            } finally {
-                session.close();
             }
         }
     }
@@ -255,16 +259,13 @@ public class MandatVerwaltenWindow extends JFrame {
                 return;
             }
 
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
+            try (SqlSession session = sqlSessionFactory.openSession()) {
                 MandateMapper mapper = session.getMapper(MandateMapper.class);
                 int mandatId = mandateModel.getIdAtRow(mandateTable
                         .getSelectedRow());
                 mapper.addMitgliedForMandat(mandatId, mitgliedId);
                 session.commit();
                 mitgliederModel.reload();
-            } finally {
-                session.close();
             }
 
         }
@@ -310,13 +311,10 @@ public class MandatVerwaltenWindow extends JFrame {
                 mandate = null;
             } else {
                 // Mandate für Mitglied aus Datenbank laden
-                SqlSession session = sqlSessionFactory.openSession();
-                try {
+                try (SqlSession session = sqlSessionFactory.openSession()) {
                     MandateMapper mapper = session
                             .getMapper(MandateMapper.class);
                     mandate = mapper.findMandateByMitglied(mitgliedId);
-                } finally {
-                    session.close();
                 }
             }
 
@@ -448,13 +446,10 @@ public class MandatVerwaltenWindow extends JFrame {
                 mitglieder = null;
             } else {
                 // Mandate für Mitglied aus Datenbank laden
-                SqlSession session = sqlSessionFactory.openSession();
-                try {
+                try (SqlSession session = sqlSessionFactory.openSession()) {
                     MandateMapper mapper = session
                             .getMapper(MandateMapper.class);
                     mitglieder = mapper.findMitgliederByMandat(mandatId);
-                } finally {
-                    session.close();
                 }
             }
             fireTableDataChanged();
@@ -551,4 +546,106 @@ public class MandatVerwaltenWindow extends JFrame {
         }
     }
 
+
+    /**
+     * Stellt eine Liste von Mitgliedern bereit, die einem vorgegebenen Mandat
+     * zugeordnet sind.
+     */
+    private class LastschriftenTableModel extends AbstractTableModel {
+
+        private int mandatId = -1;
+        private ArrayList<MandateMapper.DataLastschriftSammellastschrift> lastschriften = null;
+
+        private static final int FAELLIGKEIT_COLUMN_INDEX = 0;
+        private static final int VERWENDUNGSZWECK_COLUMN_INDEX = 1;
+        private static final int BETRAG_COLUMN_INDEX = 2;
+
+        /**
+         * Füllt die Lastschriften-Liste mit den Lastschriften, die einem bestimmten
+         * Mandat zugeordnet sind.
+         *
+         * @param newMandatId
+         *            ID des Mandats
+         */
+        public void loadLastschriften(int newMandatId) {
+            if (newMandatId != this.mandatId) {
+                this.mandatId = newMandatId;
+                reload();
+            }
+        }
+
+        /**
+         * Lädt die Liste neu aus der Datenbank (wird nach Änderungen
+         * aufgerufen).
+         */
+        public void reload() {
+            if (mandatId == -1) {
+                lastschriften = null;
+            } else {
+                // Lastschriften für Mitglied aus Datenbank laden
+                try (SqlSession session = sqlSessionFactory.openSession()) {
+                    MandateMapper mapper = session
+                            .getMapper(MandateMapper.class);
+                    lastschriften = mapper.findLastschriftenByMandat(mandatId);
+                }
+            }
+            fireTableDataChanged();
+        }
+
+        /**
+         * Leert die Liste (es wird dann also eine leere Tabelle angezeigt).
+         */
+        public void clear() {
+            mandatId = -1;
+            reload();
+        }
+
+        @Override
+        public int getRowCount() {
+            if (lastschriften == null) {
+                return 0;
+            } else {
+                return lastschriften.size();
+            }
+        }
+
+        @Override
+        public int getColumnCount() {
+            return 3;
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            if (lastschriften == null || rowIndex >= lastschriften.size()) {
+                return null;
+            }
+
+            MandateMapper.DataLastschriftSammellastschrift lastschrift = lastschriften.get(rowIndex);
+            switch (columnIndex) {
+                case FAELLIGKEIT_COLUMN_INDEX:
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
+                    return formatter.format(lastschrift.getSammelLastschrift().getFaelligkeit());
+                case VERWENDUNGSZWECK_COLUMN_INDEX:
+                    return lastschrift.getLastschrift().getVerwendungszweck();
+                case BETRAG_COLUMN_INDEX:
+                    return lastschrift.getLastschrift().getBetrag().negate();
+                default:
+                    return null;
+            }
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            switch (column) {
+                case FAELLIGKEIT_COLUMN_INDEX:
+                    return "Fälligkeit";
+                case VERWENDUNGSZWECK_COLUMN_INDEX:
+                    return "Verwendungszweck";
+                case BETRAG_COLUMN_INDEX:
+                    return "Betrag";
+                default:
+                    return "";
+            }
+        }
+    }
 }

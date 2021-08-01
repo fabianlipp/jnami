@@ -114,6 +114,10 @@
 		<id property="lastschriftId" column="lastschriftId" />
 	</resultMap>
 
+	<resultMap id="sammelLastschriftResult" type="BeitragSammelLastschrift" autoMapping="true">
+		<id property="sammelLastschriftId" column="sammelLastschriftId" />
+	</resultMap>
+
 	<resultMap id="lastschriftMandatResult" type="DataLastschriftMandat" autoMapping="true">
 		<id column="mandatId" />
 		<association property="lastschrift" resultMap="lastschriftResult" />

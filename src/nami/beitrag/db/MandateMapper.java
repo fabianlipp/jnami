@@ -2,6 +2,7 @@ package nami.beitrag.db;
 
 import java.util.ArrayList;
 
+import lombok.Getter;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -90,6 +91,25 @@ public interface MandateMapper {
      *         werden können
      */
     ArrayList<BeitragMitglied> findMitgliederByMandat(int mandatId);
+
+    /**
+     * Ergebnis-Datentyp, der Kombinationen aus einer Lastschrift und der
+     * zugehörigen Sammellastschrift aufnimmt.
+     */
+    @Getter
+    class DataLastschriftSammellastschrift {
+        private BeitragLastschrift lastschrift;
+        private BeitragSammelLastschrift sammelLastschrift;
+    }
+
+    /**
+     * Liefert alle Lastschriften, die für ein Mandat angelegt wurden.
+     *
+     * @param mandatId
+     *            ID des Mandats
+     * @return alle Lastschriften, die mit diesem Mandat angelegt wurden.
+     */
+    ArrayList<MandateMapper.DataLastschriftSammellastschrift> findLastschriftenByMandat(int mandatId);
 
     /**
      * Gibt an, ob ein bestimmtes Mandat schon einmal benutzt wurde. Benutzt
