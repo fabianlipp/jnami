@@ -56,7 +56,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 public class MitgliedAnzeigenWindow extends JFrame {
     private static final long serialVersionUID = 4398977549939312811L;
 
-    private SqlSessionFactory sessionFactory;
+    private final SqlSessionFactory sessionFactory;
 
     private MitgliedSelectComponent mitgliedSelect;
     private JTabbedPane tabbedPane;
@@ -74,12 +74,12 @@ public class MitgliedAnzeigenWindow extends JFrame {
     // Details-Tab
     private JPanel detailsPanel;
     private HalbjahrComponent halbjahrSelect;
-    private JScrollPane detailsTablePane;
     private JTable detailsTable;
     private BuchungListTableModel detailsTableModel;
     // aktuell im Details-Tab angezeigte Daten
     private Halbjahr detailsShownHalbjahr;
     private int detailsShownId;
+    MandateVerwaltenComponent mandateVerwalten;
 
     /**
      * Erzeugt ein neues Beitragskonto-Fenster.
@@ -144,9 +144,16 @@ public class MitgliedAnzeigenWindow extends JFrame {
         detailsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         detailsTable.addMouseListener(new BuchungListClickListener());
         detailsTable.addKeyListener(new BuchungListKeyListener());
-        detailsTablePane = new JScrollPane();
+        JScrollPane detailsTablePane = new JScrollPane();
         detailsTablePane.setViewportView(detailsTable);
         detailsPanel.add(detailsTablePane, "cell 0 1,grow");
+
+        // SEPA-Mandat-Tab
+        JPanel mandatePanel = new JPanel();
+        mandatePanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
+        mandateVerwalten = new MandateVerwaltenComponent(
+                sessionFactory);
+        mandatePanel.add(mandateVerwalten, "cell 0 0");
 
         // TabbedPane zusammenstellen
         tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -158,6 +165,8 @@ public class MitgliedAnzeigenWindow extends JFrame {
         tabbedPane.setMnemonicAt(1, KeyEvent.VK_B);
         tabbedPane.addTab("Details", null, detailsPanel, null);
         tabbedPane.setMnemonicAt(2, KeyEvent.VK_D);
+        tabbedPane.addTab("SEPA-Mandate", null, mandatePanel, null);
+        tabbedPane.setMnemonicAt(3, KeyEvent.VK_M);
 
         pack();
     }
@@ -173,8 +182,10 @@ public class MitgliedAnzeigenWindow extends JFrame {
                 stammdatenPanel.refreshStammdaten();
             } else if (tabbedPane.getSelectedComponent() == overviewTablePane) {
                 refreshOverview();
-            } else {
+            } else if (tabbedPane.getSelectedComponent() == detailsPanel){
                 refreshDetails();
+            } else {
+                mandateVerwalten.changeMitglied(mitgliedSelect.getMitgliedId());
             }
         }
 
@@ -188,20 +199,20 @@ public class MitgliedAnzeigenWindow extends JFrame {
 
         private int shownMitgliedId;
 
-        private JLabel mitgliedId;
-        private JLabel mitgliedsNummer;
-        private JLabel nachname;
-        private JLabel vorname;
-        private JLabel status;
-        private JLabel mitgliedstyp;
-        private JLabel beitragsart;
-        private JLabel eintrittsdatum;
-        private JLabel strasse;
-        private JLabel plz;
-        private JLabel ort;
-        private JLabel email;
-        private JLabel version;
-        private JCheckBox deleted;
+        private final JLabel mitgliedId;
+        private final JLabel mitgliedsNummer;
+        private final JLabel nachname;
+        private final JLabel vorname;
+        private final JLabel status;
+        private final JLabel mitgliedstyp;
+        private final JLabel beitragsart;
+        private final JLabel eintrittsdatum;
+        private final JLabel strasse;
+        private final JLabel plz;
+        private final JLabel ort;
+        private final JLabel email;
+        private final JLabel version;
+        private final JCheckBox deleted;
 
         private StammdatenPanel() {
             this.setLayout(new MigLayout("", "[][grow]", ""));
@@ -306,8 +317,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
                 return;
             }
 
-            SqlSession session = sessionFactory.openSession();
-            try {
+            try (SqlSession session = sessionFactory.openSession()) {
                 BeitragMapper mapper = session.getMapper(BeitragMapper.class);
                 BeitragMitglied mgl = mapper.getMitglied(selMitgliedId);
 
@@ -332,8 +342,6 @@ public class MitgliedAnzeigenWindow extends JFrame {
                 email.setText(mgl.getEmail());
                 version.setText(Integer.toString(mgl.getVersion()));
                 deleted.setSelected(mgl.isDeleted());
-            } finally {
-                session.close();
             }
         }
     }
@@ -357,8 +365,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
             return;
         }
 
-        SqlSession session = sessionFactory.openSession();
-        try {
+        try (SqlSession session = sessionFactory.openSession()) {
             BeitragMapper mapper = session.getMapper(BeitragMapper.class);
 
             Collection<ZeitraumSaldo> results = mapper
@@ -378,8 +385,6 @@ public class MitgliedAnzeigenWindow extends JFrame {
                     KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
 
             overviewTable.requestFocusInWindow();
-        } finally {
-            session.close();
         }
     }
 
@@ -432,9 +437,9 @@ public class MitgliedAnzeigenWindow extends JFrame {
      * Stellt Halbjahre mit ihrem Buchungssaldo als TableModel dar. Die Zellen
      * der Tabelle können nicht bearbeitet werden.
      */
-    private class OverviewTableModel extends AbstractTableModel {
+    private static class OverviewTableModel extends AbstractTableModel {
         private static final long serialVersionUID = 8639929360446497274L;
-        private ArrayList<ZeitraumSaldo> salden;
+        private final ArrayList<ZeitraumSaldo> salden;
 
         public OverviewTableModel() {
             this.salden = new ArrayList<>();
@@ -517,8 +522,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
             return;
         }
 
-        SqlSession session = sessionFactory.openSession();
-        try {
+        try (SqlSession session = sessionFactory.openSession()) {
             BeitragMapper beitragMapper = session
                     .getMapper(BeitragMapper.class);
             RechnungenMapper rechnungMapper = session
@@ -543,8 +547,6 @@ public class MitgliedAnzeigenWindow extends JFrame {
                     KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
 
             detailsTable.requestFocusInWindow();
-        } finally {
-            session.close();
         }
     }
 
@@ -552,10 +554,10 @@ public class MitgliedAnzeigenWindow extends JFrame {
      * Stellt eine Liste von Buchungen als TableModel dar. Die Zellen der
      * Tabelle können nicht bearbeitet werden.
      */
-    private class BuchungListTableModel extends AbstractTableModel {
+    private static class BuchungListTableModel extends AbstractTableModel {
         private static final long serialVersionUID = 8639929360446497274L;
-        private List<BeitragBuchung> buchungen;
-        private List<BeitragRechnung> rechnungen;
+        private final List<BeitragBuchung> buchungen;
+        private final List<BeitragRechnung> rechnungen;
 
         private static final int ID_COLUMN_INDEX = 0;
         private static final int B_DATUM_COLUMN_INDEX = 1;
@@ -712,19 +714,10 @@ public class MitgliedAnzeigenWindow extends JFrame {
 
             if (e.getClickCount() == 2) {
                 int row = detailsTable.rowAtPoint(e.getPoint());
-                Object datensatz = detailsTableModel.getDatensatzAt(row);
-                if (datensatz instanceof BeitragBuchung) {
-                    BeitragBuchung buchung = (BeitragBuchung) datensatz;
-                    BuchungDialog diag = new BuchungDialog(sessionFactory,
-                            buchung);
-                    diag.setVisible(true);
-                } else if (!(datensatz instanceof BeitragRechnung)
-                        && datensatz != null) {
-                    throw new ClassCastException("Wrong class in table model");
-                }
-                // do nothing for BeitragRechnung
+                showBuchungDialogFromDetailsTable(row);
             }
         }
+
     }
 
     /**
@@ -742,20 +735,21 @@ public class MitgliedAnzeigenWindow extends JFrame {
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                 int row = detailsTable.getSelectedRow();
                 if (row >= 0) {
-                    Object datensatz = detailsTableModel.getDatensatzAt(row);
-                    if (datensatz instanceof BeitragBuchung) {
-                        BeitragBuchung buchung = (BeitragBuchung) datensatz;
-                        BuchungDialog diag = new BuchungDialog(sessionFactory,
-                                buchung);
-                        diag.setVisible(true);
-                    } else if (!(datensatz instanceof BeitragRechnung)
-                            && datensatz != null) {
-                        throw new ClassCastException(
-                                "Wrong class in table model");
-                    }
-                    // do nothing for BeitragRechnung
+                    showBuchungDialogFromDetailsTable(row);
                 }
             }
         }
+    }
+
+    private void showBuchungDialogFromDetailsTable(int row) {
+        Object datensatz = detailsTableModel.getDatensatzAt(row);
+        if (datensatz instanceof BeitragBuchung) {
+            BeitragBuchung buchung = (BeitragBuchung) datensatz;
+            BuchungDialog diag = new BuchungDialog(sessionFactory, buchung);
+            diag.setVisible(true);
+        } else if (!(datensatz instanceof BeitragRechnung) && datensatz != null) {
+            throw new ClassCastException("Wrong class in table model");
+        }
+        // do nothing for BeitragRechnung
     }
 }
