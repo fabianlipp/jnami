@@ -7,7 +7,7 @@
 
 	<select id="getMandat" parameterType="int" resultType="BeitragSepaMandat">
 		SELECT *
-		FROM beitragMandat
+		FROM beitragSepaMandat
 		WHERE mandatId = #{id}
 	</select>
 

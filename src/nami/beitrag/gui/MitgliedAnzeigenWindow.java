@@ -185,7 +185,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
             } else if (tabbedPane.getSelectedComponent() == detailsPanel){
                 refreshDetails();
             } else {
-                mandateVerwalten.changeMitglied(mitgliedSelect.getMitgliedId());
+                mandateVerwalten.filterMandate(MandateVerwaltenComponent.MandateFilterType.MITGLIED, mitgliedSelect.getMitgliedId());
             }
         }
 

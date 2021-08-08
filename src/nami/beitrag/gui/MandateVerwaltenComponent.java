@@ -16,8 +16,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class MandateVerwaltenComponent extends JComponent {
+    public enum MandateFilterType {
+        MITGLIED, MANDAT
+    }
+
     private final SqlSessionFactory sqlSessionFactory;
 
     private JTable mandateTable;
@@ -31,10 +36,10 @@ public class MandateVerwaltenComponent extends JComponent {
         createPanel();
     }
 
-    public void changeMitglied(int mitgliedId) {
-        mandateModel.loadMandate(mitgliedId);
+    public void filterMandate(MandateFilterType typ, int id) {
         mitgliederModel.clear();
         lastschriftenModel.clear();
+        mandateModel.loadMandate(typ, id);
     }
 
     private void createPanel() {
@@ -241,40 +246,58 @@ public class MandateVerwaltenComponent extends JComponent {
         private static final int DATUM_COLUMN_INDEX = 4;
         private static final int GUELTIG_COLUMN_INDEX = 5;
 
-        private int mitgliedId = -1;
+        private MandateFilterType filterTyp = MandateFilterType.MITGLIED;
+        private int filterId = -1;
         private ArrayList<BeitragSepaMandat> mandate = null;
 
         /**
-         * Füllt die Mandate-Liste mit den Mandaten eines Mitglieds.
+         * Füllt die Mandate-Liste mit den Mandaten eines Mitglieds bzw. mit
+         * einem bestimmten Mandat.
          *
-         * @param newMitgliedId
-         *            ID des Mitglieds
+         * @param newTyp
+         *            Typ des Filters (nach Mitgliedsnummer oder Mandatsnummer)
+         * @param newId
+         *            ID, nach der gefiltert wird
          */
-        public void loadMandate(int newMitgliedId) {
+        public void loadMandate(MandateFilterType newTyp, int newId) {
             // Testen, ob sich die ID tatsächlich geändert hat
-            if (this.mitgliedId != newMitgliedId) {
-                this.mitgliedId = newMitgliedId;
+            if (filterTyp != newTyp || this.filterId != newId) {
+                this.filterTyp = newTyp;
+                this.filterId = newId;
                 reload();
             }
         }
 
         /**
-         * Lädt die Liste neu aus der Datenbank (wird nach Änderungen
-         * aufgerufen).
+         * Lädt die Liste neu aus der Datenbank (wird nach Änderungen aufgerufen).
          */
         public void reload() {
-            if (mitgliedId == -1) {
+            if (filterId == -1) {
                 mandate = null;
             } else {
-                // Mandate für Mitglied aus Datenbank laden
                 try (SqlSession session = sqlSessionFactory.openSession()) {
-                    MandateMapper mapper = session
-                            .getMapper(MandateMapper.class);
-                    mandate = mapper.findMandateByMitglied(mitgliedId);
+                    MandateMapper mapper = session.getMapper(MandateMapper.class);
+                    switch (filterTyp) {
+                        case MITGLIED:
+                            // Mandate für Mitglied aus Datenbank laden
+                            mandate = mapper.findMandateByMitglied(filterId);
+                            break;
+                        case MANDAT:
+                            // Mandat aus Datenbank laden
+                            mandate = new ArrayList<>(
+                                    Collections.singletonList(mapper.getMandat(filterId)));
+                            break;
+                    }
                 }
             }
-
             fireTableDataChanged();
+            // Aktuellstes Mandat auswählen und entsprechende Mitglieder/Lastschriften laden
+            if (mandate != null && mandate.size() >= 1) {
+                mandateTable.setRowSelectionInterval(mandate.size() - 1, mandate.size() - 1);
+                int mandatId = mandate.get(mandate.size() - 1).getMandatId();
+                mitgliederModel.loadMitglieder(mandatId);
+                lastschriftenModel.loadLastschriften(mandatId);
+            }
         }
 
         @Override

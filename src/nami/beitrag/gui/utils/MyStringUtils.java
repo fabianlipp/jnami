@@ -28,4 +28,12 @@ public final class MyStringUtils {
     public static String replaceUmlauts(String text) {
         return StringUtils.replaceEach(text, REPLACE_UML_FROM, REPLACE_UML_TO);
     }
+
+    public static int parseIntDefaultMinusOne(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
 }
