@@ -29,14 +29,12 @@ import com.toedter.calendar.JDateChooser;
 public class AbmeldungErstellenWindow extends JFrame {
     private static final long serialVersionUID = 5728350237853923954L;
 
-    private SqlSessionFactory sessionFactory;
+    private final SqlSessionFactory sessionFactory;
     private MitgliedSelectComponent mitglied;
     private JDateChooser dateChooser;
     private JDateChooser faelligkeit;
     private JComboBox<AbmeldungTyp> typ;
     private JDateChooser namiEingetragen;
-    private JButton btnAbbrechen;
-    private JButton btnSpeichern;
 
     /**
      * Zeigt einen leeren Dialog, in den die Daten einer neuen Abmeldung
@@ -53,9 +51,6 @@ public class AbmeldungErstellenWindow extends JFrame {
 
     /**
      * Erzeugt die Komponenten des Dialogs.
-     * 
-     * @param saveButton
-     *            gibt an, ob es einen Speicherbutton gibt
      */
     private void buildFrame() {
         getContentPane().setLayout(
@@ -73,19 +68,19 @@ public class AbmeldungErstellenWindow extends JFrame {
         getContentPane().add(lblDatum, "");
         dateChooser = new JDateChooser(new Date());
         lblDatum.setLabelFor(dateChooser);
-        getContentPane().add(dateChooser, "wrap");
+        getContentPane().add(dateChooser, "wrap,w 100::");
 
         JLabel lblFaelligkeit = new JLabel("Fälligkeit:");
         lblDatum.setDisplayedMnemonic('f');
         getContentPane().add(lblFaelligkeit, "");
         faelligkeit = new JDateChooser(new Date());
         lblFaelligkeit.setLabelFor(faelligkeit);
-        getContentPane().add(faelligkeit, "wrap");
+        getContentPane().add(faelligkeit, "wrap,w 100::");
 
         JLabel lblTyp = new JLabel("Typ:");
         lblTyp.setDisplayedMnemonic('t');
         getContentPane().add(lblTyp, "");
-        typ = new JComboBox<AbmeldungTyp>();
+        typ = new JComboBox<>();
         lblTyp.setLabelFor(typ);
         typ.setModel(new DefaultComboBoxModel<>(AbmeldungTyp.values()));
         getContentPane().add(typ, "wrap");
@@ -95,15 +90,15 @@ public class AbmeldungErstellenWindow extends JFrame {
         getContentPane().add(lblNamiEingetragen, "");
         namiEingetragen = new JDateChooser();
         lblNamiEingetragen.setLabelFor(namiEingetragen);
-        getContentPane().add(namiEingetragen, "wrap");
+        getContentPane().add(namiEingetragen, "wrap,w 100::");
 
-        btnAbbrechen = new JButton("Abbrechen");
+        JButton btnAbbrechen = new JButton("Abbrechen");
         btnAbbrechen.setMnemonic('a');
         btnAbbrechen.addActionListener(new CloseActionListener());
         getContentPane()
                 .add(btnAbbrechen, "span,split 2,flowx,alignx trailing");
 
-        btnSpeichern = new JButton("Speichern");
+        JButton btnSpeichern = new JButton("Speichern");
         btnSpeichern.setMnemonic('s');
         btnSpeichern.addActionListener(new SaveActionListener());
         getContentPane().add(btnSpeichern, "alignx trailing");
@@ -129,14 +124,11 @@ public class AbmeldungErstellenWindow extends JFrame {
             abmeld.setTyp(typ.getItemAt(typ.getSelectedIndex()));
             abmeld.setNamiEingetragen(namiEingetragen.getDate());
 
-            SqlSession session = sessionFactory.openSession();
-            try {
+            try (SqlSession session = sessionFactory.openSession()) {
                 AbmeldungenMapper mapper = session
                         .getMapper(AbmeldungenMapper.class);
                 mapper.insertAbmeldung(abmeld);
                 session.commit();
-            } finally {
-                session.close();
             }
             System.out.println("Stored Abmeldung");
             setVisible(false);

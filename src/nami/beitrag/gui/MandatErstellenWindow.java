@@ -61,7 +61,7 @@ public class MandatErstellenWindow extends JFrame {
         panel.setBorder(new TitledBorder(null, "Mitglieder",
                 TitledBorder.LEADING, TitledBorder.TOP, null, null));
         contentPane.add(panel, "cell 0 0 2 1,grow");
-        panel.setLayout(new MigLayout("", "[][]", "[][][][]"));
+        panel.setLayout(new MigLayout("", "[grow][]", "[][][][]"));
 
         mitgliedSelector = new MitgliedSelectComponent(sqlSessionFactory);
         panel.add(mitgliedSelector, "cell 0 0");

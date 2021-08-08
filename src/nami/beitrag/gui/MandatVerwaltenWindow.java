@@ -63,7 +63,7 @@ public class MandatVerwaltenWindow extends JFrame {
         tabbedPane.setMnemonicAt(1, KeyEvent.VK_A);
 
         mandateVerwalten = new MandateVerwaltenComponent(sqlSessionFactory);
-        getContentPane().add(mandateVerwalten, "cell 0 1");
+        getContentPane().add(mandateVerwalten, "cell 0 1,grow");
 
         pack();
 

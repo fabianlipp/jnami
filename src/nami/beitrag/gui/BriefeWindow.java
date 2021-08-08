@@ -51,9 +51,9 @@ import com.toedter.calendar.JDateChooser;
 public class BriefeWindow extends JFrame {
     private static final long serialVersionUID = 7409328875312329467L;
 
-    private SqlSessionFactory sqlSessionFactory;
-    private LetterDirectory letterDirectory;
-    private LatexRunner latex;
+    private final SqlSessionFactory sqlSessionFactory;
+    private final LetterDirectory letterDirectory;
+    private final LatexRunner latex;
 
     // Komponenten für Suche
     private JCheckBox chckbxDatumFilter;
@@ -70,9 +70,9 @@ public class BriefeWindow extends JFrame {
     private BriefeModel tableModel;
 
     // aus Konfigurationsdatei eingelesen
-    private String pdfViewer;
+    private final String pdfViewer;
 
-    private static Logger logger = Logger.getLogger(BriefeWindow.class
+    private static final Logger logger = Logger.getLogger(BriefeWindow.class
             .getName());
 
     /**
@@ -168,12 +168,12 @@ public class BriefeWindow extends JFrame {
         JLabel lblVon = new JLabel("Von:");
         zeitraumPanel.add(lblVon, "cell 1 0,flowx,alignx left");
         inputDatumVon = new JDateChooser(new Date());
-        zeitraumPanel.add(inputDatumVon, "cell 2 0");
+        zeitraumPanel.add(inputDatumVon, "cell 2 0,w 100::");
 
         JLabel lblBis = new JLabel("Bis:");
         zeitraumPanel.add(lblBis, "cell 1 1,alignx left");
         inputDatumBis = new JDateChooser(new Date());
-        zeitraumPanel.add(inputDatumBis, "cell 2 1");
+        zeitraumPanel.add(inputDatumBis, "cell 2 1,w 100::");
 
         chckbxDatumFilter.addActionListener(filterChangeListener);
         inputDatumVon.addPropertyChangeListener(filterChangeListener);
@@ -285,7 +285,7 @@ public class BriefeWindow extends JFrame {
      * Kompilierungszeit in die Datenbank schreibt.
      */
     private class CompileThread implements Runnable {
-        private BeitragBrief brief;
+        private final BeitragBrief brief;
 
         CompileThread(BeitragBrief brief) {
             this.brief = brief;
@@ -295,15 +295,12 @@ public class BriefeWindow extends JFrame {
         public void run() {
             boolean retVal = latex.compile(brief.getDateiname());
             if (retVal) {
-                SqlSession session = sqlSessionFactory.openSession();
-                try {
+                try (SqlSession session = sqlSessionFactory.openSession()) {
                     BriefeMapper mapper = session.getMapper(BriefeMapper.class);
                     brief.setKompiliert(new Date());
                     mapper.updateBrief(brief);
                     session.commit();
                     refreshTable();
-                } finally {
-                    session.close();
                 }
             }
         }
@@ -354,13 +351,10 @@ public class BriefeWindow extends JFrame {
          *            Kriterien, nach denen gesucht wird
          */
         private void reloadBriefe(FilterSettings filterSettings) {
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
+            try (SqlSession session = sqlSessionFactory.openSession()) {
                 BriefeMapper mapper = session.getMapper(BriefeMapper.class);
                 briefe = mapper.findBriefe(filterSettings);
                 fireTableDataChanged();
-            } finally {
-                session.close();
             }
         }
 

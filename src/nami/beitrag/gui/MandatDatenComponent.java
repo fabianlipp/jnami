@@ -35,7 +35,7 @@ public class MandatDatenComponent extends JComponent {
     }
 
     private void createPanel(boolean editable) {
-        setLayout(new MigLayout("", "[][grow]", "[][][][][][][][]"));
+        setLayout(new MigLayout("insets 0", "[][grow]", "[][][][][][][][]"));
 
         JLabel lblKontoinhaber = new JLabel("Kontoinhaber:");
         add(lblKontoinhaber, "cell 0 0");
@@ -86,7 +86,7 @@ public class MandatDatenComponent extends JComponent {
         add(lblDatum, "cell 0 7");
         dateChooser = new JDateChooser(new Date());
         dateChooser.setEnabled(editable);
-        add(dateChooser, "cell 1 7");
+        add(dateChooser, "cell 1 7,w 100::");
     }
 
     public void writeInputsToMandat(BeitragSepaMandat mandat)

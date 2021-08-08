@@ -65,7 +65,7 @@ import com.toedter.calendar.JDateChooser;
 public class LastschriftErstellenWindow extends JFrame {
     private static final long serialVersionUID = 7409328875312329467L;
 
-    private SqlSessionFactory sqlSessionFactory;
+    private final SqlSessionFactory sqlSessionFactory;
 
     // Komponenten für Suche
     private JCheckBox chckbxRechnungsdatum;
@@ -190,7 +190,7 @@ public class LastschriftErstellenWindow extends JFrame {
 
         inputRechnungsdatum = new JDateChooser();
         inputRechnungsdatum.setEnabled(false);
-        searchPanel.add(inputRechnungsdatum, "cell 1 1,growy");
+        searchPanel.add(inputRechnungsdatum, "cell 1 1,growy,w 100::");
 
         /*** Untere Zeile ***/
         JPanel sucheBottomPanel = new JPanel();
@@ -233,7 +233,7 @@ public class LastschriftErstellenWindow extends JFrame {
 
         inputFaelligkeit = new JDateChooser();
         inputFaelligkeit.setDate(new Date());
-        erstellenPanel.add(inputFaelligkeit, "cell 1 0,alignx left");
+        erstellenPanel.add(inputFaelligkeit, "cell 1 0,alignx left,w 100::");
 
         // Bezeichnung
         JLabel lblBezeichnung = new JLabel("Bezeichnung:");
@@ -313,7 +313,7 @@ public class LastschriftErstellenWindow extends JFrame {
      * (De-)Selektiert alle Personen in der Tabelle.
      */
     private final class MandateSelectListener implements ActionListener {
-        private boolean desiredState;
+        private final boolean desiredState;
 
         private MandateSelectListener(boolean desiredState) {
             this.desiredState = desiredState;
@@ -353,8 +353,7 @@ public class LastschriftErstellenWindow extends JFrame {
             // Sammellastschrift in der Datenbank gespeichert)
             boolean lastschriftEingefuegt = false;
 
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
+            try (SqlSession session = sqlSessionFactory.openSession()) {
                 LastschriftenMapper mapper = session
                         .getMapper(LastschriftenMapper.class);
 
@@ -418,8 +417,6 @@ public class LastschriftErstellenWindow extends JFrame {
                 } else {
                     session.rollback();
                 }
-            } finally {
-                session.close();
             }
 
             if (lastschriftEingefuegt) {
@@ -731,7 +728,7 @@ public class LastschriftErstellenWindow extends JFrame {
     /**
      * Abstrakte Klasse, zu der alle Einträgen in der Rechnungs-Tabelle gehören.
      */
-    private abstract class Node {
+    private abstract static class Node {
         public abstract int getChildCount();
 
         public abstract int getIndexOfChild(Object child);
@@ -747,7 +744,7 @@ public class LastschriftErstellenWindow extends JFrame {
      * 
      */
     private final class RootNode extends Node {
-        private ArrayList<MandatNode> mandate;
+        private final ArrayList<MandatNode> mandate;
 
         /**
          * Initialisiert den Baum.
@@ -757,8 +754,7 @@ public class LastschriftErstellenWindow extends JFrame {
          *            gefiltert werden sollen
          */
         private RootNode(FilterSettings filterSettings) {
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
+            try (SqlSession session = sqlSessionFactory.openSession()) {
                 LastschriftenMapper mapper = session
                         .getMapper(LastschriftenMapper.class);
                 Collection<DataMandateRechnungen> mandateDb = mapper
@@ -770,8 +766,6 @@ public class LastschriftErstellenWindow extends JFrame {
                 for (DataMandateRechnungen mandat : mandateDb) {
                     mandate.add(new MandatNode(mandat, filterSettings));
                 }
-            } finally {
-                session.close();
             }
 
         }
@@ -802,8 +796,8 @@ public class LastschriftErstellenWindow extends JFrame {
      * Knoten mit Tiefe 1 (also direkt unterhalb der Wurzel).
      */
     private final class MandatNode extends Node {
-        private BeitragSepaMandat mandat;
-        private ArrayList<RechnungNode> rechnungen = null;
+        private final BeitragSepaMandat mandat;
+        private ArrayList<RechnungNode> rechnungen;
 
         private Boolean checked = true;
 
@@ -854,12 +848,12 @@ public class LastschriftErstellenWindow extends JFrame {
      * Knoten mit Tiefe 2 (also Abstand 2 von der Wurzel).
      */
     private final class RechnungNode extends Node {
-        private BeitragRechnung rechnung;
-        private BeitragMitglied mitglied;
+        private final BeitragRechnung rechnung;
+        private final BeitragMitglied mitglied;
 
         // Mandat, zu dem die Rechnung gehört (nötig, um im Baum auch aufwärts
         // laufen zu können)
-        private MandatNode mandat;
+        private final MandatNode mandat;
 
         private Boolean checked = true;
 

@@ -32,7 +32,7 @@ import com.toedter.calendar.JDateChooser;
 public class BuchungDialog extends JFrame {
     private static final long serialVersionUID = -5350557200646276237L;
 
-    private SqlSessionFactory sessionFactory;
+    private final SqlSessionFactory sessionFactory;
 
     private JLabel lblId;
     private MitgliedSelectComponent mitglied;
@@ -44,10 +44,8 @@ public class BuchungDialog extends JFrame {
     private HalbjahrComponent halbjahr;
     private JCheckBox vorausberechnung;
     private JTextField kommentar;
-    private JButton btnAbbrechen;
-    private JButton btnSpeichern;
 
-    private static Logger log = Logger.getLogger(BuchungDialog.class.getName());
+    private static final Logger logger = Logger.getLogger(BuchungDialog.class.getName());
 
     /**
      * Zeigt einer vorhandene Buchung an. Alle Eingabefelder werden gesperrt,
@@ -93,7 +91,6 @@ public class BuchungDialog extends JFrame {
      * 
      * @param sessionFactory
      *            Verbindung zur SQL-Datenbank
-     * @wbp.parser.constructor
      */
     public BuchungDialog(SqlSessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
@@ -135,7 +132,7 @@ public class BuchungDialog extends JFrame {
         JLabel lblTyp = new JLabel("Typ:");
         lblTyp.setDisplayedMnemonic('t');
         getContentPane().add(lblTyp, "cell 0 4");
-        typ = new JComboBox<Buchungstyp>();
+        typ = new JComboBox<>();
         lblTyp.setLabelFor(typ);
         typ.setModel(new DefaultComboBoxModel<>(Buchungstyp.values()));
         getContentPane().add(typ, "wrap,cell 1 4");
@@ -145,7 +142,7 @@ public class BuchungDialog extends JFrame {
         getContentPane().add(lblDatum, "cell 0 5");
         dateChooser = new JDateChooser();
         lblDatum.setLabelFor(dateChooser);
-        getContentPane().add(dateChooser, "cell 1 5");
+        getContentPane().add(dateChooser, "cell 1 5,w 100::");
 
         JLabel lblBetrag = new JLabel("Betrag:");
         lblBetrag.setDisplayedMnemonic('b');
@@ -179,6 +176,7 @@ public class BuchungDialog extends JFrame {
         getContentPane().add(kommentar, "grow,cell 1 9");
         kommentar.setColumns(10);
 
+        JButton btnAbbrechen;
         if (saveButton) {
             btnAbbrechen = new JButton("Abbrechen");
             btnAbbrechen.setMnemonic('a');
@@ -186,7 +184,7 @@ public class BuchungDialog extends JFrame {
             getContentPane().add(btnAbbrechen,
                     "cell 0 10,span,split 2,flowx,alignx trailing");
 
-            btnSpeichern = new JButton("Speichern");
+            JButton btnSpeichern = new JButton("Speichern");
             btnSpeichern.setMnemonic('s');
             btnSpeichern.addActionListener(new SaveActionListener());
             getContentPane().add(btnSpeichern, "cell 0 10,alignx trailing");
@@ -221,13 +219,10 @@ public class BuchungDialog extends JFrame {
             buchung.setVorausberechnung(vorausberechnung.isSelected());
             buchung.setKommentar(kommentar.getText());
 
-            SqlSession session = sessionFactory.openSession();
-            try {
+            try (SqlSession session = sessionFactory.openSession()) {
                 BeitragMapper mapper = session.getMapper(BeitragMapper.class);
                 mapper.insertBuchung(buchung);
                 session.commit();
-            } finally {
-                session.close();
             }
             System.out.println("Stored Buchung");
 
@@ -240,24 +235,24 @@ public class BuchungDialog extends JFrame {
         boolean hasError = false;
 
         if (mitglied.getMitgliedId() == -1) {
-            log.warning("Kein Mitglied ausgewählt");
+            logger.warning("Kein Mitglied ausgewählt");
             hasError = true;
         }
 
         if (typ.getSelectedIndex() == -1) {
-            log.warning("Kein Buchungstyp ausgewählt");
+            logger.warning("Kein Buchungstyp ausgewählt");
             hasError = true;
         }
 
         if (dateChooser.getDate() == null) {
-            log.warning("Kein Datum eingegeben");
+            logger.warning("Kein Datum eingegeben");
             hasError = true;
         }
 
         try {
             new BigDecimal(betrag.getText());
         } catch (NumberFormatException ex) {
-            log.warning("Ungültiger Betrag eingegeben");
+            logger.warning("Ungültiger Betrag eingegeben");
             hasError = true;
         }
 
