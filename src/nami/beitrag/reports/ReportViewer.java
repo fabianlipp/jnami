@@ -34,13 +34,13 @@ import org.apache.ibatis.session.SqlSessionFactory;
  * 
  */
 public class ReportViewer {
-    private SqlSessionFactory sessionFactory;
+    private final SqlSessionFactory sessionFactory;
 
     /* Dateinamen der Reports (daran wird jeweils .jasper ergänzt) */
     private static final String FILE_ABRECHNUNG_HALBJAHR = "abrechnung_halbjahr";
     private static final String FILE_MITGLIEDER_OHNE_SEPA = "mitglieder_ohne_sepa";
 
-    private static Logger log = Logger.getLogger(ReportViewer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ReportViewer.class.getName());
 
     /**
      * Initialisiert den ReportViewer.
@@ -62,10 +62,10 @@ public class ReportViewer {
                     new JRBeanCollectionDataSource(data));
             // JasperExportManager.exportReportToPdfFile(jasperPrint,
             // "/home/fabian/test.pdf");
-            log.info("Generated Report");
+            LOGGER.info("Generated Report");
             JasperViewer.viewReport(jasperPrint, false);
         } catch (JRException e) {
-            log.log(Level.WARNING, "Could not generate Report", e);
+            LOGGER.log(Level.WARNING, "Could not generate Report", e);
         }
     }
 
@@ -75,20 +75,19 @@ public class ReportViewer {
      * 
      * @param halbjahr
      *            Halbjahr, für das die Abrechnung erstellt werden soll
+     * @param ausgeglichen
+     *            Zeige auch Mitglieder mit ausgeglichenen Beitragskonten
      */
-    public void viewAbrechnungHalbjahr(Halbjahr halbjahr) {
-        SqlSession session = sessionFactory.openSession();
-        try {
+    public void viewAbrechnungHalbjahr(Halbjahr halbjahr, boolean ausgeglichen) {
+        try (SqlSession session = sessionFactory.openSession()) {
             ReportsMapper mapper = session.getMapper(ReportsMapper.class);
             Collection<DataAbrechnungHalbjahr> data = mapper
-                    .abrechnungHalbjahr(halbjahr);
+                    .abrechnungHalbjahr(halbjahr, ausgeglichen);
 
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
             params.put("HALBJAHR", halbjahr);
 
             viewReport(FILE_ABRECHNUNG_HALBJAHR, params, data);
-        } finally {
-            session.close();
         }
     }
 
@@ -97,17 +96,14 @@ public class ReportViewer {
      * SEPA-Mandat existiert.
      */
     public void viewMitgliederOhneSepaMandat() {
-        SqlSession session = sessionFactory.openSession();
-        try {
+        try (SqlSession session = sessionFactory.openSession()) {
             ReportsMapper mapper = session.getMapper(ReportsMapper.class);
             Collection<BeitragMitglied> data = mapper
                     .mitgliederOhneSepaMandat();
 
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
 
             viewReport(FILE_MITGLIEDER_OHNE_SEPA, params, data);
-        } finally {
-            session.close();
         }
     }
 }

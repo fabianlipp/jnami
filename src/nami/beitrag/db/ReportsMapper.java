@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import nami.beitrag.reports.DataAbrechnungHalbjahr;
 import nami.connector.Halbjahr;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * Beschreibt einen Mapper für Datenbankabfragen, auf denen die Reports
@@ -19,9 +20,12 @@ public interface ReportsMapper {
      * 
      * @param halbjahr
      *            Halbjahr, für das die Abrechnung abgefragt wird
+     * @param ausgeglichen
+     *            Zeige auch Mitglieder mit ausgeglichenen Beitragskonten
      * @return Liste mit Mitgliederdaten und -buchungen
      */
-    Collection<DataAbrechnungHalbjahr> abrechnungHalbjahr(Halbjahr halbjahr);
+    Collection<DataAbrechnungHalbjahr> abrechnungHalbjahr(@Param("halbjahr") Halbjahr halbjahr,
+                                                          @Param("ausgeglichen") boolean ausgeglichen);
 
     /**
      * Listet alle aktiven (beitragspflichtigen) Mitglieder auf, denen kein

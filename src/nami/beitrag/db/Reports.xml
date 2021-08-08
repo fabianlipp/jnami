@@ -4,15 +4,25 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="nami.beitrag.db.ReportsMapper">
-	<select id="abrechnungHalbjahr" parameterType="Halbjahr" resultType="DataAbrechnungHalbjahr">
+	<select id="abrechnungHalbjahr" resultType="DataAbrechnungHalbjahr">
 		SELECT *
-		FROM beitragBuchung,
-			beitragMitglied
-		WHERE
-			beitragBuchung.mitgliedId = beitragMitglied.mitgliedId
-			AND beitragBuchung.halbjahr = #{halbjahr}
-			AND beitragBuchung.jahr = #{jahr}
+		FROM beitragBuchung
+			JOIN beitragMitglied ON beitragBuchung.mitgliedId = beitragMitglied.mitgliedId
+		WHERE beitragBuchung.halbjahr = #{halbjahr.halbjahr}
+			AND beitragBuchung.jahr = #{halbjahr.jahr}
 			AND beitragBuchung.storniert = FALSE
+			<if test="ausgeglichen == false">
+				AND beitragBuchung.mitgliedId IN (
+				  SELECT beitragMitglied.mitgliedId
+				  FROM beitragBuchung
+				    JOIN beitragMitglied ON beitragBuchung.mitgliedId = beitragMitglied.mitgliedId
+				  WHERE beitragBuchung.halbjahr = #{halbjahr.halbjahr}
+				    AND beitragBuchung.jahr = #{halbjahr.jahr}
+				    AND beitragBuchung.storniert = FALSE
+				  GROUP BY beitragMitglied.mitgliedId
+				  HAVING SUM(beitragBuchung.betrag) != 0
+				)
+			</if>
 		ORDER BY beitragMitglied.mitgliedId
 	</select>
 
