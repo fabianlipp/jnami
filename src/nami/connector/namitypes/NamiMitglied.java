@@ -128,6 +128,10 @@ public class NamiMitglied extends NamiAbstractMitglied {
         return email;
     }
 
+    public String getEmailVertretungsberechtigter() {
+        return emailVertretungsberechtigter;
+    }
+
     @Override
     public int getMitgliedsnummer() {
         return mitgliedsNummer;
@@ -216,8 +220,7 @@ public class NamiMitglied extends NamiAbstractMitglied {
     }
 
     @Override
-    public NamiMitglied getFullData(NamiConnector con) throws NamiApiException,
-            IOException {
+    public NamiMitglied getFullData(NamiConnector con) {
         // do nothing (this object already contains the full data)
         return this;
     }
@@ -232,12 +235,9 @@ public class NamiMitglied extends NamiAbstractMitglied {
     public String toLongString() {
         StringBuilder str = new StringBuilder();
 
-        /**
-         * Speichert eine Zeile, die ausgegeben werden soll.
-         */
         final class Row {
-            private String key;
-            private String value;
+            private final String key;
+            private final String value;
 
             private Row(String key, String value) {
                 this.key = key;

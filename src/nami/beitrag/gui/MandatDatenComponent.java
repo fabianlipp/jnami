@@ -108,7 +108,11 @@ public class MandatDatenComponent extends JComponent {
             txtStrasse.setText(mgl.getStrasse());
             txtPlz.setText(mgl.getPlz());
             txtOrt.setText(mgl.getOrt());
-            txtEmail.setText(mgl.getEmail());
+            if (!mgl.getEmail().isBlank()) {
+                txtEmail.setText(mgl.getEmail());
+            } else {
+                txtEmail.setText(mgl.getEmailVertretungsber());
+            }
         }
     }
 }

@@ -9,6 +9,7 @@
 	<include file="02-initial-beitrag.xml" relativeToChangelogFile="true" />
 	<include file="03-beitrag-mitgliedstyp-status.xml" relativeToChangelogFile="true" />
 	<include file="04-beitrag-buchung-storniert.xml" relativeToChangelogFile="true" />
+	<include file="05-beitrag-emailVertr.xml" relativeToChangelogFile="true" />
 
 
 </databaseChangeLog>

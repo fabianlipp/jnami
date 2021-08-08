@@ -17,6 +17,7 @@
 		<result property="plz" column="plz" />
 		<result property="ort" column="ort" />
 		<result property="email" column="email" />
+		<result property="emailVertretungsber" column="emailVertretungsber" />
 		<result property="version" column="version" />
 		<result property="deleted" column="deleted" />
 	</resultMap>
@@ -61,6 +62,7 @@
 			plz,
 			ort,
 			email,
+			emailVertretungsber,
 			version,
 			deleted)
 		VALUES
@@ -76,6 +78,7 @@
 			#{plz},
 			#{ort},
 			#{email},
+			#{emailVertretungsber},
 			#{version},
 			#{deleted})
 	</insert>
@@ -94,6 +97,7 @@
 			plz = #{plz},
 			ort = #{ort},
 			email = #{email},
+			emailVertretungsber = #{emailVertretungsber},
 			version = #{version},
 			deleted = #{deleted}
 		WHERE mitgliedId = #{mitgliedId}

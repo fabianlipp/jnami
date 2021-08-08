@@ -31,6 +31,7 @@ public class BeitragMitglied {
     private String plz;
     private String ort;
     private String email;
+    private String emailVertretungsber;
     private int version;
     private Integer aktivesMandat;
     private boolean deleted;
@@ -57,6 +58,7 @@ public class BeitragMitglied {
         plz = namiMgl.getPlz();
         ort = namiMgl.getOrt();
         email = namiMgl.getEmail();
+        emailVertretungsber = namiMgl.getEmailVertretungsberechtigter();
         version = namiMgl.getVersion();
     }
 

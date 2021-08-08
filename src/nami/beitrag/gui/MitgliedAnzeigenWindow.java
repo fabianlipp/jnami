@@ -211,6 +211,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
         private final JLabel plz;
         private final JLabel ort;
         private final JLabel email;
+        private final JLabel emailVertretungsber;
         private final JLabel version;
         private final JCheckBox deleted;
 
@@ -277,6 +278,11 @@ public class MitgliedAnzeigenWindow extends JFrame {
             email = new JLabel("");
             this.add(email, "wrap");
 
+            JLabel lblEmailVertretungsber = new JLabel("E-Mail Erziehungsberechtigter:");
+            this.add(lblEmailVertretungsber, "");
+            emailVertretungsber = new JLabel("");
+            this.add(emailVertretungsber, "wrap");
+
             JLabel lblVersion = new JLabel("Version:");
             this.add(lblVersion, "");
             version = new JLabel("");
@@ -312,6 +318,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
                 plz.setText("");
                 ort.setText("");
                 email.setText("");
+                emailVertretungsber.setText("");
                 version.setText("");
                 deleted.setSelected(false);
                 return;
@@ -340,6 +347,7 @@ public class MitgliedAnzeigenWindow extends JFrame {
                 plz.setText(mgl.getPlz());
                 ort.setText(mgl.getOrt());
                 email.setText(mgl.getEmail());
+                emailVertretungsber.setText(mgl.getEmailVertretungsber());
                 version.setText(Integer.toString(mgl.getVersion()));
                 deleted.setSelected(mgl.isDeleted());
             }
