@@ -1,37 +1,22 @@
 package nami.beitrag.gui;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.table.AbstractTableModel;
-
 import nami.beitrag.db.BeitragMapper;
 import nami.beitrag.db.BeitragMitglied;
 import nami.beitrag.db.BeitragSepaMandat;
 import nami.beitrag.db.MandateMapper;
 import net.miginfocom.swing.MigLayout;
-
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 
-import com.toedter.calendar.JDateChooser;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.AbstractTableModel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Fenster, mit dem ein neues SEPA-Lastschrift-Mandat erfasst werden kann. Dabei
@@ -44,22 +29,15 @@ import com.toedter.calendar.JDateChooser;
 public class MandatErstellenWindow extends JFrame {
     private static final long serialVersionUID = 7121215418429194498L;
 
-    private SqlSessionFactory sqlSessionFactory;
+    private final SqlSessionFactory sqlSessionFactory;
 
     // Komponenten für Tabelle
     private JTable mitgliederTable;
     private MitgliedTableModel mitgliederModel;
 
-    private JTextField txtKontoinhaber;
-    private JTextField txtStrasse;
-    private JTextField txtPlz;
-    private JTextField txtOrt;
-    private JTextField txtEmail;
-    private JTextField txtIban;
-    private JTextField txtBic;
     private MitgliedSelectComponent mitgliedSelector;
+    private MandatDatenComponent mandatDaten;
     private JCheckBox chckbxAktivesMandat;
-    private JDateChooser dateChooser;
 
     /**
      * Erzeugt ein neues Rechnungs-Fenster.
@@ -77,8 +55,7 @@ public class MandatErstellenWindow extends JFrame {
         JPanel contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
-        contentPane.setLayout(new MigLayout("", "[][grow]",
-                "[grow][][][][][][][][][][]"));
+        contentPane.setLayout(new MigLayout("", "[grow]", "[grow][][][]"));
 
         JPanel panel = new JPanel();
         panel.setBorder(new TitledBorder(null, "Mitglieder",
@@ -108,63 +85,23 @@ public class MandatErstellenWindow extends JFrame {
         btnUseMitglied.addActionListener(new UseMitgliedAction());
         panel.add(btnUseMitglied, "cell 1 3,growx,aligny top");
 
-        JLabel lblKontoinhaber = new JLabel("Kontoinhaber:");
-        contentPane.add(lblKontoinhaber, "cell 0 1");
-        txtKontoinhaber = new JTextField();
-        txtKontoinhaber.setColumns(50);
-        contentPane.add(txtKontoinhaber, "cell 1 1");
-
-        JLabel lblStrasse = new JLabel("Straße:");
-        contentPane.add(lblStrasse, "cell 0 2");
-        txtStrasse = new JTextField();
-        txtStrasse.setColumns(50);
-        contentPane.add(txtStrasse, "cell 1 2");
-
-        JLabel lblPlz = new JLabel("PLZ:");
-        contentPane.add(lblPlz, "cell 0 3");
-        txtPlz = new JTextField();
-        txtPlz.setColumns(5);
-        contentPane.add(txtPlz, "cell 1 3");
-
-        JLabel lblOrt = new JLabel("Ort:");
-        contentPane.add(lblOrt, "cell 0 4");
-        txtOrt = new JTextField();
-        txtOrt.setColumns(50);
-        contentPane.add(txtOrt, "cell 1 4");
-
-        JLabel lblEmail = new JLabel("E-Mail:");
-        contentPane.add(lblEmail, "cell 0 5");
-        txtEmail = new JTextField();
-        txtEmail.setColumns(50);
-        contentPane.add(txtEmail, "cell 1 5");
-
-        JLabel lblIban = new JLabel("IBAN:");
-        contentPane.add(lblIban, "cell 0 6");
-        txtIban = new JTextField();
-        txtIban.setColumns(34);
-        contentPane.add(txtIban, "cell 1 6");
-
-        JLabel lblBic = new JLabel("BIC:");
-        contentPane.add(lblBic, "cell 0 7");
-        txtBic = new JTextField();
-        txtBic.setColumns(11);
-        contentPane.add(txtBic, "cell 1 7");
-
-        JLabel lblDatum = new JLabel("Datum des Mandats:");
-        contentPane.add(lblDatum, "cell 0 8");
-        dateChooser = new JDateChooser(new Date());
-        contentPane.add(dateChooser, "cell 1 8");
+        mandatDaten = new MandatDatenComponent();
+        contentPane.add(mandatDaten, "cell 0 1");
 
         JLabel lblZumAktivenMandat = new JLabel("Zum aktiven Mandat machen:");
-        contentPane.add(lblZumAktivenMandat, "cell 0 9");
+        contentPane.add(lblZumAktivenMandat, "cell 0 2,flowx");
 
         chckbxAktivesMandat = new JCheckBox("");
         chckbxAktivesMandat.setSelected(true);
-        contentPane.add(chckbxAktivesMandat, "cell 1 9");
+        contentPane.add(chckbxAktivesMandat, "cell 0 2");
+
+        JButton btnAbbrechen = new JButton("Abbrechen");
+        btnAbbrechen.addActionListener(e -> dispose());
+        contentPane.add(btnAbbrechen, "cell 0 3 2 1,flowx,alignx right");
 
         JButton btnMandatSpeichern = new JButton("Mandat speichern");
         btnMandatSpeichern.addActionListener(new SpeichernAction());
-        contentPane.add(btnMandatSpeichern, "cell 0 10 2 1,alignx right");
+        contentPane.add(btnMandatSpeichern, "cell 0 3 2 1");
 
         pack();
     }
@@ -209,14 +146,7 @@ public class MandatErstellenWindow extends JFrame {
         public void actionPerformed(ActionEvent e) {
             BeitragMitglied mgl = mitgliederModel
                     .getMitgliedAtRow(mitgliederTable.getSelectedRow());
-            if (mgl != null) {
-                txtKontoinhaber.setText(mgl.getVorname() + " "
-                        + mgl.getNachname());
-                txtStrasse.setText(mgl.getStrasse());
-                txtPlz.setText(mgl.getPlz());
-                txtOrt.setText(mgl.getOrt());
-                txtEmail.setText(mgl.getEmail());
-            }
+            mandatDaten.fillFromMitglied(mgl);
         }
     }
 
@@ -226,19 +156,11 @@ public class MandatErstellenWindow extends JFrame {
     private class SpeichernAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
+            try (SqlSession session = sqlSessionFactory.openSession()) {
                 MandateMapper mandateMapper = session
                         .getMapper(MandateMapper.class);
                 BeitragSepaMandat mand = new BeitragSepaMandat();
-                mand.setIban(txtIban.getText());
-                mand.setBic(txtBic.getText());
-                mand.setDatum(dateChooser.getDate());
-                mand.setKontoinhaber(txtKontoinhaber.getText());
-                mand.setStrasse(txtStrasse.getText());
-                mand.setPlz(txtPlz.getText());
-                mand.setOrt(txtOrt.getText());
-                mand.setEmail(txtEmail.getText());
+                mandatDaten.writeInputsToMandat(mand);
                 mand.setGueltig(true);
 
                 // Mandat einfügen
@@ -258,8 +180,6 @@ public class MandatErstellenWindow extends JFrame {
                 JOptionPane.showMessageDialog(MandatErstellenWindow.this,
                         "Mandat angelegt mit ID " + mandatId + ".");
                 setVisible(false);
-            } finally {
-                session.close();
             }
         }
     }
@@ -271,8 +191,8 @@ public class MandatErstellenWindow extends JFrame {
     private class MitgliedTableModel extends AbstractTableModel {
         private static final long serialVersionUID = 9181646451834946830L;
 
-        private ArrayList<BeitragMitglied> mitglieder = new ArrayList<>();
-        private Set<Integer> mitgliederIds = new HashSet<>();
+        private final ArrayList<BeitragMitglied> mitglieder = new ArrayList<>();
+        private final Set<Integer> mitgliederIds = new HashSet<>();
 
         private static final int NACHNAME_COLUMN_INDEX = 0;
         private static final int VORNAME_COLUMN_INDEX = 1;
@@ -280,11 +200,7 @@ public class MandatErstellenWindow extends JFrame {
 
         @Override
         public int getRowCount() {
-            if (mitglieder == null) {
-                return 0;
-            } else {
-                return mitglieder.size();
-            }
+            return mitglieder.size();
         }
 
         @Override
@@ -294,7 +210,7 @@ public class MandatErstellenWindow extends JFrame {
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            if (mitglieder == null || rowIndex >= mitglieder.size()) {
+            if (rowIndex >= mitglieder.size()) {
                 return null;
             }
 
@@ -335,7 +251,7 @@ public class MandatErstellenWindow extends JFrame {
         }
 
         public BeitragMitglied getMitgliedAtRow(int rowIndex) {
-            if (mitglieder == null || rowIndex >= mitglieder.size()) {
+            if (rowIndex >= mitglieder.size()) {
                 return null;
             }
 
@@ -349,8 +265,7 @@ public class MandatErstellenWindow extends JFrame {
                 return;
             }
 
-            SqlSession session = sqlSessionFactory.openSession();
-            try {
+            try (SqlSession session = sqlSessionFactory.openSession()) {
                 BeitragMapper mapper = session.getMapper(BeitragMapper.class);
                 BeitragMitglied mgl = mapper.getMitglied(mitgliedId);
                 if (mgl != null) {
@@ -358,21 +273,13 @@ public class MandatErstellenWindow extends JFrame {
                     mitgliederIds.add(mgl.getMitgliedId());
                 }
                 fireTableDataChanged();
-            } finally {
-                session.close();
             }
         }
 
         public void deleteMitglied(int mitgliedId) {
             boolean contained = mitgliederIds.remove(mitgliedId);
             if (contained) {
-                Iterator<BeitragMitglied> iter = mitglieder.iterator();
-                while (iter.hasNext()) {
-                    BeitragMitglied mgl = iter.next();
-                    if (mgl.getMitgliedId() == mitgliedId) {
-                        iter.remove();
-                    }
-                }
+                mitglieder.removeIf(mgl -> mgl.getMitgliedId() == mitgliedId);
                 fireTableDataChanged();
             }
         }
