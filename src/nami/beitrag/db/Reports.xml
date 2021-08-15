@@ -25,6 +25,15 @@
 			</if>
 		ORDER BY beitragMitglied.mitgliedId
 	</select>
+	
+	<select id="abrechnungNachTypenHalbjahr" resultType="DataAbrechnungNachTypen">
+		SELECT typ, vorausberechnung, SUM(betrag) AS betrag
+		FROM beitragBuchung
+		WHERE beitragBuchung.halbjahr = #{halbjahr.halbjahr}
+		  AND beitragBuchung.jahr = #{halbjahr.jahr}
+		  AND beitragBuchung.storniert = FALSE
+		GROUP BY typ, vorausberechnung
+	</select>
 
 	<select id="mitgliederOhneSepaMandat" resultType="BeitragMitglied">
 		SELECT m.*

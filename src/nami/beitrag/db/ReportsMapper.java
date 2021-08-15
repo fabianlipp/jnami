@@ -1,7 +1,10 @@
 package nami.beitrag.db;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 
+import lombok.Getter;
+import nami.beitrag.Buchungstyp;
 import nami.beitrag.reports.DataAbrechnungHalbjahr;
 import nami.connector.Halbjahr;
 import org.apache.ibatis.annotations.Param;
@@ -26,6 +29,15 @@ public interface ReportsMapper {
      */
     Collection<DataAbrechnungHalbjahr> abrechnungHalbjahr(@Param("halbjahr") Halbjahr halbjahr,
                                                           @Param("ausgeglichen") boolean ausgeglichen);
+
+    @Getter
+    class DataAbrechnungNachTypen {
+        private Buchungstyp typ;
+        private boolean vorausberechnung;
+        private BigDecimal betrag;
+    }
+
+    Collection<DataAbrechnungNachTypen> abrechnungNachTypenHalbjahr(@Param("halbjahr") Halbjahr halbjahr);
 
     /**
      * Listet alle aktiven (beitragspflichtigen) Mitglieder auf, denen kein

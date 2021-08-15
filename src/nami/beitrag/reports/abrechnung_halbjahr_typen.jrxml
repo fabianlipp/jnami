@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.17.0.final using JasperReports Library version 6.17.0-6d93193241dd8cc42629e188b94f9e0bc5722efd  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="abrechnung_halbjahr" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isFloatColumnFooter="true" uuid="60bd6a5c-6053-4a7c-b159-bde4e721793a">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Batistest auf localhost"/>
+	<parameter name="HALBJAHR" class="nami.connector.Halbjahr">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<field name="typ" class="nami.beitrag.Buchungstyp">
+		<fieldDescription><![CDATA[typ]]></fieldDescription>
+	</field>
+	<field name="vorausberechnung" class="java.lang.Boolean">
+		<fieldDescription><![CDATA[vorausberechnung]]></fieldDescription>
+	</field>
+	<field name="betrag" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[betrag]]></fieldDescription>
+	</field>
+	<variable name="CURRENT_DATE" class="java.util.Date">
+		<initialValueExpression><![CDATA[new Date()]]></initialValueExpression>
+	</variable>
+	<variable name="sum_betrag" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{betrag}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="27" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="290" height="25" uuid="99aff504-bace-45ea-8cba-336ba1abf443">
+					<property name="local_mesure_unitheight" value="pixel"/>
+				</reportElement>
+				<textElement>
+					<font size="18" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Abrechnung für "+$P{HALBJAHR}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="380" y="0" width="174" height="12" uuid="3fbbb44f-f5d6-48ed-94df-162ec3942549">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Stand: "+(new SimpleDateFormat("dd.MM.yyyy").format(new Date()))]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="12" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement x="0" y="0" width="180" height="12" uuid="2bdc1905-6e79-4c8d-a7c5-8cf1604cabfc"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Typ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="180" y="0" width="97" height="12" uuid="5fae3650-1608-43b9-9050-a4a93a579905"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vorausberechnung]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="277" y="0" width="53" height="12" uuid="8cafd77d-837f-4549-bc8d-f002e8ccf1c1"/>
+				<textElement textAlignment="Right">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Betrag]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<textField>
+				<reportElement x="0" y="0" width="180" height="12" uuid="050ab3b0-beb7-46df-9f94-89ddd7e69ffd">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{typ}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="180" y="0" width="97" height="12" uuid="5559c8fc-9fc7-4ece-9976-704744ddaf4f">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[IF($F{vorausberechnung},"V","")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="277" y="0" width="53" height="12" uuid="19335937-88d7-46a7-a466-caf554221f29">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{betrag}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="12">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="230" y="0" width="99" height="12" uuid="a15b4b98-0b93-49a5-9ba8-44d8493ed5ab"/>
+				<textElement textAlignment="Right">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sum_betrag}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="180" height="12" uuid="f9e7b859-3925-44bd-b567-d69b925437ef"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Summe]]></text>
+			</staticText>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="17" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="207" y="5" width="70" height="12" uuid="9f1b9efc-3026-46a3-b8e9-7efd141c8c65">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Seite " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="277" y="5" width="70" height="12" uuid="33e42ee8-306f-4224-b0e0-93e66eb00bb8">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[" von " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

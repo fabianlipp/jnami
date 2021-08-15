@@ -3,6 +3,7 @@ package nami.beitrag.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -30,8 +31,8 @@ public class MainWindow extends JFrame {
     private static final long serialVersionUID = 7477838944466651902L;
 
     private static final String MIG_BUTTON_CONSTRAINTS = "wrap,alignx left,aligny top";
-    private LetterGenerator letterGenerator;
-    private ReportViewer reportViewer;
+    private final LetterGenerator letterGenerator;
+    private final ReportViewer reportViewer;
 
     /**
      * Erzeugt das Hauptfenster.
@@ -345,29 +346,23 @@ public class MainWindow extends JFrame {
         panelAuswertungen.setBorder(new TitledBorder("Auswertungen"));
         panelAuswertungen.setLayout(new MigLayout("", "[]", "[][]"));
 
-        JButton btnRepAbrechnungHalbjahr = new JButton("Abrechnung Halbjahr");
-        panelAuswertungen.add(btnRepAbrechnungHalbjahr, MIG_BUTTON_CONSTRAINTS);
-        btnRepAbrechnungHalbjahr.addActionListener(e -> {
-            HalbjahrMitgliedSelectDialog halbjahrSel;
-            halbjahrSel = new HalbjahrMitgliedSelectDialog(MainWindow.this);
-            halbjahrSel.setVisible(true);
-            Halbjahr halbjahr = halbjahrSel.getChosenHalbjahr();
-            if (halbjahr != null) {
-                reportViewer.viewAbrechnungHalbjahr(halbjahr, true);
-            }
-        });
+        JButton btnRepAbrechnungHalbjahr1 = new JButton("Abrechnung Halbjahr");
+        panelAuswertungen.add(btnRepAbrechnungHalbjahr1, MIG_BUTTON_CONSTRAINTS);
+        btnRepAbrechnungHalbjahr1.addActionListener(
+                this.actionListenerReportWithHalbjahr(
+                        halbjahr -> reportViewer.viewAbrechnungHalbjahr(halbjahr, true)));
 
         JButton btnRepAbrechnungHalbjahr2 = new JButton("Abrechnung Halbjahr (nur offene Beiträge)");
         panelAuswertungen.add(btnRepAbrechnungHalbjahr2, MIG_BUTTON_CONSTRAINTS);
-        btnRepAbrechnungHalbjahr2.addActionListener(e -> {
-            HalbjahrMitgliedSelectDialog halbjahrSel;
-            halbjahrSel = new HalbjahrMitgliedSelectDialog(MainWindow.this);
-            halbjahrSel.setVisible(true);
-            Halbjahr halbjahr = halbjahrSel.getChosenHalbjahr();
-            if (halbjahr != null) {
-                reportViewer.viewAbrechnungHalbjahr(halbjahr, false);
-            }
-        });
+        btnRepAbrechnungHalbjahr2.addActionListener(
+                this.actionListenerReportWithHalbjahr(
+                        halbjahr -> reportViewer.viewAbrechnungHalbjahr(halbjahr, false)));
+
+        JButton btnRepAbrechnungHalbjahr3 = new JButton("Abrechnung Halbjahr (nur nach Typen)");
+        panelAuswertungen.add(btnRepAbrechnungHalbjahr3, MIG_BUTTON_CONSTRAINTS);
+        btnRepAbrechnungHalbjahr3.addActionListener(
+                this.actionListenerReportWithHalbjahr(
+                        reportViewer::viewAbrechnungHalbjahrNachTypen));
 
         /**** Beenden ****/
         JButton buttonClose = new JButton("Beenden");
@@ -381,5 +376,17 @@ public class MainWindow extends JFrame {
 
         pack();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    private ActionListener actionListenerReportWithHalbjahr(Consumer<Halbjahr> consumer) {
+        return actionEvent -> {
+            HalbjahrMitgliedSelectDialog halbjahrSel;
+            halbjahrSel = new HalbjahrMitgliedSelectDialog(MainWindow.this);
+            halbjahrSel.setVisible(true);
+            Halbjahr halbjahr = halbjahrSel.getChosenHalbjahr();
+            if (halbjahr != null) {
+                consumer.accept(halbjahr);
+            }
+        };
     }
 }

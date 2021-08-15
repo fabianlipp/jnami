@@ -1,13 +1,5 @@
 package nami.beitrag.reports;
 
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import nami.beitrag.db.BeitragMitglied;
 import nami.beitrag.db.ReportsMapper;
 import nami.connector.Halbjahr;
 import net.sf.jasperreports.engine.JRException;
@@ -15,9 +7,16 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.view.JasperViewer;
-
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
+
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Führt Auswertungen in der Datenbank durch und stellt diese mittels
@@ -36,9 +35,10 @@ import org.apache.ibatis.session.SqlSessionFactory;
 public class ReportViewer {
     private final SqlSessionFactory sessionFactory;
 
-    /* Dateinamen der Reports (daran wird jeweils .jasper ergänzt) */
-    private static final String FILE_ABRECHNUNG_HALBJAHR = "abrechnung_halbjahr";
-    private static final String FILE_MITGLIEDER_OHNE_SEPA = "mitglieder_ohne_sepa";
+    /* Dateinamen der Reports */
+    private static final String FILE_ABRECHNUNG_HALBJAHR = "abrechnung_halbjahr.jasper";
+    private static final String FILE_ABRECHNUNG_HALBJAHR_TYPEN = "abrechnung_halbjahr_typen.jasper";
+    private static final String FILE_MITGLIEDER_OHNE_SEPA = "mitglieder_ohne_sepa.jasper";
 
     private static final Logger LOGGER = Logger.getLogger(ReportViewer.class.getName());
 
@@ -52,16 +52,15 @@ public class ReportViewer {
         this.sessionFactory = sessionFactory;
     }
 
-    private <T> void viewReport(String reportFile, Map<String, Object> params,
-            Collection<T> data) {
-        try {
-            InputStream reportIS = ReportViewer.class
-                    .getResourceAsStream(reportFile + ".jasper");
-            JasperPrint jasperPrint;
-            jasperPrint = JasperFillManager.fillReport(reportIS, params,
-                    new JRBeanCollectionDataSource(data));
-            // JasperExportManager.exportReportToPdfFile(jasperPrint,
-            // "/home/fabian/test.pdf");
+    private void viewReport(String reportFile, Map<String, Object> params,
+                            Function<ReportsMapper, Collection<?>> query) {
+        try (SqlSession session = sessionFactory.openSession()) {
+            ReportsMapper mapper = session.getMapper(ReportsMapper.class);
+            Collection<?> data = query.apply(mapper);
+            JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(data);
+
+            InputStream reportIS = ReportViewer.class.getResourceAsStream(reportFile);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(reportIS, params, dataSource);
             LOGGER.info("Generated Report");
             JasperViewer.viewReport(jasperPrint, false);
         } catch (JRException e) {
@@ -79,16 +78,24 @@ public class ReportViewer {
      *            Zeige auch Mitglieder mit ausgeglichenen Beitragskonten
      */
     public void viewAbrechnungHalbjahr(Halbjahr halbjahr, boolean ausgeglichen) {
-        try (SqlSession session = sessionFactory.openSession()) {
-            ReportsMapper mapper = session.getMapper(ReportsMapper.class);
-            Collection<DataAbrechnungHalbjahr> data = mapper
-                    .abrechnungHalbjahr(halbjahr, ausgeglichen);
+        Map<String, Object> params = new HashMap<>();
+        params.put("HALBJAHR", halbjahr);
+        viewReport(FILE_ABRECHNUNG_HALBJAHR, params,
+                reportsMapper -> reportsMapper.abrechnungHalbjahr(halbjahr, ausgeglichen));
+    }
 
-            Map<String, Object> params = new HashMap<>();
-            params.put("HALBJAHR", halbjahr);
-
-            viewReport(FILE_ABRECHNUNG_HALBJAHR, params, data);
-        }
+    /**
+     * Zeigt die Abrechnung für ein Halbjahr an. Diese listet die Summen der
+     * Buchungen für die jeweiligen Buchungstypen auf.
+     *
+     * @param halbjahr
+     *            Halbjahr, für das die Abrechnung erstellt werden soll
+     */
+    public void viewAbrechnungHalbjahrNachTypen(Halbjahr halbjahr) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("HALBJAHR", halbjahr);
+        viewReport(FILE_ABRECHNUNG_HALBJAHR_TYPEN, params,
+                reportsMapper -> reportsMapper.abrechnungNachTypenHalbjahr(halbjahr));
     }
 
     /**
@@ -96,14 +103,7 @@ public class ReportViewer {
      * SEPA-Mandat existiert.
      */
     public void viewMitgliederOhneSepaMandat() {
-        try (SqlSession session = sessionFactory.openSession()) {
-            ReportsMapper mapper = session.getMapper(ReportsMapper.class);
-            Collection<BeitragMitglied> data = mapper
-                    .mitgliederOhneSepaMandat();
-
-            Map<String, Object> params = new HashMap<>();
-
-            viewReport(FILE_MITGLIEDER_OHNE_SEPA, params, data);
-        }
+        Map<String, Object> params = new HashMap<>();
+        viewReport(FILE_MITGLIEDER_OHNE_SEPA, params, ReportsMapper::mitgliederOhneSepaMandat);
     }
 }
