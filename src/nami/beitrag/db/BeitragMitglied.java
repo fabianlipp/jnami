@@ -1,6 +1,7 @@
 package nami.beitrag.db;
 
 import java.util.Date;
+import java.util.Objects;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -58,7 +59,7 @@ public class BeitragMitglied {
         plz = namiMgl.getPlz();
         ort = namiMgl.getOrt();
         email = namiMgl.getEmail();
-        emailVertretungsber = namiMgl.getEmailVertretungsberechtigter();
+        emailVertretungsber = Objects.requireNonNullElse(namiMgl.getEmailVertretungsberechtigter(), "");
         version = namiMgl.getVersion();
     }
 
