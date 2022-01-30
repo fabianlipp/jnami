@@ -7,7 +7,7 @@ Lizenz:
 -------
 Der Code unterliegt der GNU GPL. Der vollständige Lizenztext befindet sich in LICENSE.
 
-> Copyright (C) 2013-2014 Fabian Lipp
+> Copyright (C) 2013-2022 Fabian Lipp
 >
 > This program is free software: you can redistribute it and/or modify
 > it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ Bemerkungen zum aktuellen Stand:
 * Die Software ist mittlerweile an den Produktiv-Server von NaMi angepasst. Da
   der Test-Server nicht mehr auf dem aktuellen Software-Stand ist, dürfte die
   Zusammenarbeit damit nicht mehr richtig funktionieren.
-* Ich habe das Ganze bisher nur unter Linux (OpenJDK 1.7.0) getestet.
+* Ich habe das Ganze bisher nur unter Linux (OpenJDK 11) getestet.
   Ich denke es spricht aber auch nichts dagegen, dass es unter Windows läuft.
 * Bei den Bibliotheken, die Ivy herunterlädt, hat sich im Laufe der Zeit
   vermutlich einiges angesammelt, was nicht mehr genutzt wird. Da könnte man
@@ -64,7 +64,7 @@ Bemerkungen zum aktuellen Stand:
 Kompilierung
 ------------
 * Man benötigt dafür ant (http://ant.apache.org/) und Ivy (http://ant.apache.org/ivy/).
-* Der Code benötigt mindestens Java 7.
+* Der Code benötigt mindestens Java 11.
 * Dann sollte ein einfacher Aufruf "ant" im Quelltext-Verzeichnis (also dem Verzeichnis, wo die build.xml liegt) reichen, um das Ganze zu kompilieren.
 * Die Datei src/nami/connector/credentials/NamiWalletCredentials.java macht vermutlich Probleme, weil man dafür noch eine Library und zugehörige Abhängigkeiten (inkl. JNI) benötigt (https://evolvis.org/projects/libwallet/). Man kann diese Quelltext-Datei aber einfach löschen, wenn man die Passwörter nicht in KWallet speichern möchte.
 * jnami verwendet [Project Lombok](http://projectlombok.org/). Bei der Kompilierung auf der Kommandozeile mittels ant wird die notwendige Library automatisch heruntergeladen. Bei Verwendung einer IDE muss ggf. ein Plug-In für Lombok installiert werden.
