@@ -37,12 +37,12 @@
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataMahnungKomplett" alias="DataMahnungKomplett" />
 		<typeAlias type="nami.beitrag.db.RechnungenMapper$DataRechnungMitBuchungen" alias="DataRechnungMitBuchungen" />
 
+		<typeAlias type="nami.beitrag.db.ReportsMapper$DataAbrechnungHalbjahr" alias="DataAbrechnungHalbjahr" />
 		<typeAlias type="nami.beitrag.db.ReportsMapper$DataAbrechnungNachTypen" alias="DataAbrechnungNachTypen" />
 		<typeAlias type="nami.beitrag.db.ReportsMapper$DataAnzahlBuchungenProHalbjahr" alias="DataAnzahlBuchungenProHalbjahr" />
 
 		<typeAlias type="nami.beitrag.db.AbmeldungenMapper$DataAbmeldungMitglied" alias="DataAbmeldungMitglied" />
 
-		<typeAlias type="nami.beitrag.reports.DataAbrechnungHalbjahr" alias="DataAbrechnungHalbjahr" />
 		<typeAlias type="nami.connector.Halbjahr" alias="Halbjahr" />
 	</typeAliases>
 

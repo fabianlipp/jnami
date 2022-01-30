@@ -2,10 +2,10 @@ package nami.beitrag.db;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Date;
 
-import lombok.Getter;
+import lombok.Data;
 import nami.beitrag.Buchungstyp;
-import nami.beitrag.reports.DataAbrechnungHalbjahr;
 import nami.connector.Halbjahr;
 import org.apache.ibatis.annotations.Param;
 
@@ -17,6 +17,29 @@ import org.apache.ibatis.annotations.Param;
  * 
  */
 public interface ReportsMapper {
+    /**
+     * Beschreibt die Daten, die für die Halbjahresabrechnung aus der Datenbank
+     * abgefragt werden.
+     *
+     * @author Fabian Lipp
+     *
+     */
+    @Data
+    class DataAbrechnungHalbjahr {
+        private int buchungId;
+        private int mitgliedId;
+        private int namiBuchungId;
+        private String rechnungsnummer;
+        private Date datum;
+        private BigDecimal betrag;
+        private boolean vorausberechnung;
+        private String kommentar;
+        private String mitgliedsnummer;
+        private String nachname;
+        private String vorname;
+        private Buchungstyp typ;
+    }
+
     /**
      * Erstellt die Abrechnung für ein Halbjahr. Diese Abrechnung listet für
      * jedes Mitglied das gesamte Beitragskonto auf.
@@ -30,7 +53,7 @@ public interface ReportsMapper {
     Collection<DataAbrechnungHalbjahr> abrechnungHalbjahr(@Param("halbjahr") Halbjahr halbjahr,
                                                           @Param("ausgeglichen") boolean ausgeglichen);
 
-    @Getter
+    @Data
     class DataAbrechnungNachTypen {
         private Buchungstyp typ;
         private boolean vorausberechnung;
@@ -47,7 +70,7 @@ public interface ReportsMapper {
      */
     Collection<BeitragMitglied> mitgliederOhneSepaMandat();
 
-    @Getter
+    @Data
     class DataAnzahlBuchungenProHalbjahr {
         private Halbjahr halbjahr;
         private int vorausberechnungen;
@@ -62,4 +85,5 @@ public interface ReportsMapper {
      * @return Liste der Halbjahre mit Anzahl der Buchungen
      */
     Collection<DataAnzahlBuchungenProHalbjahr> anzahlBuchungenProHalbjahr();
+
 }
