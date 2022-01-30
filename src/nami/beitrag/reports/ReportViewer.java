@@ -40,7 +40,7 @@ public class ReportViewer {
     private static final String FILE_ABRECHNUNG_HALBJAHR_TYPEN = "abrechnung_halbjahr_typen.jasper";
     private static final String FILE_MITGLIEDER_OHNE_SEPA = "mitglieder_ohne_sepa.jasper";
     private static final String FILE_ANZAHL_BUCHUNGEN_PRO_HALBJAHR = "anzahl_buchungen_pro_halbjahr.jasper";
-
+    private static final String FILE_UNAUSGEGLICHENE_BEITRAGSKONTEN ="unausgeglichene_beitragskonten.jasper";
     private static final Logger LOGGER = Logger.getLogger(ReportViewer.class.getName());
 
     /**
@@ -117,5 +117,13 @@ public class ReportViewer {
      */
     public void viewAnzahlBuchungenProHalbjahr() {
         viewReport(FILE_ANZAHL_BUCHUNGEN_PRO_HALBJAHR, ReportsMapper::anzahlBuchungenProHalbjahr);
+    }
+
+    /**
+     * Zeigt die unausgeglichenen Beitragskonten gruppiert nach
+     * Halbjahr inkl. Saldo an.
+     */
+    public void viewUnausgeglicheneBeitragskontenProHalbjahr() {
+        viewReport(FILE_UNAUSGEGLICHENE_BEITRAGSKONTEN, ReportsMapper::unausgeglicheneBeitragskontenProHalbjahr);
     }
 }

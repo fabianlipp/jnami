@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.17.0.final using JasperReports Library version 6.17.0-6d93193241dd8cc42629e188b94f9e0bc5722efd  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="abrechnung_halbjahr" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="60bd6a5c-6053-4a7c-b159-bde4e721793a">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="New Data Adapter "/>
+	<parameter name="HALBJAHR" class="nami.connector.Halbjahr">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<field name="betrag" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[betrag]]></fieldDescription>
+	</field>
+	<field name="mitgliedsnummer" class="java.lang.String">
+		<fieldDescription><![CDATA[mitgliedsnummer]]></fieldDescription>
+	</field>
+	<field name="nachname" class="java.lang.String">
+		<fieldDescription><![CDATA[nachname]]></fieldDescription>
+	</field>
+	<field name="vorname" class="java.lang.String">
+		<fieldDescription><![CDATA[vorname]]></fieldDescription>
+	</field>
+	<field name="halbjahr" class="nami.connector.Halbjahr"/>
+	<variable name="betrag1" class="java.math.BigDecimal" resetType="Group" resetGroup="halbjahr" calculation="Sum">
+		<variableExpression><![CDATA[$F{betrag}]]></variableExpression>
+	</variable>
+	<variable name="CURRENT_DATE" class="java.util.Date">
+		<initialValueExpression><![CDATA[new Date()]]></initialValueExpression>
+	</variable>
+	<group name="halbjahr" keepTogether="true">
+		<groupExpression><![CDATA[$F{halbjahr}]]></groupExpression>
+		<groupHeader>
+			<band height="19">
+				<property name="local_mesure_unitheight" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<textField>
+					<reportElement x="0" y="5" width="250" height="12" uuid="d34f1397-d6e1-4732-873a-bc4b7a0a02f9">
+						<property name="local_mesure_unitx" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="local_mesure_unity" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="local_mesure_unitwidth" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="local_mesure_unitheight" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					</reportElement>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Halbjahr " + $F{halbjahr}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="halbjahr">
+					<reportElement key="" x="440" y="5" width="114" height="12" uuid="f94d32cb-47d6-4d3b-a43a-c4f82d529074">
+						<property name="local_mesure_unitheight" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="local_mesure_unity" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+					<textElement textAlignment="Right">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{betrag1}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="2" width="555" height="1" uuid="f14d8ec1-245c-4a56-a433-5d17ea49996a">
+						<property name="local_mesure_unitheight" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="local_mesure_unity" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					</reportElement>
+				</line>
+			</band>
+		</groupHeader>
+	</group>
+	<title>
+		<band height="27" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="370" height="25" uuid="99aff504-bace-45ea-8cba-336ba1abf443">
+					<property name="local_mesure_unitheight" value="pixel"/>
+				</reportElement>
+				<textElement>
+					<font size="18" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Unausgeglichene Beitragskonten"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="380" y="0" width="174" height="12" uuid="3fbbb44f-f5d6-48ed-94df-162ec3942549">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Stand: "+(new SimpleDateFormat("dd.MM.yyyy").format(new Date()))]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="12" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement x="0" y="0" width="90" height="12" uuid="87d03437-a43c-4102-adf6-68523824201d">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="local_mesure_unity" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<text><![CDATA[Mitgliedsnummer]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="95" y="0" width="154" height="12" uuid="2bdc1905-6e79-4c8d-a7c5-8cf1604cabfc"/>
+				<text><![CDATA[Nachname]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="249" y="0" width="155" height="12" uuid="5fae3650-1608-43b9-9050-a4a93a579905">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<text><![CDATA[Vorname]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="500" y="0" width="55" height="12" uuid="8cafd77d-837f-4549-bc8d-f002e8ccf1c1"/>
+				<textElement textAlignment="Right"/>
+				<text><![CDATA[Betrag]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<textField pattern="dd.MM.yyyy">
+				<reportElement x="0" y="0" width="90" height="12" uuid="bb51380c-47db-4f28-9c1c-d7ce38bc2bf4">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{mitgliedsnummer}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="95" y="0" width="154" height="12" uuid="050ab3b0-beb7-46df-9f94-89ddd7e69ffd">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{nachname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="249" y="0" width="155" height="12" uuid="5559c8fc-9fc7-4ece-9976-704744ddaf4f">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{vorname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="500" y="0" width="54" height="12" uuid="19335937-88d7-46a7-a466-caf554221f29">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{betrag}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="17" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="207" y="5" width="70" height="12" uuid="9f1b9efc-3026-46a3-b8e9-7efd141c8c65">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Seite " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="277" y="5" width="70" height="12" uuid="33e42ee8-306f-4224-b0e0-93e66eb00bb8">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="local_mesure_unitx" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[" von " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

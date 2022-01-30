@@ -62,4 +62,31 @@
 		GROUP BY halbjahr, jahr
 		ORDER BY jahr, halbjahr
 	</select>
+
+	<resultMap id="unausgeglicheneBeitragskontenMap" type="DataUnausgeglicheneBeitragskonten">
+		<result property="mitgliedsnummer" column="mitgliedsnummer"/>
+		<result property="nachname" column="nachname"/>
+		<result property="vorname" column="vorname"/>
+		<result property="betrag" column="betrag"/>
+		<association property="halbjahr" resultMap="nami.beitrag.db.BeitragMapper.halbjahrResult" />
+	</resultMap>
+
+	<select id="unausgeglicheneBeitragskontenProHalbjahr" resultMap="unausgeglicheneBeitragskontenMap">
+		SELECT beitragBuchung.halbjahr, beitragBuchung.jahr, beitragBuchung.mitgliedId,
+		       beitragMitglied.mitgliedsnummer, beitragMitglied.nachname, beitragMitglied.vorname,
+		       SUM(beitragBuchung.betrag) AS betrag
+		FROM beitragBuchung
+		JOIN beitragMitglied ON beitragBuchung.mitgliedId = beitragMitglied.mitgliedId
+		WHERE beitragBuchung.storniert = FALSE
+			AND (beitragBuchung.mitgliedId, beitragBuchung.halbjahr, beitragBuchung.jahr) IN (
+			SELECT beitragMitglied.mitgliedId, beitragBuchung.halbjahr, beitragBuchung.jahr
+			FROM beitragBuchung
+			JOIN beitragMitglied ON beitragBuchung.mitgliedId = beitragMitglied.mitgliedId
+			WHERE beitragBuchung.storniert = FALSE
+			GROUP BY beitragMitglied.mitgliedId, beitragBuchung.halbjahr, beitragBuchung.jahr
+			HAVING SUM(beitragBuchung.betrag) != 0
+			)
+		GROUP BY beitragBuchung.jahr, beitragBuchung.halbjahr, beitragBuchung.mitgliedId
+		ORDER BY beitragBuchung.jahr DESC, beitragBuchung.halbjahr DESC, beitragBuchung.mitgliedId
+	</select>
 </mapper>

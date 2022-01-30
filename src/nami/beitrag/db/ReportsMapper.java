@@ -86,4 +86,20 @@ public interface ReportsMapper {
      */
     Collection<DataAnzahlBuchungenProHalbjahr> anzahlBuchungenProHalbjahr();
 
+    @Data
+    class DataUnausgeglicheneBeitragskonten {
+        private Halbjahr halbjahr;
+        private String mitgliedsnummer;
+        private String nachname;
+        private String vorname;
+        private BigDecimal betrag;
+    }
+
+    /**
+     * Zeigt die unausgeglichenen Beitragskonten gruppiert nach
+     * Halbjahr inkl. Saldo an.
+     *
+     * @return Liste der unausgeglichenen Beitragskonten
+     */
+    Collection<DataUnausgeglicheneBeitragskonten> unausgeglicheneBeitragskontenProHalbjahr();
 }

@@ -291,6 +291,10 @@ public class MainWindow extends JFrame {
                 this.actionListenerReportWithHalbjahr(
                         reportViewer::viewAbrechnungHalbjahrNachTypen));
 
+        JButton btnUnausgeglichen = new JButton("Unausgeglichene Beitragskonten pro Halbjahr");
+        panelAuswertungen.add(btnUnausgeglichen, MIG_BUTTON_CONSTRAINTS);
+        btnUnausgeglichen.addActionListener(e -> reportViewer.viewUnausgeglicheneBeitragskontenProHalbjahr());
+
         /**** Beenden ****/
         JButton buttonClose = new JButton("Beenden");
         getContentPane().add(buttonClose, "cell 0 5,span,alignx center");

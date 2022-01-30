@@ -40,6 +40,7 @@
 		<typeAlias type="nami.beitrag.db.ReportsMapper$DataAbrechnungHalbjahr" alias="DataAbrechnungHalbjahr" />
 		<typeAlias type="nami.beitrag.db.ReportsMapper$DataAbrechnungNachTypen" alias="DataAbrechnungNachTypen" />
 		<typeAlias type="nami.beitrag.db.ReportsMapper$DataAnzahlBuchungenProHalbjahr" alias="DataAnzahlBuchungenProHalbjahr" />
+		<typeAlias type="nami.beitrag.db.ReportsMapper$DataUnausgeglicheneBeitragskonten" alias="DataUnausgeglicheneBeitragskonten" />
 
 		<typeAlias type="nami.beitrag.db.AbmeldungenMapper$DataAbmeldungMitglied" alias="DataAbmeldungMitglied" />
 
