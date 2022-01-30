@@ -47,4 +47,19 @@
 			AND deleted = FALSE
 	</select>
 
+	<resultMap id="anzahlBuchungenProHalbjahrMap" type="DataAnzahlBuchungenProHalbjahr">
+		<result property="vorausberechnungen" column="vorausberechnungen"/>
+		<result property="endgueltig" column="endgueltig"/>
+		<result property="total" column="total"/>
+		<association property="halbjahr" resultMap="nami.beitrag.db.BeitragMapper.halbjahrResult" />
+	</resultMap>
+
+	<select id="anzahlBuchungenProHalbjahr" resultMap="anzahlBuchungenProHalbjahrMap">
+		SELECT halbjahr, jahr, SUM(vorausberechnung) AS vorausberechnungen,
+		       SUM(CASE vorausberechnung WHEN TRUE THEN FALSE ELSE TRUE END) AS endgueltig, COUNT(*) AS total
+		FROM beitragBuchung
+		WHERE storniert = FALSE
+		GROUP BY halbjahr, jahr
+		ORDER BY jahr, halbjahr
+	</select>
 </mapper>

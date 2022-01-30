@@ -198,6 +198,10 @@ public class MainWindow extends JFrame {
             }
         });
 
+        JButton btnRepBuchungenHalbjahr = new JButton("Anzahl Buchungen pro Halbjahr");
+        panelBuchungen.add(btnRepBuchungenHalbjahr, MIG_BUTTON_CONSTRAINTS);
+        btnRepBuchungenHalbjahr.addActionListener(e -> reportViewer.viewAnzahlBuchungenProHalbjahr());
+
         /**** Mandate ****/
         JPanel panelMandate = new JPanel();
         getContentPane().add(panelMandate, "cell 1 1,grow");

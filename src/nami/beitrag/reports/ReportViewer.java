@@ -39,6 +39,7 @@ public class ReportViewer {
     private static final String FILE_ABRECHNUNG_HALBJAHR = "abrechnung_halbjahr.jasper";
     private static final String FILE_ABRECHNUNG_HALBJAHR_TYPEN = "abrechnung_halbjahr_typen.jasper";
     private static final String FILE_MITGLIEDER_OHNE_SEPA = "mitglieder_ohne_sepa.jasper";
+    private static final String FILE_ANZAHL_BUCHUNGEN_PRO_HALBJAHR = "anzahl_buchungen_pro_halbjahr.jasper";
 
     private static final Logger LOGGER = Logger.getLogger(ReportViewer.class.getName());
 
@@ -66,6 +67,10 @@ public class ReportViewer {
         } catch (JRException e) {
             LOGGER.log(Level.WARNING, "Could not generate Report", e);
         }
+    }
+
+    private void viewReport(String reportFile, Function<ReportsMapper, Collection<?>> query) {
+        this.viewReport(reportFile, new HashMap<>(), query);
     }
 
     /**
@@ -103,7 +108,14 @@ public class ReportViewer {
      * SEPA-Mandat existiert.
      */
     public void viewMitgliederOhneSepaMandat() {
-        Map<String, Object> params = new HashMap<>();
-        viewReport(FILE_MITGLIEDER_OHNE_SEPA, params, ReportsMapper::mitgliederOhneSepaMandat);
+        viewReport(FILE_MITGLIEDER_OHNE_SEPA, ReportsMapper::mitgliederOhneSepaMandat);
+    }
+
+    /**
+     * Zeigt die Anzahl der Buchungen (aufgeteilt in Vorausbuchungen
+     * und endgültige Buchungen) pro Halbjahr.
+     */
+    public void viewAnzahlBuchungenProHalbjahr() {
+        viewReport(FILE_ANZAHL_BUCHUNGEN_PRO_HALBJAHR, ReportsMapper::anzahlBuchungenProHalbjahr);
     }
 }

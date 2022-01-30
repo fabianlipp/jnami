@@ -46,4 +46,20 @@ public interface ReportsMapper {
      * @return Liste der Mitglieder ohne SEPA-Mandat
      */
     Collection<BeitragMitglied> mitgliederOhneSepaMandat();
+
+    @Getter
+    class DataAnzahlBuchungenProHalbjahr {
+        private Halbjahr halbjahr;
+        private int vorausberechnungen;
+        private int endgueltig;
+        private int total;
+    }
+
+    /**
+     * Zeigt die Anzahl der Buchungen (aufgeteilt in Vorausbuchungen
+     * und endgültige Buchungen) pro Halbjahr.
+     *
+     * @return Liste der Halbjahre mit Anzahl der Buchungen
+     */
+    Collection<DataAnzahlBuchungenProHalbjahr> anzahlBuchungenProHalbjahr();
 }
