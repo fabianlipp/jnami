@@ -322,19 +322,9 @@ public class NamiConnector {
 
         // Decodiere geliefertes JSON
         Reader respReader = new InputStreamReader(responseEntity.getContent());
-        if (server.useApiAccess()) {
-            Type type = NamiApiResponse.getType(typeOfT);
-            NamiApiResponse<T> resp = gson.fromJson(respReader, type);
 
-            if (resp.getStatusCode() != 0) {
-                throw new NamiApiException(resp);
-            }
-            return resp.getResponse();
-        } else {
-
-            T resp = gson.fromJson(respReader, typeOfT);
-            return resp;
-        }
+        T resp = gson.fromJson(respReader, typeOfT);
+        return resp;
     }
 
     /**
