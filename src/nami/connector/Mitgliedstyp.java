@@ -23,7 +23,7 @@ public enum Mitgliedstyp {
     /**
      * Schnuppermitgliedschaft.
      */
-    SCHNUPPER_MITGLIED;
+    SCHNUPPERMITGLIED;
 
     /**
      * Setzt einen String in den entsprechenden Mitgliedstyp um.
@@ -45,7 +45,7 @@ public enum Mitgliedstyp {
         case "Schnuppermitglied":
         case "SCHNUPPERMITGLIED":
         case "SCHNUPPER_MITGLIED":
-            return SCHNUPPER_MITGLIED;
+            return SCHNUPPERMITGLIED;
         case "":
             return null;
         default:
