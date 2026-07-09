@@ -52,8 +52,11 @@ public enum Beitragsart {
         case "Sozialermäßigt":
         case "Sozialermäßigt - Stiftungseuro":
         case "SOZIALERMAESSIGUNG":
+        case "Ermäßigt":
+        case "Ermäßigt - Stiftungseuro":
             return SOZIALERMAESSIGUNG;
         case "NICHT_MITGLIEDER":
+        case "NICHT_MITGLIED":
         case "KEIN_BEITRAG":
         case "(keine Beitragsarten zugeordnet)":
             return KEIN_BEITRAG;
@@ -61,7 +64,7 @@ public enum Beitragsart {
             return null;
         default:
             throw new IllegalArgumentException(
-                    "Unexpected String for Beitragsart:" + str);
+                    "Unexpected String for Beitragsart: " + str);
         }
     }
 }
